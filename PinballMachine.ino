@@ -33,21 +33,29 @@ void setup() {
   pinMode(OUT_THUMPER_RIGHT, OUTPUT);
   pinMode(OUT_BALL_RETUN, OUTPUT);
 
+  pinMode(OUT_MX0, OUTPUT);
   pinMode(OUT_MX1, OUTPUT);
-
-  pinMode(IN_SW3, INPUT);
+  pinMode(OUT_MX3, OUTPUT);
+  pinMode(OUT_MX4, OUTPUT);
+  pinMode(OUT_MX5, OUTPUT);
+  pinMode(OUT_MX6, OUTPUT);
+  pinMode(OUT_MX7, OUTPUT);
   
+  pinMode(IN_SW0, INPUT);
+  pinMode(IN_SW1, INPUT);
+  pinMode(IN_SW2, INPUT);
+  pinMode(IN_SW3, INPUT);
 }
 
 void loop() {
-  pulse(OUT_SLINGSHOT_LEFT);
-  pulse(OUT_SLINGSHOT_RIGHT);
-  pulse(OUT_THUMPER_LEFT);
-  pulse(OUT_THUMPER_RIGHT);
-  pulse(OUT_BALL_RETUN);
-  delay(3000);
- // checkSwitches();
-  //triggerSolinoids();
+//  pulse(OUT_SLINGSHOT_LEFT);
+//  pulse(OUT_SLINGSHOT_RIGHT);
+//  pulse(OUT_THUMPER_LEFT);
+//  pulse(OUT_THUMPER_RIGHT);
+//  pulse(OUT_BALL_RETUN);
+//  delay(3000);
+  checkSwitches();
+  triggerSolinoids();
 }
 
 void checkSwitches(){
