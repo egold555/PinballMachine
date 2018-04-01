@@ -1,11 +1,11 @@
 
-const int DELAY = 80;
+const int SOLENOID_DELAY = 100; //60
 const int LED = 13;
-const int  SWITCH_READ_DELAY = 5000;
+const int SWITCH_READ_DELAY = 4000;
 const int ANALOG_THRESHOLD = 100;
 
 const int OUT_SLINGSHOT_LEFT = 22;
-const int OUT_BALL_RETUN = 23;
+const int OUT_BALL_RETURN = 23;
 const int OUT_SLINGSHOT_RIGHT = 24;
 const int OUT_THUMPER_LEFT = 25;
 const int OUT_THUMPER_RIGHT = 26;
@@ -16,6 +16,12 @@ const int OUT_MX2 = 30;
 const int OUT_MX3 = 31;
 const int OUT_MX4 = 32;
 const int OUT_MX5 = 33;
+
+const int OUT_LT0 = 36;
+const int OUT_LT1 = 37;
+const int OUT_LT2 = 38;
+const int OUT_LT3 = 39;
+
 
 const int IN_SW0 = A12; //36
 const int IN_SW1 = A13; //37
@@ -47,6 +53,37 @@ bool mx5_sw1 = false;
 bool swRightBumper = false;
 bool swRightAdvanceLane = false;
 
+bool mx0_lt0 = true;
+bool mx0_lt1 = true;
+bool mx0_lt2 = true;
+bool mx0_lt3 = true;
+bool mx1_lt0 = false;
+bool mx1_lt1 = false;
+bool mx1_lt2 = false;
+bool mx1_lt3 = false;
+bool mx2_lt0 = false;
+bool mx2_lt1 = false;
+bool mx2_lt2 = false;
+bool mx2_lt3 = false;
+bool mx3_lt0 = false;
+bool mx3_lt1 = false;
+bool mx3_lt2 = false;
+bool mx3_lt3 = false;
+bool mx4_lt0 = false;
+bool mx4_lt1 = false;
+bool mx4_lt2 = false;
+bool mx4_lt3 = false;
+bool mx5_lt0 = false;
+bool mx5_lt1 = false;
+bool mx5_lt2 = false;
+bool mx5_lt3 = false;
+
+
+// Time (as returned by millis()) that solenoid should retract.
+unsigned long timeRetractLeftSlingshot = 0, timeRetractRightSlingshot = 0;
+unsigned long timeRetractLeftThumperBumper = 0, timeRetractRightThumperBumper = 0;
+unsigned long timeRetractBallReturn = 0;
+
 
 void setup() {
 
@@ -58,7 +95,7 @@ void setup() {
   pinMode(OUT_SLINGSHOT_RIGHT, OUTPUT);
   pinMode(OUT_THUMPER_LEFT, OUTPUT);
   pinMode(OUT_THUMPER_RIGHT, OUTPUT);
-  pinMode(OUT_BALL_RETUN, OUTPUT);
+  pinMode(OUT_BALL_RETURN, OUTPUT);
 
   pinMode(OUT_MX0, OUTPUT);
   pinMode(OUT_MX1, OUTPUT);
@@ -67,42 +104,99 @@ void setup() {
   pinMode(OUT_MX4, OUTPUT);
   pinMode(OUT_MX5, OUTPUT);
 
+  pinMode(OUT_LT0, OUTPUT);
+  pinMode(OUT_LT1, OUTPUT);
+  pinMode(OUT_LT2, OUTPUT);
+  pinMode(OUT_LT3, OUTPUT);
+
   pinMode(IN_SW0, INPUT);
   pinMode(IN_SW1, INPUT);
   pinMode(IN_SW2, INPUT);
   pinMode(IN_SW3, INPUT);
   
-  Serial.println("Setup Initalised. Hello World!");
+  //Serial.println("Setup Initalised. Hello World!");
 }
 
 void loop() {
-  //  pulse(OUT_SLINGSHOT_LEFT);
-  //  pulse(OUT_SLINGSHOT_RIGHT);
-  //  pulse(OUT_THUMPER_LEFT);
-  //  pulse(OUT_THUMPER_RIGHT);
-  //  pulse(OUT_BALL_RETUN);
-  //  delay(3000);
-  checkSwitches();
-  //solinoids();
-  debug();
-  delay(3000);
+
+  checkSwitchesAndLightLights();
+  solinoids();
+  //debug();
+  //delay(3000);
 }
 
 void solinoids(){
-  if(swD){
-    pulse(OUT_SLINGSHOT_LEFT);
+  unsigned long currentTime = millis();
+  
+  // Fire solenoids that should be fired.
+  if(swLeftSlingShot){
+    digitalWrite(OUT_SLINGSHOT_LEFT, HIGH);
+    timeRetractLeftSlingshot = currentTime + SOLENOID_DELAY;
   }
+
+  if(swRightSlingShot){
+    digitalWrite(OUT_SLINGSHOT_RIGHT, HIGH);
+    timeRetractRightSlingshot = currentTime + SOLENOID_DELAY;
+  }
+
+  if(swLeftThumperBumper){
+    digitalWrite(OUT_THUMPER_LEFT, HIGH);
+    timeRetractLeftThumperBumper = currentTime + SOLENOID_DELAY;
+  }
+
+  if(swRightThumperBumper){
+    digitalWrite(OUT_THUMPER_RIGHT, HIGH);
+    timeRetractRightThumperBumper = currentTime + SOLENOID_DELAY;
+  }
+
+  if(swBallReturn){
+    digitalWrite(OUT_BALL_RETURN, HIGH);
+    timeRetractBallReturn = currentTime + SOLENOID_DELAY;
+  }
+
+  // Retract solenoids that should be retracted.
+  if (currentTime > timeRetractLeftSlingshot) {
+    digitalWrite(OUT_SLINGSHOT_LEFT, LOW);
+  }
+
+  if (currentTime > timeRetractRightSlingshot) {
+    digitalWrite(OUT_SLINGSHOT_RIGHT, LOW);
+  }
+
+  if (currentTime > timeRetractLeftThumperBumper) {
+    digitalWrite(OUT_THUMPER_LEFT, LOW);
+  }
+
+  if (currentTime > timeRetractRightThumperBumper) {
+    digitalWrite(OUT_THUMPER_RIGHT, LOW);
+  }
+
+  if (currentTime > timeRetractBallReturn) {
+    digitalWrite(OUT_BALL_RETURN, LOW);
+  }
+  
 }
 
-void checkSwitches() {
+void checkSwitchesAndLightLights() {
 
-  delayMicroseconds(SWITCH_READ_DELAY);
   digitalWrite(OUT_MX0, HIGH);
+  digitalWrite(OUT_LT0, mx0_lt0);
+  digitalWrite(OUT_LT1, mx0_lt1);
+  digitalWrite(OUT_LT2, mx0_lt2);
+  digitalWrite(OUT_LT3, mx0_lt3);
+  
   delayMicroseconds(SWITCH_READ_DELAY);
+  
   swBallReturn = analogRead(IN_SW0) > ANALOG_THRESHOLD;
   swTilt = analogRead(IN_SW1) > ANALOG_THRESHOLD;
   swRightSpinner = analogRead(IN_SW2) > ANALOG_THRESHOLD;
   swRightExtraBallLane = analogRead(IN_SW3) > ANALOG_THRESHOLD;
+
+  digitalWrite(OUT_LT0, LOW);
+  digitalWrite(OUT_LT1, LOW);
+  digitalWrite(OUT_LT2, LOW);
+  digitalWrite(OUT_LT3, LOW);
+  
   digitalWrite(OUT_MX0, LOW);
 
 
@@ -157,16 +251,6 @@ void checkSwitches() {
 
 
 }
-
-void pulse(int thing) {
-  digitalWrite(thing, HIGH);
-  digitalWrite(LED, HIGH);
-  delay(DELAY);
-  digitalWrite(thing, LOW);
-  digitalWrite(LED, LOW);
-  delay(DELAY);
-}
-
 
 void debug() {
 
