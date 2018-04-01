@@ -22,30 +22,30 @@ const int IN_SW1 = A13; //37
 const int IN_SW2 = A14; //38
 const int IN_SW3 = A15; //39
 
-bool mx0_sw0 = false;
-bool mx0_sw1 = false;
-bool mx0_sw2 = false;
-bool mx0_sw3 = false;
-bool mx1_sw0 = false;
-bool mx1_sw1 = false;
-bool mx1_sw2 = false;
-bool mx1_sw3 = false;
-bool mx2_sw0 = false;
-bool mx2_sw1 = false;
-bool mx2_sw2 = false;
-bool mx2_sw3 = false;
-bool mx3_sw0 = false;
-bool mx3_sw1 = false;
-bool mx3_sw2 = false;
-bool mx3_sw3 = false;
-bool mx4_sw0 = false;
+bool swBallReturn = false;
+bool swTilt = false;
+bool swRightSpinner = false;
+bool swRightExtraBallLane = false;
+bool swA = false;
+bool swStart = false;
+bool swLeftTarget = false;
+bool swLeftSlingShot = false;
+bool swB = false;
+bool swLeftThumperBumper = false;
+bool swLeftBumper = false;
+bool swLeftExtraBallLane = false;
+bool swC = false;
+bool swRightThumperBumper = false;
+bool swLeftSpinner = false;
+bool swLeftAdvanceLane = false;
+bool swD = false;
 bool mx4_sw1 = false;
-bool mx4_sw2 = false;
-bool mx4_sw3 = false;
-bool mx5_sw0 = false;
+bool swRightTarget = false;
+bool swRightSlingShot = false;
+bool swCenterTarget = false;
 bool mx5_sw1 = false;
-bool mx5_sw2 = false;
-bool mx5_sw3 = false;
+bool swRightBumper = false;
+bool swRightAdvanceLane = false;
 
 
 void setup() {
@@ -89,7 +89,7 @@ void loop() {
 }
 
 void solinoids(){
-  if(mx4_sw0){
+  if(swD){
     pulse(OUT_SLINGSHOT_LEFT);
   }
 }
@@ -99,38 +99,38 @@ void checkSwitches() {
   delayMicroseconds(SWITCH_READ_DELAY);
   digitalWrite(OUT_MX0, HIGH);
   delayMicroseconds(SWITCH_READ_DELAY);
-  mx0_sw0 = analogRead(IN_SW0) > ANALOG_THRESHOLD;
-  mx0_sw1 = analogRead(IN_SW1) > ANALOG_THRESHOLD;
-  mx0_sw2 = analogRead(IN_SW2) > ANALOG_THRESHOLD;
-  mx0_sw3 = analogRead(IN_SW3) > ANALOG_THRESHOLD;
+  swBallReturn = analogRead(IN_SW0) > ANALOG_THRESHOLD;
+  swTilt = analogRead(IN_SW1) > ANALOG_THRESHOLD;
+  swRightSpinner = analogRead(IN_SW2) > ANALOG_THRESHOLD;
+  swRightExtraBallLane = analogRead(IN_SW3) > ANALOG_THRESHOLD;
   digitalWrite(OUT_MX0, LOW);
 
 
   delayMicroseconds(SWITCH_READ_DELAY);
   digitalWrite(OUT_MX1, HIGH);
   delayMicroseconds(SWITCH_READ_DELAY);
-  mx1_sw0 = analogRead(IN_SW0) > ANALOG_THRESHOLD;
-  mx1_sw1 = analogRead(IN_SW1) > ANALOG_THRESHOLD;
-  mx1_sw2 = analogRead(IN_SW2) > ANALOG_THRESHOLD;
-  mx1_sw3 = analogRead(IN_SW3) > ANALOG_THRESHOLD;
+  swA = analogRead(IN_SW0) > ANALOG_THRESHOLD;
+  swStart = analogRead(IN_SW1) > ANALOG_THRESHOLD;
+  swLeftTarget = analogRead(IN_SW2) > ANALOG_THRESHOLD;
+  swLeftSlingShot = analogRead(IN_SW3) > ANALOG_THRESHOLD;
   digitalWrite(OUT_MX1, LOW);
 
   delayMicroseconds(SWITCH_READ_DELAY);
   digitalWrite(OUT_MX2, HIGH);
   delayMicroseconds(SWITCH_READ_DELAY);
-  mx2_sw0 = analogRead(IN_SW0) > ANALOG_THRESHOLD;
-  mx2_sw1 = analogRead(IN_SW1) > ANALOG_THRESHOLD;
-  mx2_sw2 = analogRead(IN_SW2) > ANALOG_THRESHOLD;
-  mx2_sw3 = analogRead(IN_SW3) > ANALOG_THRESHOLD;
+  swB = analogRead(IN_SW0) > ANALOG_THRESHOLD;
+  swLeftThumperBumper = analogRead(IN_SW1) > ANALOG_THRESHOLD;
+  swLeftBumper = analogRead(IN_SW2) > ANALOG_THRESHOLD;
+  swLeftExtraBallLane = analogRead(IN_SW3) > ANALOG_THRESHOLD;
   digitalWrite(OUT_MX2, LOW);
 
   delayMicroseconds(SWITCH_READ_DELAY);
   digitalWrite(OUT_MX3, HIGH);
   delayMicroseconds(SWITCH_READ_DELAY);
-  mx3_sw0 = analogRead(IN_SW0) > ANALOG_THRESHOLD;
-  mx3_sw1 = analogRead(IN_SW1) > ANALOG_THRESHOLD;
-  mx3_sw2 = analogRead(IN_SW2) > ANALOG_THRESHOLD;
-  mx3_sw3 = analogRead(IN_SW3) > ANALOG_THRESHOLD;
+  swC = analogRead(IN_SW0) > ANALOG_THRESHOLD;
+  swRightThumperBumper = analogRead(IN_SW1) > ANALOG_THRESHOLD;
+  swLeftSpinner = analogRead(IN_SW2) > ANALOG_THRESHOLD;
+  swLeftAdvanceLane = analogRead(IN_SW3) > ANALOG_THRESHOLD;
   //Serial.print("33 RAW: ");
   //Serial.println(analogRead(IN_SW3));
   digitalWrite(OUT_MX3, LOW);
@@ -138,21 +138,21 @@ void checkSwitches() {
   delayMicroseconds(SWITCH_READ_DELAY);
   digitalWrite(OUT_MX4, HIGH);
   delayMicroseconds(SWITCH_READ_DELAY);
-  mx4_sw0 = analogRead(IN_SW0) > ANALOG_THRESHOLD;
+  swD = analogRead(IN_SW0) > ANALOG_THRESHOLD;
  // Serial.print("40 RAW: ");
   //Serial.println(analogRead(IN_SW0));
   mx4_sw1 = analogRead(IN_SW1) > ANALOG_THRESHOLD;
-  mx4_sw2 = analogRead(IN_SW2) > ANALOG_THRESHOLD;
-  mx4_sw3 = analogRead(IN_SW3) > ANALOG_THRESHOLD;
+  swRightTarget = analogRead(IN_SW2) > ANALOG_THRESHOLD;
+  swRightSlingShot = analogRead(IN_SW3) > ANALOG_THRESHOLD;
   digitalWrite(OUT_MX4, LOW);
 
   delayMicroseconds(SWITCH_READ_DELAY);
   digitalWrite(OUT_MX5, HIGH);
   delayMicroseconds(SWITCH_READ_DELAY);
-  mx5_sw0 = analogRead(IN_SW0) > ANALOG_THRESHOLD;
+  swCenterTarget = analogRead(IN_SW0) > ANALOG_THRESHOLD;
   mx5_sw1 = analogRead(IN_SW1) > ANALOG_THRESHOLD;
-  mx5_sw2 = analogRead(IN_SW2) > ANALOG_THRESHOLD;
-  mx5_sw3 = analogRead(IN_SW3) > ANALOG_THRESHOLD;
+  swRightBumper = analogRead(IN_SW2) > ANALOG_THRESHOLD;
+  swRightAdvanceLane = analogRead(IN_SW3) > ANALOG_THRESHOLD;
   digitalWrite(OUT_MX5, LOW);
 
 
@@ -170,100 +170,100 @@ void pulse(int thing) {
 
 void debug() {
 
-  Serial.print("mx0_sw0 = ");
-  Serial.print(mx0_sw0);
+  Serial.print("swBallReturn = ");
+  Serial.print(swBallReturn);
   Serial.println();
 
-  Serial.print("mx0_sw1 = ");
-  Serial.print(mx0_sw1);
+  Serial.print("swTilt = ");
+  Serial.print(swTilt);
   Serial.println();
 
-  Serial.print("mx0_sw2 = ");
-  Serial.print(mx0_sw2);
+  Serial.print("swRightSpinner = ");
+  Serial.print(swRightSpinner);
   Serial.println();
 
-  Serial.print("mx0_sw3 = ");
-  Serial.print(mx0_sw3);
+  Serial.print("swRightExtraBallLane = ");
+  Serial.print(swRightExtraBallLane);
   Serial.println();
 
-  Serial.print("mx1_sw0 = ");
-  Serial.print(mx1_sw0);
+  Serial.print("swA = ");
+  Serial.print(swA);
   Serial.println();
 
-  Serial.print("mx1_sw1 = ");
-  Serial.print(mx1_sw1);
+  Serial.print("swStart = ");
+  Serial.print(swStart);
   Serial.println();
 
-  Serial.print("mx1_sw2 = ");
-  Serial.print(mx1_sw2);
+  Serial.print("swLeftTarget = ");
+  Serial.print(swLeftTarget);
   Serial.println();
 
-  Serial.print("mx1_sw3 = ");
-  Serial.print(mx1_sw3);
+  Serial.print("swLeftSlingShot = ");
+  Serial.print(swLeftSlingShot);
   Serial.println();
 
-  Serial.print("mx2_sw0 = ");
-  Serial.print(mx2_sw0);
+  Serial.print("swB = ");
+  Serial.print(swB);
   Serial.println();
 
-  Serial.print("mx2_sw1 = ");
-  Serial.print(mx2_sw1);
+  Serial.print("swLeftThumperBumper = ");
+  Serial.print(swLeftThumperBumper);
   Serial.println();
 
-  Serial.print("mx2_sw2 = ");
-  Serial.print(mx2_sw2);
+  Serial.print("swLeftBumper = ");
+  Serial.print(swLeftBumper);
   Serial.println();
 
-  Serial.print("mx2_sw3 = ");
-  Serial.print(mx2_sw3);
+  Serial.print("swLeftExtraBallLane = ");
+  Serial.print(swLeftExtraBallLane);
   Serial.println();
 
-  Serial.print("mx3_sw0 = ");
-  Serial.print(mx3_sw0);
+  Serial.print("swC = ");
+  Serial.print(swC);
   Serial.println();
 
-  Serial.print("mx3_sw1 = ");
-  Serial.print(mx3_sw1);
+  Serial.print("swRightThumperBumper = ");
+  Serial.print(swRightThumperBumper);
   Serial.println();
 
-  Serial.print("mx3_sw2 = ");
-  Serial.print(mx3_sw2);
+  Serial.print("swLeftSpinner = ");
+  Serial.print(swLeftSpinner);
   Serial.println();
 
-  Serial.print("mx3_sw3 = ");
-  Serial.print(mx3_sw3);
+  Serial.print("swLeftAdvanceLane = ");
+  Serial.print(swLeftAdvanceLane);
   Serial.println();
 
-  Serial.print("mx4_sw0 = ");
-  Serial.print(mx4_sw0);
+  Serial.print("swD = ");
+  Serial.print(swD);
   Serial.println();
 
   Serial.print("mx4_sw1 = ");
   Serial.print(mx4_sw1);
   Serial.println();
 
-  Serial.print("mx4_sw2 = ");
-  Serial.print(mx4_sw2);
+  Serial.print("swRightTarget = ");
+  Serial.print(swRightTarget);
   Serial.println();
 
-  Serial.print("mx4_sw3 = ");
-  Serial.print(mx4_sw3);
+  Serial.print("swRightSlingShot = ");
+  Serial.print(swRightSlingShot);
   Serial.println();
 
-  Serial.print("mx5_sw0 = ");
-  Serial.print(mx5_sw0);
+  Serial.print("swCenterTarget = ");
+  Serial.print(swCenterTarget);
   Serial.println();
 
   Serial.print("mx5_sw1 = ");
   Serial.print(mx5_sw1);
   Serial.println();
 
-  Serial.print("mx5_sw2 = ");
-  Serial.print(mx5_sw2);
+  Serial.print("swRightBumper = ");
+  Serial.print(swRightBumper);
   Serial.println();
 
-  Serial.print("mx5_sw3 = ");
-  Serial.print(mx5_sw3);
+  Serial.print("swRightAdvanceLane = ");
+  Serial.print(swRightAdvanceLane);
   Serial.println();
 
   Serial.println("--------------------------------------------------------");
