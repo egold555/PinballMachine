@@ -1,8 +1,8 @@
 
 const int SOLENOID_DELAY = 100; //60
 const int LED = 13;
-const int SWITCH_READ_DELAY = 4000;
-const int ANALOG_THRESHOLD = 100;
+const int SWITCH_READ_DELAY = 1500;
+const int ANALOG_THRESHOLD = 200;
 
 const int OUT_SLINGSHOT_LEFT = 22;
 const int OUT_BALL_RETURN = 23;
@@ -57,26 +57,26 @@ bool mx0_lt0 = true;
 bool mx0_lt1 = true;
 bool mx0_lt2 = true;
 bool mx0_lt3 = true;
-bool mx1_lt0 = false;
-bool mx1_lt1 = false;
-bool mx1_lt2 = false;
-bool mx1_lt3 = false;
-bool mx2_lt0 = false;
-bool mx2_lt1 = false;
-bool mx2_lt2 = false;
-bool mx2_lt3 = false;
-bool mx3_lt0 = false;
-bool mx3_lt1 = false;
-bool mx3_lt2 = false;
-bool mx3_lt3 = false;
-bool mx4_lt0 = false;
-bool mx4_lt1 = false;
-bool mx4_lt2 = false;
-bool mx4_lt3 = false;
-bool mx5_lt0 = false;
-bool mx5_lt1 = false;
-bool mx5_lt2 = false;
-bool mx5_lt3 = false;
+bool mx1_lt0 = true;
+bool mx1_lt1 = true;
+bool mx1_lt2 = true;
+bool mx1_lt3 = true;
+bool mx2_lt0 = true;
+bool mx2_lt1 = true;
+bool mx2_lt2 = true;
+bool mx2_lt3 = true;
+bool mx3_lt0 = true;
+bool mx3_lt1 = true;
+bool mx3_lt2 = true;
+bool mx3_lt3 = true;
+bool mx4_lt0 = true;
+bool mx4_lt1 = true;
+bool mx4_lt2 = true;
+bool mx4_lt3 = true;
+bool mx5_lt0 = true;
+bool mx5_lt1 = true;
+bool mx5_lt2 = true;
+bool mx5_lt3 = true;
 
 
 // Time (as returned by millis()) that solenoid should retract.
@@ -88,8 +88,8 @@ unsigned long timeRetractBallReturn = 0;
 void setup() {
 
   Serial.begin(57600);
-  
-  
+
+
   pinMode(LED, OUTPUT);
   pinMode(OUT_SLINGSHOT_LEFT, OUTPUT);
   pinMode(OUT_SLINGSHOT_RIGHT, OUTPUT);
@@ -113,7 +113,7 @@ void setup() {
   pinMode(IN_SW1, INPUT);
   pinMode(IN_SW2, INPUT);
   pinMode(IN_SW3, INPUT);
-  
+
   //Serial.println("Setup Initalised. Hello World!");
 }
 
@@ -125,31 +125,31 @@ void loop() {
   //delay(3000);
 }
 
-void solinoids(){
+void solinoids() {
   unsigned long currentTime = millis();
-  
+
   // Fire solenoids that should be fired.
-  if(swLeftSlingShot){
+  if (swLeftSlingShot) {
     digitalWrite(OUT_SLINGSHOT_LEFT, HIGH);
     timeRetractLeftSlingshot = currentTime + SOLENOID_DELAY;
   }
 
-  if(swRightSlingShot){
+  if (swRightSlingShot) {
     digitalWrite(OUT_SLINGSHOT_RIGHT, HIGH);
     timeRetractRightSlingshot = currentTime + SOLENOID_DELAY;
   }
 
-  if(swLeftThumperBumper){
+  if (swLeftThumperBumper) {
     digitalWrite(OUT_THUMPER_LEFT, HIGH);
     timeRetractLeftThumperBumper = currentTime + SOLENOID_DELAY;
   }
 
-  if(swRightThumperBumper){
+  if (swRightThumperBumper) {
     digitalWrite(OUT_THUMPER_RIGHT, HIGH);
     timeRetractRightThumperBumper = currentTime + SOLENOID_DELAY;
   }
 
-  if(swBallReturn){
+  if (swBallReturn) {
     digitalWrite(OUT_BALL_RETURN, HIGH);
     timeRetractBallReturn = currentTime + SOLENOID_DELAY;
   }
@@ -174,7 +174,7 @@ void solinoids(){
   if (currentTime > timeRetractBallReturn) {
     digitalWrite(OUT_BALL_RETURN, LOW);
   }
-  
+
 }
 
 void checkSwitchesAndLightLights() {
@@ -184,9 +184,9 @@ void checkSwitchesAndLightLights() {
   digitalWrite(OUT_LT1, mx0_lt1);
   digitalWrite(OUT_LT2, mx0_lt2);
   digitalWrite(OUT_LT3, mx0_lt3);
-  
+
   delayMicroseconds(SWITCH_READ_DELAY);
-  
+
   swBallReturn = analogRead(IN_SW0) > ANALOG_THRESHOLD;
   swTilt = analogRead(IN_SW1) > ANALOG_THRESHOLD;
   swRightSpinner = analogRead(IN_SW2) > ANALOG_THRESHOLD;
@@ -196,57 +196,118 @@ void checkSwitchesAndLightLights() {
   digitalWrite(OUT_LT1, LOW);
   digitalWrite(OUT_LT2, LOW);
   digitalWrite(OUT_LT3, LOW);
-  
+
   digitalWrite(OUT_MX0, LOW);
 
+  ///////////////////////////////
 
-  delayMicroseconds(SWITCH_READ_DELAY);
   digitalWrite(OUT_MX1, HIGH);
+
+  digitalWrite(OUT_LT0, mx1_lt0);
+  digitalWrite(OUT_LT1, mx1_lt1);
+  digitalWrite(OUT_LT2, mx1_lt2);
+  digitalWrite(OUT_LT3, mx1_lt3);
+
   delayMicroseconds(SWITCH_READ_DELAY);
   swA = analogRead(IN_SW0) > ANALOG_THRESHOLD;
   swStart = analogRead(IN_SW1) > ANALOG_THRESHOLD;
   swLeftTarget = analogRead(IN_SW2) > ANALOG_THRESHOLD;
   swLeftSlingShot = analogRead(IN_SW3) > ANALOG_THRESHOLD;
+
+  digitalWrite(OUT_LT0, LOW);
+  digitalWrite(OUT_LT1, LOW);
+  digitalWrite(OUT_LT2, LOW);
+  digitalWrite(OUT_LT3, LOW);
+
   digitalWrite(OUT_MX1, LOW);
 
-  delayMicroseconds(SWITCH_READ_DELAY);
+  //////////////////
+
   digitalWrite(OUT_MX2, HIGH);
+
+  digitalWrite(OUT_LT0, mx2_lt0);
+  digitalWrite(OUT_LT1, mx2_lt1);
+  digitalWrite(OUT_LT2, mx2_lt2);
+  digitalWrite(OUT_LT3, mx2_lt3);
+
   delayMicroseconds(SWITCH_READ_DELAY);
   swB = analogRead(IN_SW0) > ANALOG_THRESHOLD;
   swLeftThumperBumper = analogRead(IN_SW1) > ANALOG_THRESHOLD;
   swLeftBumper = analogRead(IN_SW2) > ANALOG_THRESHOLD;
   swLeftExtraBallLane = analogRead(IN_SW3) > ANALOG_THRESHOLD;
+
+  digitalWrite(OUT_LT0, LOW);
+  digitalWrite(OUT_LT1, LOW);
+  digitalWrite(OUT_LT2, LOW);
+  digitalWrite(OUT_LT3, LOW);
+
   digitalWrite(OUT_MX2, LOW);
 
-  delayMicroseconds(SWITCH_READ_DELAY);
+  /////////////////////
+
   digitalWrite(OUT_MX3, HIGH);
+
+  digitalWrite(OUT_LT0, mx3_lt0);
+  digitalWrite(OUT_LT1, mx3_lt1);
+  digitalWrite(OUT_LT2, mx3_lt2);
+  digitalWrite(OUT_LT3, mx3_lt3);
+
   delayMicroseconds(SWITCH_READ_DELAY);
   swC = analogRead(IN_SW0) > ANALOG_THRESHOLD;
   swRightThumperBumper = analogRead(IN_SW1) > ANALOG_THRESHOLD;
   swLeftSpinner = analogRead(IN_SW2) > ANALOG_THRESHOLD;
   swLeftAdvanceLane = analogRead(IN_SW3) > ANALOG_THRESHOLD;
-  //Serial.print("33 RAW: ");
-  //Serial.println(analogRead(IN_SW3));
+
+  digitalWrite(OUT_LT0, LOW);
+  digitalWrite(OUT_LT1, LOW);
+  digitalWrite(OUT_LT2, LOW);
+  digitalWrite(OUT_LT3, LOW);
+
   digitalWrite(OUT_MX3, LOW);
 
-  delayMicroseconds(SWITCH_READ_DELAY);
+  /////////////////////////////
+
   digitalWrite(OUT_MX4, HIGH);
+
+  digitalWrite(OUT_LT0, mx4_lt0);
+  digitalWrite(OUT_LT1, mx4_lt1);
+  digitalWrite(OUT_LT2, mx4_lt2);
+  digitalWrite(OUT_LT3, mx4_lt3);
+
   delayMicroseconds(SWITCH_READ_DELAY);
   swD = analogRead(IN_SW0) > ANALOG_THRESHOLD;
- // Serial.print("40 RAW: ");
-  //Serial.println(analogRead(IN_SW0));
   mx4_sw1 = analogRead(IN_SW1) > ANALOG_THRESHOLD;
   swRightTarget = analogRead(IN_SW2) > ANALOG_THRESHOLD;
   swRightSlingShot = analogRead(IN_SW3) > ANALOG_THRESHOLD;
+
+  digitalWrite(OUT_LT0, LOW);
+  digitalWrite(OUT_LT1, LOW);
+  digitalWrite(OUT_LT2, LOW);
+  digitalWrite(OUT_LT3, LOW);
+
   digitalWrite(OUT_MX4, LOW);
 
-  delayMicroseconds(SWITCH_READ_DELAY);
+
+  ///////////////////////////////
+
   digitalWrite(OUT_MX5, HIGH);
+
+  digitalWrite(OUT_LT0, mx5_lt0);
+  digitalWrite(OUT_LT1, mx5_lt1);
+  digitalWrite(OUT_LT2, mx5_lt2);
+  digitalWrite(OUT_LT3, mx5_lt3);
+
   delayMicroseconds(SWITCH_READ_DELAY);
   swCenterTarget = analogRead(IN_SW0) > ANALOG_THRESHOLD;
   mx5_sw1 = analogRead(IN_SW1) > ANALOG_THRESHOLD;
   swRightBumper = analogRead(IN_SW2) > ANALOG_THRESHOLD;
   swRightAdvanceLane = analogRead(IN_SW3) > ANALOG_THRESHOLD;
+
+  digitalWrite(OUT_LT0, LOW);
+  digitalWrite(OUT_LT1, LOW);
+  digitalWrite(OUT_LT2, LOW);
+  digitalWrite(OUT_LT3, LOW);
+
   digitalWrite(OUT_MX5, LOW);
 
 
