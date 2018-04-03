@@ -344,12 +344,21 @@ void writeDisplay(int num){
 }
 
 void writeDisplay(String msg){
-  clearDisplay();
+  clearDisplay(); //Not sure if I need to clear every time, Long run?
   for(int i = 0; i < 4; i++){
     if(isprint(msg.charAt(i))){display1.writeDigitAscii(i, msg.charAt(i));}
     if(isprint(msg.charAt(i+4))){display2.writeDigitAscii(i, msg.charAt(i+4));}
   }
-  updateDisplay();
+  updateDisplay(); //Just like clear, should we auto update in long run?
+}
+
+
+//0-7
+void writeDisplayRaw(int place, int value){
+  /*
+   * writeDigitRaw(place, value);
+   * Make sure to ajust for second display 0-3 4-7
+   */
 }
 
 void updateDisplay(){
