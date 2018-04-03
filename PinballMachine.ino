@@ -346,8 +346,8 @@ void writeDisplay(int num){
 void writeDisplay(String msg){
   clearDisplay();
   for(int i = 0; i < 4; i++){
-    display1.writeDigitAscii(i, msg.charAt(i));
-    display2.writeDigitAscii(i, msg.charAt(i+4));
+    if(isprint(msg.charAt(i))){display1.writeDigitAscii(i, msg.charAt(i));}
+    if(isprint(msg.charAt(i+4))){display2.writeDigitAscii(i, msg.charAt(i+4));}
   }
   updateDisplay();
 }
