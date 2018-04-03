@@ -135,19 +135,9 @@ void setup() {
   pt.tune_initchan (NOTE_2);
   pt.tune_initchan (NOTE_3);
 
-  display1.begin(0x70);  // pass in the address
-  display1.writeDigitAscii(0, 'T');
-  display1.writeDigitAscii(1, 'E');
-  display1.writeDigitAscii(2, 'S');
-  display1.writeDigitAscii(3, 'T');
-  display1.writeDisplay();
-
-  display2.begin(0x71);  // pass in the address
-  display2.writeDigitAscii(0, 'I');
-  display2.writeDigitAscii(1, 'N');
-  display2.writeDigitAscii(2, 'G');
-  display2.writeDigitAscii(3, '!');
-  display2.writeDisplay();
+  display1.begin(0x70);
+  display2.begin(0x71);
+  writeDisplay("Welcome!");
 
   pt.tune_playscore(SOUND_STARTUP);
 }
