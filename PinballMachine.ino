@@ -91,7 +91,8 @@ unsigned long timeRetractLeftSlingshot = 0, timeRetractRightSlingshot = 0;
 unsigned long timeRetractLeftThumperBumper = 0, timeRetractRightThumperBumper = 0;
 unsigned long timeRetractBallReturn = 0;
 
-Adafruit_AlphaNum4 alpha4 = Adafruit_AlphaNum4();
+Adafruit_AlphaNum4 display1 = Adafruit_AlphaNum4();
+Adafruit_AlphaNum4 display2 = Adafruit_AlphaNum4();
 Playtune pt;
 
 const byte PROGMEM SOUND_STARTUP [] = { 
@@ -134,12 +135,19 @@ void setup() {
   pt.tune_initchan (NOTE_2);
   pt.tune_initchan (NOTE_3);
 
-  alpha4.begin(0x70);  // pass in the address
-  alpha4.writeDigitAscii(0, 'T');
-  alpha4.writeDigitAscii(1, 'E');
-  alpha4.writeDigitAscii(2, 'S');
-  alpha4.writeDigitAscii(3, 'T');
-  alpha4.writeDisplay();
+  display1.begin(0x70);  // pass in the address
+  display1.writeDigitAscii(0, 'T');
+  display1.writeDigitAscii(1, 'E');
+  display1.writeDigitAscii(2, 'S');
+  display1.writeDigitAscii(3, 'T');
+  display1.writeDisplay();
+
+  display2.begin(0x71);  // pass in the address
+  display2.writeDigitAscii(0, 'I');
+  display2.writeDigitAscii(1, 'N');
+  display2.writeDigitAscii(2, 'G');
+  display2.writeDigitAscii(3, '!');
+  display2.writeDisplay();
 
   pt.tune_playscore(SOUND_STARTUP);
 }
@@ -339,5 +347,29 @@ void checkSwitchesAndLightLights() {
 
   digitalWrite(OUT_MX5, LOW);
 
+}
+
+void writeDisplay(int num){
+  writeDisplay(String(num));
+}
+
+void writeDisplay(String msg){
+  clearDisplay();
+  for(int i = 0; i < 4; i++){
+    display1.writeDigitAscii(i, msg.charAt(i));
+    display2.writeDigitAscii(i, msg.charAt(i+4));
+  }
+  updateDisplay();
+}
+
+void updateDisplay(){
+  display1.writeDisplay();
+  display2.writeDisplay();
+}
+
+void clearDisplay(){
+  display1.clear();
+  display2.clear();
+  updateDisplay();
 }
 
