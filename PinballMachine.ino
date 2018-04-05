@@ -95,12 +95,14 @@ Adafruit_AlphaNum4 display1 = Adafruit_AlphaNum4();
 Adafruit_AlphaNum4 display2 = Adafruit_AlphaNum4();
 Playtune pt;
 
-const byte PROGMEM SOUND_STARTUP [] = { 
-0x91,58, 0x92,70, 0,160, 0x81, 0x82, 0,60, 0x91,58, 0x92,70, 0,160, 0x81, 0x82, 0,64, 0x91,60, 
-0x92,72, 0,160, 0x81, 0x82, 0,64, 0x91,65, 0x92,77, 5,192, 0x80, 0x81, 0x82, 0xf0};
+const byte PROGMEM SOUND_STARTUP [] = {
+  0x91, 58, 0x92, 70, 0, 160, 0x81, 0x82, 0, 60, 0x91, 58, 0x92, 70, 0, 160, 0x81, 0x82, 0, 64, 0x91, 60,
+  0x92, 72, 0, 160, 0x81, 0x82, 0, 64, 0x91, 65, 0x92, 77, 5, 192, 0x80, 0x81, 0x82, 0xf0
+};
 
-const byte PROGMEM SOUND_POINT [] = { 
-0x92,72, 0,160, 0x81, 0x80, 0x81, 0x82, 0xf0};
+const byte PROGMEM SOUND_POINT [] = {
+  0x92, 72, 0, 160, 0x81, 0x80, 0x81, 0x82, 0xf0
+};
 
 void setup() {
 
@@ -137,7 +139,7 @@ void setup() {
 
   display1.begin(0x70);
   display2.begin(0x71);
-  writeDisplay("Welcome!");
+  writeDisplay("WELCOME.");
 
   pt.tune_playscore(SOUND_STARTUP);
 }
@@ -145,11 +147,40 @@ void setup() {
 
 
 void loop() {
-  if(!pt.tune_playing){
+  if (!pt.tune_playing) {
     //pt.tune_playscore(score);
   }
   checkSwitchesAndLightLights();
   solinoids();
+  scrollTextTest();
+}
+
+long MSG_DELAY = 20;
+long msgCount = 0;
+int msgPos = 0;
+String msg = "HELLO WORLD I AM A LONG MESSAGE!  ";
+void scrollTextTest() {
+  int len = msg.length();
+  if ((msgCount % MSG_DELAY) == 0) {
+    clearDisplay();
+    writeDisplay(0, msg.charAt((msgPos) % len));
+    writeDisplay(1, msg.charAt((msgPos + 1) % len));
+    writeDisplay(2, msg.charAt((msgPos + 2) % len));
+    writeDisplay(3, msg.charAt((msgPos + 3) % len));
+    writeDisplay(4, msg.charAt((msgPos + 4) % len));
+    writeDisplay(5, msg.charAt((msgPos + 5) % len));
+    writeDisplay(6, msg.charAt((msgPos + 6) % len));
+    writeDisplay(7, msg.charAt((msgPos + 7) % len));
+    updateDisplay();
+
+    msgPos++;
+    if (msgPos == len) {
+      msgPos = 0;
+    }
+  }
+
+  msgCount++;
+
 }
 
 void solinoids() {
@@ -339,34 +370,39 @@ void checkSwitchesAndLightLights() {
 
 }
 
-void writeDisplay(int num){
+void writeDisplay(int num) {
   writeDisplay(String(num));
 }
 
-void writeDisplay(String msg){
+void writeDisplay(String msg) {
   clearDisplay(); //Not sure if I need to clear every time, Long run?
-  for(int i = 0; i < 4; i++){
-    if(isprint(msg.charAt(i))){display1.writeDigitAscii(i, msg.charAt(i));}
-    if(isprint(msg.charAt(i+4))){display2.writeDigitAscii(i, msg.charAt(i+4));}
+  for (int i = 0; i < 8; i++) {
+    if (i < msg.length()) {
+      writeDisplay(i, msg.charAt(i));
+    }
   }
   updateDisplay(); //Just like clear, should we auto update in long run?
 }
 
 
 //0-7
-void writeDisplayRaw(int place, int value){
-  /*
-   * writeDigitRaw(place, value);
-   * Make sure to ajust for second display 0-3 4-7
-   */
+void writeDisplay(int place, char in) {
+  if (isprint(in)) {
+    if (place > 3) {
+      display2.writeDigitAscii(place - 4, in);
+    }
+    else {
+      display1.writeDigitAscii(place, in);
+    }
+  }
 }
 
-void updateDisplay(){
+void updateDisplay() {
   display1.writeDisplay();
   display2.writeDisplay();
 }
 
-void clearDisplay(){
+void clearDisplay() {
   display1.clear();
   display2.clear();
   updateDisplay();
