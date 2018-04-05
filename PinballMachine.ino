@@ -1,9 +1,8 @@
 #include <Playtune.h> //Music http://blog.bentgeorge.com/?p=119
 #include "Adafruit_LEDBackpack.h" //Display
 
-const int SOLENOID_DELAY = 100; //60
-const int LED = 13;
-const int SWITCH_READ_DELAY = 1500;
+const int SOLENOID_DELAY = 50; //60
+const int SWITCH_READ_DELAY = 500;
 const int ANALOG_THRESHOLD = 200;
 
 const int OUT_SLINGSHOT_LEFT = 22;
@@ -52,13 +51,38 @@ bool swRightThumperBumper = false;
 bool swLeftSpinner = false;
 bool swLeftAdvanceLane = false;
 bool swD = false;
-bool mx4_sw1 = false;
+//bool mx4_sw1 = false;
 bool swRightTarget = false;
 bool swRightSlingShot = false;
 bool swCenterTarget = false;
-bool mx5_sw1 = false;
+//bool mx5_sw1 = false;
 bool swRightBumper = false;
 bool swRightAdvanceLane = false;
+
+bool prBallReturn = false;
+bool prTilt = false;
+bool prRightSpinner = false;
+bool prRightExtraBallLane = false;
+bool prA = false;
+bool prStart = false;
+bool prLeftTarget = false;
+bool prLeftSlingShot = false;
+bool prB = false;
+bool prLeftThumperBumper = false;
+bool prLeftBumper = false;
+bool prLeftExtraBallLane = false;
+bool prC = false;
+bool prRightThumperBumper = false;
+bool prLeftSpinner = false;
+bool prLeftAdvanceLane = false;
+bool prD = false;
+//bool mx4_sw1 = false;
+bool prRightTarget = false;
+bool prRightSlingShot = false;
+bool prCenterTarget = false;
+//bool mx5_sw1 = false;
+bool prRightBumper = false;
+bool prRightAdvanceLane = false;
 
 bool mx0_lt0 = true;
 bool mx0_lt1 = true;
@@ -100,16 +124,14 @@ const byte PROGMEM SOUND_STARTUP [] = {
   0x92, 72, 0, 160, 0x81, 0x82, 0, 64, 0x91, 65, 0x92, 77, 5, 192, 0x80, 0x81, 0x82, 0xf0
 };
 
-const byte PROGMEM SOUND_POINT [] = {
-  0x92, 72, 0, 160, 0x81, 0x80, 0x81, 0x82, 0xf0
-};
+//const byte PROGMEM SOUND_POINT [] = {
+//  0x92, 72, 0, 160, 0x81, 0x80, 0x81, 0x82, 0xf0
+//};
 
 void setup() {
 
   Serial.begin(57600);
 
-
-  pinMode(LED, OUTPUT);
   pinMode(OUT_SLINGSHOT_LEFT, OUTPUT);
   pinMode(OUT_SLINGSHOT_RIGHT, OUTPUT);
   pinMode(OUT_THUMPER_LEFT, OUTPUT);
@@ -152,36 +174,36 @@ void loop() {
   }
   checkSwitchesAndLightLights();
   solinoids();
-  scrollTextTest();
+  //scrollTextTest();
 }
 
-long MSG_DELAY = 20;
-long msgCount = 0;
-int msgPos = 0;
-String msg = "HELLO WORLD I AM A LONG MESSAGE!  ";
-void scrollTextTest() {
-  int len = msg.length();
-  if ((msgCount % MSG_DELAY) == 0) {
-    clearDisplay();
-    writeDisplay(0, msg.charAt((msgPos) % len));
-    writeDisplay(1, msg.charAt((msgPos + 1) % len));
-    writeDisplay(2, msg.charAt((msgPos + 2) % len));
-    writeDisplay(3, msg.charAt((msgPos + 3) % len));
-    writeDisplay(4, msg.charAt((msgPos + 4) % len));
-    writeDisplay(5, msg.charAt((msgPos + 5) % len));
-    writeDisplay(6, msg.charAt((msgPos + 6) % len));
-    writeDisplay(7, msg.charAt((msgPos + 7) % len));
-    updateDisplay();
-
-    msgPos++;
-    if (msgPos == len) {
-      msgPos = 0;
-    }
-  }
-
-  msgCount++;
-
-}
+//long MSG_DELAY = 20;
+//long msgCount = 0;
+//int msgPos = 0;
+//String msg = "He's a pin ball wizard          There has got to be a twist         A pin ball wizard,           S'got such a supple wrist        How do you think he does it? I don't know!       What makes him so good?     # Ok Please Press Start #       ";
+//void scrollTextTest() {
+//  int len = msg.length();
+//  if ((msgCount % MSG_DELAY) == 0) {
+//    clearDisplay();
+//    writeDisplay(0, msg.charAt((msgPos) % len));
+//    writeDisplay(1, msg.charAt((msgPos + 1) % len));
+//    writeDisplay(2, msg.charAt((msgPos + 2) % len));
+//    writeDisplay(3, msg.charAt((msgPos + 3) % len));
+//    writeDisplay(4, msg.charAt((msgPos + 4) % len));
+//    writeDisplay(5, msg.charAt((msgPos + 5) % len));
+//    writeDisplay(6, msg.charAt((msgPos + 6) % len));
+//    writeDisplay(7, msg.charAt((msgPos + 7) % len));
+//    updateDisplay();
+//
+//    msgPos++;
+//    if (msgPos == len) {
+//      msgPos = 0;
+//    }
+//  }
+//
+//  msgCount++;
+//
+//}
 
 void solinoids() {
   unsigned long currentTime = millis();
@@ -235,6 +257,14 @@ void solinoids() {
 
 }
 
+void debounceSwitch(int switchNumber, bool * sw, bool * pr) {
+  bool oldSw = *sw;
+  bool newSw;
+  newSw = analogRead(switchNumber) > ANALOG_THRESHOLD;
+  *sw = newSw;
+  *pr = (newSw && !oldSw); 
+}
+
 void checkSwitchesAndLightLights() {
 
   digitalWrite(OUT_MX0, HIGH);
@@ -245,10 +275,10 @@ void checkSwitchesAndLightLights() {
 
   delayMicroseconds(SWITCH_READ_DELAY);
 
-  swBallReturn = analogRead(IN_SW0) > ANALOG_THRESHOLD;
-  swTilt = analogRead(IN_SW1) > ANALOG_THRESHOLD;
-  swRightSpinner = analogRead(IN_SW2) > ANALOG_THRESHOLD;
-  swRightExtraBallLane = analogRead(IN_SW3) > ANALOG_THRESHOLD;
+  debounceSwitch(IN_SW0, &swBallReturn, &prBallReturn);
+  debounceSwitch(IN_SW1, &swTilt, &prTilt);
+  debounceSwitch(IN_SW2, &swRightSpinner, &prRightSpinner);
+  debounceSwitch(IN_SW3, &swRightExtraBallLane, &prRightExtraBallLane);
 
   digitalWrite(OUT_LT0, LOW);
   digitalWrite(OUT_LT1, LOW);
@@ -267,10 +297,11 @@ void checkSwitchesAndLightLights() {
   digitalWrite(OUT_LT3, mx1_lt3);
 
   delayMicroseconds(SWITCH_READ_DELAY);
-  swA = analogRead(IN_SW0) > ANALOG_THRESHOLD;
-  swStart = analogRead(IN_SW1) > ANALOG_THRESHOLD;
-  swLeftTarget = analogRead(IN_SW2) > ANALOG_THRESHOLD;
-  swLeftSlingShot = analogRead(IN_SW3) > ANALOG_THRESHOLD;
+  
+  debounceSwitch(IN_SW0, &swA, &prA);
+  debounceSwitch(IN_SW1, &swStart, &prStart);
+  debounceSwitch(IN_SW2, &swLeftTarget, &prLeftTarget);
+  debounceSwitch(IN_SW3, &swLeftSlingShot, &prLeftSlingShot);
 
   digitalWrite(OUT_LT0, LOW);
   digitalWrite(OUT_LT1, LOW);
@@ -289,10 +320,11 @@ void checkSwitchesAndLightLights() {
   digitalWrite(OUT_LT3, mx2_lt3);
 
   delayMicroseconds(SWITCH_READ_DELAY);
-  swB = analogRead(IN_SW0) > ANALOG_THRESHOLD;
-  swLeftThumperBumper = analogRead(IN_SW1) > ANALOG_THRESHOLD;
-  swLeftBumper = analogRead(IN_SW2) > ANALOG_THRESHOLD;
-  swLeftExtraBallLane = analogRead(IN_SW3) > ANALOG_THRESHOLD;
+  
+  debounceSwitch(IN_SW0, &swB, &prB);
+  debounceSwitch(IN_SW1, &swLeftThumperBumper, &prLeftThumperBumper);
+  debounceSwitch(IN_SW2, &swLeftBumper, &prLeftBumper);
+  debounceSwitch(IN_SW3, &swLeftExtraBallLane, &prLeftExtraBallLane);
 
   digitalWrite(OUT_LT0, LOW);
   digitalWrite(OUT_LT1, LOW);
@@ -311,10 +343,11 @@ void checkSwitchesAndLightLights() {
   digitalWrite(OUT_LT3, mx3_lt3);
 
   delayMicroseconds(SWITCH_READ_DELAY);
-  swC = analogRead(IN_SW0) > ANALOG_THRESHOLD;
-  swRightThumperBumper = analogRead(IN_SW1) > ANALOG_THRESHOLD;
-  swLeftSpinner = analogRead(IN_SW2) > ANALOG_THRESHOLD;
-  swLeftAdvanceLane = analogRead(IN_SW3) > ANALOG_THRESHOLD;
+  
+  debounceSwitch(IN_SW0, &swC, &prC);
+  debounceSwitch(IN_SW1, &swRightThumperBumper, &prRightThumperBumper);
+  debounceSwitch(IN_SW2, &swLeftSpinner, &prLeftSpinner);
+  debounceSwitch(IN_SW3, &swLeftAdvanceLane, &prLeftAdvanceLane);
 
   digitalWrite(OUT_LT0, LOW);
   digitalWrite(OUT_LT1, LOW);
@@ -333,10 +366,11 @@ void checkSwitchesAndLightLights() {
   digitalWrite(OUT_LT3, mx4_lt3);
 
   delayMicroseconds(SWITCH_READ_DELAY);
-  swD = analogRead(IN_SW0) > ANALOG_THRESHOLD;
-  mx4_sw1 = analogRead(IN_SW1) > ANALOG_THRESHOLD;
-  swRightTarget = analogRead(IN_SW2) > ANALOG_THRESHOLD;
-  swRightSlingShot = analogRead(IN_SW3) > ANALOG_THRESHOLD;
+  
+  debounceSwitch(IN_SW0, &swD, &prD);
+//debounceSwitch(IN_SW1, &mx4_sw1, &prmx4_sw1);
+  debounceSwitch(IN_SW2, &swRightTarget, &prRightTarget);
+  debounceSwitch(IN_SW3, &swRightSlingShot, &prRightSlingShot);
 
   digitalWrite(OUT_LT0, LOW);
   digitalWrite(OUT_LT1, LOW);
@@ -356,10 +390,11 @@ void checkSwitchesAndLightLights() {
   digitalWrite(OUT_LT3, mx5_lt3);
 
   delayMicroseconds(SWITCH_READ_DELAY);
-  swCenterTarget = analogRead(IN_SW0) > ANALOG_THRESHOLD;
-  mx5_sw1 = analogRead(IN_SW1) > ANALOG_THRESHOLD;
-  swRightBumper = analogRead(IN_SW2) > ANALOG_THRESHOLD;
-  swRightAdvanceLane = analogRead(IN_SW3) > ANALOG_THRESHOLD;
+  
+  debounceSwitch(IN_SW0, &swCenterTarget, &prCenterTarget);
+  //debounceSwitch(IN_SW1, &mx5_sw1, &prmx5_sw1);
+  debounceSwitch(IN_SW2, &swRightBumper, &prRightBumper);
+  debounceSwitch(IN_SW3, &swRightAdvanceLane, &prRightAdvanceLane);
 
   digitalWrite(OUT_LT0, LOW);
   digitalWrite(OUT_LT1, LOW);
@@ -369,6 +404,8 @@ void checkSwitchesAndLightLights() {
   digitalWrite(OUT_MX5, LOW);
 
 }
+
+
 
 void writeDisplay(int num) {
   writeDisplay(String(num));
