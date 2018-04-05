@@ -84,6 +84,29 @@ bool prCenterTarget = false;
 bool prRightBumper = false;
 bool prRightAdvanceLane = false;
 
+unsigned long tmBallReturn;
+unsigned long tmTilt;
+unsigned long tmRightSpinner;
+unsigned long tmRightExtraBallLane;
+unsigned long tmA;
+unsigned long tmStart;
+unsigned long tmLeftTarget;
+unsigned long tmLeftSlingShot;
+unsigned long tmB;
+unsigned long tmLeftThumperBumper;
+unsigned long tmLeftBumper;
+unsigned long tmLeftExtraBallLane;
+unsigned long tmC;
+unsigned long tmRightThumperBumper;
+unsigned long tmLeftSpinner;
+unsigned long tmLeftAdvanceLane;
+unsigned long tmD;
+unsigned long tmRightTarget;
+unsigned long tmRightSlingShot;
+unsigned long tmCenterTarget;
+unsigned long tmRightBumper;
+unsigned long tmRightAdvanceLane;
+
 bool mx0_lt0 = true;
 bool mx0_lt1 = true;
 bool mx0_lt2 = true;
@@ -128,6 +151,8 @@ const byte PROGMEM SOUND_STARTUP [] = {
 //  0x92, 72, 0, 160, 0x81, 0x80, 0x81, 0x82, 0xf0
 //};
 
+long score = 0;
+
 void setup() {
 
   Serial.begin(57600);
@@ -161,7 +186,7 @@ void setup() {
 
   display1.begin(0x70);
   display2.begin(0x71);
-  writeDisplay("WELCOME.");
+  writeDisplay("NO SCORE");
 
   pt.tune_playscore(SOUND_STARTUP);
 }
@@ -174,6 +199,8 @@ void loop() {
   }
   checkSwitchesAndLightLights();
   solinoids();
+  updateScore();
+
   //scrollTextTest();
 }
 
@@ -257,14 +284,6 @@ void solinoids() {
 
 }
 
-void debounceSwitch(int switchNumber, bool * sw, bool * pr) {
-  bool oldSw = *sw;
-  bool newSw;
-  newSw = analogRead(switchNumber) > ANALOG_THRESHOLD;
-  *sw = newSw;
-  *pr = (newSw && !oldSw); 
-}
-
 void checkSwitchesAndLightLights() {
 
   digitalWrite(OUT_MX0, HIGH);
@@ -275,10 +294,10 @@ void checkSwitchesAndLightLights() {
 
   delayMicroseconds(SWITCH_READ_DELAY);
 
-  debounceSwitch(IN_SW0, &swBallReturn, &prBallReturn);
-  debounceSwitch(IN_SW1, &swTilt, &prTilt);
-  debounceSwitch(IN_SW2, &swRightSpinner, &prRightSpinner);
-  debounceSwitch(IN_SW3, &swRightExtraBallLane, &prRightExtraBallLane);
+  debounceSwitch(IN_SW0, &swBallReturn, &prBallReturn, &tmBallReturn);
+  debounceSwitch(IN_SW1, &swTilt, &prTilt, &tmTilt);
+  debounceSwitch(IN_SW2, &swRightSpinner, &prRightSpinner, &tmRightSpinner);
+  debounceSwitch(IN_SW3, &swRightExtraBallLane, &prRightExtraBallLane, &tmRightExtraBallLane);
 
   digitalWrite(OUT_LT0, LOW);
   digitalWrite(OUT_LT1, LOW);
@@ -297,11 +316,11 @@ void checkSwitchesAndLightLights() {
   digitalWrite(OUT_LT3, mx1_lt3);
 
   delayMicroseconds(SWITCH_READ_DELAY);
-  
-  debounceSwitch(IN_SW0, &swA, &prA);
-  debounceSwitch(IN_SW1, &swStart, &prStart);
-  debounceSwitch(IN_SW2, &swLeftTarget, &prLeftTarget);
-  debounceSwitch(IN_SW3, &swLeftSlingShot, &prLeftSlingShot);
+
+  debounceSwitch(IN_SW0, &swA, &prA, &tmA);
+  debounceSwitch(IN_SW1, &swStart, &prStart, &tmStart);
+  debounceSwitch(IN_SW2, &swLeftTarget, &prLeftTarget, &tmLeftTarget);
+  debounceSwitch(IN_SW3, &swLeftSlingShot, &prLeftSlingShot, &tmLeftSlingShot);
 
   digitalWrite(OUT_LT0, LOW);
   digitalWrite(OUT_LT1, LOW);
@@ -320,11 +339,11 @@ void checkSwitchesAndLightLights() {
   digitalWrite(OUT_LT3, mx2_lt3);
 
   delayMicroseconds(SWITCH_READ_DELAY);
-  
-  debounceSwitch(IN_SW0, &swB, &prB);
-  debounceSwitch(IN_SW1, &swLeftThumperBumper, &prLeftThumperBumper);
-  debounceSwitch(IN_SW2, &swLeftBumper, &prLeftBumper);
-  debounceSwitch(IN_SW3, &swLeftExtraBallLane, &prLeftExtraBallLane);
+
+  debounceSwitch(IN_SW0, &swB, &prB, &tmB);
+  debounceSwitch(IN_SW1, &swLeftThumperBumper, &prLeftThumperBumper, &tmLeftThumperBumper);
+  debounceSwitch(IN_SW2, &swLeftBumper, &prLeftBumper, &tmLeftBumper);
+  debounceSwitch(IN_SW3, &swLeftExtraBallLane, &prLeftExtraBallLane, &tmLeftExtraBallLane);
 
   digitalWrite(OUT_LT0, LOW);
   digitalWrite(OUT_LT1, LOW);
@@ -343,11 +362,11 @@ void checkSwitchesAndLightLights() {
   digitalWrite(OUT_LT3, mx3_lt3);
 
   delayMicroseconds(SWITCH_READ_DELAY);
-  
-  debounceSwitch(IN_SW0, &swC, &prC);
-  debounceSwitch(IN_SW1, &swRightThumperBumper, &prRightThumperBumper);
-  debounceSwitch(IN_SW2, &swLeftSpinner, &prLeftSpinner);
-  debounceSwitch(IN_SW3, &swLeftAdvanceLane, &prLeftAdvanceLane);
+
+  debounceSwitch(IN_SW0, &swC, &prC, &tmC);
+  debounceSwitch(IN_SW1, &swRightThumperBumper, &prRightThumperBumper, &tmRightThumperBumper);
+  debounceSwitch(IN_SW2, &swLeftSpinner, &prLeftSpinner, &tmLeftSpinner);
+  debounceSwitch(IN_SW3, &swLeftAdvanceLane, &prLeftAdvanceLane, &tmLeftAdvanceLane);
 
   digitalWrite(OUT_LT0, LOW);
   digitalWrite(OUT_LT1, LOW);
@@ -366,11 +385,11 @@ void checkSwitchesAndLightLights() {
   digitalWrite(OUT_LT3, mx4_lt3);
 
   delayMicroseconds(SWITCH_READ_DELAY);
-  
-  debounceSwitch(IN_SW0, &swD, &prD);
-//debounceSwitch(IN_SW1, &mx4_sw1, &prmx4_sw1);
-  debounceSwitch(IN_SW2, &swRightTarget, &prRightTarget);
-  debounceSwitch(IN_SW3, &swRightSlingShot, &prRightSlingShot);
+
+  debounceSwitch(IN_SW0, &swD, &prD, &tmD);
+  //debounceSwitch(IN_SW1, &mx4_sw1, &prmx4_sw1);
+  debounceSwitch(IN_SW2, &swRightTarget, &prRightTarget, &tmRightTarget);
+  debounceSwitch(IN_SW3, &swRightSlingShot, &prRightSlingShot, &tmRightSlingShot);
 
   digitalWrite(OUT_LT0, LOW);
   digitalWrite(OUT_LT1, LOW);
@@ -390,11 +409,11 @@ void checkSwitchesAndLightLights() {
   digitalWrite(OUT_LT3, mx5_lt3);
 
   delayMicroseconds(SWITCH_READ_DELAY);
-  
-  debounceSwitch(IN_SW0, &swCenterTarget, &prCenterTarget);
+
+  debounceSwitch(IN_SW0, &swCenterTarget, &prCenterTarget, &tmCenterTarget);
   //debounceSwitch(IN_SW1, &mx5_sw1, &prmx5_sw1);
-  debounceSwitch(IN_SW2, &swRightBumper, &prRightBumper);
-  debounceSwitch(IN_SW3, &swRightAdvanceLane, &prRightAdvanceLane);
+  debounceSwitch(IN_SW2, &swRightBumper, &prRightBumper, &tmRightBumper);
+  debounceSwitch(IN_SW3, &swRightAdvanceLane, &prRightAdvanceLane, &tmRightAdvanceLane);
 
   digitalWrite(OUT_LT0, LOW);
   digitalWrite(OUT_LT1, LOW);
@@ -405,9 +424,43 @@ void checkSwitchesAndLightLights() {
 
 }
 
+void updateScore() {
+  long oldScore = score;
+
+  if(prBallReturn){
+    score = 0;
+  }
+
+  if (prA) {
+    score++;
+  }
+
+  if (oldScore != score) {
+    writeDisplay(score);
+  }
+
+}
 
 
-void writeDisplay(int num) {
+const unsigned long DEBOUNCE_DELAY = 90;
+
+void debounceSwitch(int switchNumber, bool * sw, bool * pr, unsigned long * lasttm) {
+
+  bool oldSw = *sw;
+  bool newSw;
+  newSw = analogRead(switchNumber) > ANALOG_THRESHOLD;
+  *sw = newSw;
+
+  *pr = false;
+  if (newSw && !oldSw) {
+    unsigned long currtm = millis(); 
+    if (currtm - *lasttm > DEBOUNCE_DELAY) {
+      *pr = true;
+    }
+    *lasttm = currtm;   
+  }
+}
+void writeDisplay(long num) {
   writeDisplay(String(num));
 }
 
