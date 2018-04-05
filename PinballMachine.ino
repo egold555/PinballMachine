@@ -107,30 +107,30 @@ unsigned long tmCenterTarget;
 unsigned long tmRightBumper;
 unsigned long tmRightAdvanceLane;
 
-bool mx0_lt0 = true;
-bool mx0_lt1 = true;
-bool mx0_lt2 = true;
-bool mx0_lt3 = true;
-bool mx1_lt0 = true;
-bool mx1_lt1 = true;
-bool mx1_lt2 = true;
-bool mx1_lt3 = true;
-bool mx2_lt0 = true;
-bool mx2_lt1 = true;
-bool mx2_lt2 = true;
-bool mx2_lt3 = true;
-bool mx3_lt0 = true;
-bool mx3_lt1 = true;
-bool mx3_lt2 = true;
-bool mx3_lt3 = true;
-bool mx4_lt0 = true;
-bool mx4_lt1 = true;
-bool mx4_lt2 = true;
-bool mx4_lt3 = true;
-bool mx5_lt0 = true;
-bool mx5_lt1 = true;
-bool mx5_lt2 = true;
-bool mx5_lt3 = true;
+bool mx0_lt0 = false;
+bool ltBonus8000 = false;
+bool ltBonus9000 = false;
+bool mx0_lt3 = false; //ALSO ltBonus9000
+bool ltA = false;
+bool ltBonus6000 = false;
+bool ltBonus1000 = false;
+bool mx1_lt3 = false; //ALSO ltBonus1000
+bool ltB = false;
+bool ltBonus5000 = false;
+bool mx2_lt2 = false; //Extra ball left and bonus light
+bool mx2_lt3 = false; //Extra ball left and bonus light
+bool ltC = false;
+bool ltBonus7000 = false;
+bool mx3_lt2 = true; //Bonus 2000 and 10,000
+bool mx3_lt3 = false; //Bonus 2000 and 10,000
+bool ltD = false;
+bool ltBonus3000 = false;
+bool lt2 = false;
+bool mx4_lt3 = false; //ALSO lt2
+bool lt3 = false;
+bool ltBonus4000 = false;
+bool ltTrippleBonus = false;
+bool mx5_lt3 = false; //ALSO ltTrippleBonus
 
 
 // Time (as returned by millis()) that solenoid should retract.
@@ -258,7 +258,7 @@ void solinoids() {
 
   if (swBallReturn) {
     digitalWrite(OUT_BALL_RETURN, HIGH);
-    timeRetractBallReturn = currentTime + SOLENOID_DELAY;
+    timeRetractBallReturn = currentTime + /*SOLENOID_DELAY*/100;
   }
 
   // Retract solenoids that should be retracted.
@@ -288,8 +288,8 @@ void checkSwitchesAndLightLights() {
 
   digitalWrite(OUT_MX0, HIGH);
   digitalWrite(OUT_LT0, mx0_lt0);
-  digitalWrite(OUT_LT1, mx0_lt1);
-  digitalWrite(OUT_LT2, mx0_lt2);
+  digitalWrite(OUT_LT1, ltBonus8000);
+  digitalWrite(OUT_LT2, ltBonus9000);
   digitalWrite(OUT_LT3, mx0_lt3);
 
   delayMicroseconds(SWITCH_READ_DELAY);
@@ -310,9 +310,9 @@ void checkSwitchesAndLightLights() {
 
   digitalWrite(OUT_MX1, HIGH);
 
-  digitalWrite(OUT_LT0, mx1_lt0);
-  digitalWrite(OUT_LT1, mx1_lt1);
-  digitalWrite(OUT_LT2, mx1_lt2);
+  digitalWrite(OUT_LT0, ltA);
+  digitalWrite(OUT_LT1, ltBonus6000);
+  digitalWrite(OUT_LT2, ltBonus1000);
   digitalWrite(OUT_LT3, mx1_lt3);
 
   delayMicroseconds(SWITCH_READ_DELAY);
@@ -333,8 +333,8 @@ void checkSwitchesAndLightLights() {
 
   digitalWrite(OUT_MX2, HIGH);
 
-  digitalWrite(OUT_LT0, mx2_lt0);
-  digitalWrite(OUT_LT1, mx2_lt1);
+  digitalWrite(OUT_LT0, ltB);
+  digitalWrite(OUT_LT1, ltBonus5000);
   digitalWrite(OUT_LT2, mx2_lt2);
   digitalWrite(OUT_LT3, mx2_lt3);
 
@@ -356,8 +356,8 @@ void checkSwitchesAndLightLights() {
 
   digitalWrite(OUT_MX3, HIGH);
 
-  digitalWrite(OUT_LT0, mx3_lt0);
-  digitalWrite(OUT_LT1, mx3_lt1);
+  digitalWrite(OUT_LT0, ltC);
+  digitalWrite(OUT_LT1, ltBonus7000);
   digitalWrite(OUT_LT2, mx3_lt2);
   digitalWrite(OUT_LT3, mx3_lt3);
 
@@ -379,9 +379,9 @@ void checkSwitchesAndLightLights() {
 
   digitalWrite(OUT_MX4, HIGH);
 
-  digitalWrite(OUT_LT0, mx4_lt0);
-  digitalWrite(OUT_LT1, mx4_lt1);
-  digitalWrite(OUT_LT2, mx4_lt2);
+  digitalWrite(OUT_LT0, ltD);
+  digitalWrite(OUT_LT1, ltBonus3000);
+  digitalWrite(OUT_LT2, lt2);
   digitalWrite(OUT_LT3, mx4_lt3);
 
   delayMicroseconds(SWITCH_READ_DELAY);
@@ -403,9 +403,9 @@ void checkSwitchesAndLightLights() {
 
   digitalWrite(OUT_MX5, HIGH);
 
-  digitalWrite(OUT_LT0, mx5_lt0);
-  digitalWrite(OUT_LT1, mx5_lt1);
-  digitalWrite(OUT_LT2, mx5_lt2);
+  digitalWrite(OUT_LT0, lt3);
+  digitalWrite(OUT_LT1, ltBonus4000);
+  digitalWrite(OUT_LT2, ltTrippleBonus);
   digitalWrite(OUT_LT3, mx5_lt3);
 
   delayMicroseconds(SWITCH_READ_DELAY);
@@ -427,18 +427,31 @@ void checkSwitchesAndLightLights() {
 void updateScore() {
   long oldScore = score;
 
-  if(prBallReturn){
+  if(prStart){
     score = 0;
   }
 
-  if (prA) {
-    score++;
+  if(prLeftThumperBumper || prRightThumperBumper){
+    score += 100;
   }
 
+  if(prLeftSpinner || prRightSpinner){
+    score += 100;
+  }
+
+  if(prLeftExtraBallLane || prLeftAdvanceLane || prRightExtraBallLane || prRightAdvanceLane){
+    score += 500;
+  }
+
+  if(prA || prB || prC || prD){
+    score += 1000;
+  }
+
+
+//////////////////////////////////
   if (oldScore != score) {
     writeDisplay(score);
   }
-
 }
 
 
