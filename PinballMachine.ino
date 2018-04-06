@@ -36,9 +36,26 @@ const int NOTE_3 = 46;
 const unsigned long DEBOUNCE_DELAY = 90;
 
 typedef struct Button {
+  public:
     boolean sw = false; //Switch
     boolean pr = false; //Pressed
     long tm = 0; //Time
+
+    void debounce(int pin) {
+      bool oldSw = sw;
+      bool newSw;
+      newSw = analogRead(pin) > ANALOG_THRESHOLD;
+      sw = newSw;
+
+      pr = false;
+      if (newSw && !oldSw) {
+        unsigned long currtm = millis();
+        if (currtm - tm > DEBOUNCE_DELAY) {
+          pr = true;
+        }
+        tm = currtm;
+      }
+    }
 } Button;
 
 Button swBallReturn;
@@ -58,61 +75,13 @@ Button swRightThumperBumper;
 Button swLeftSpinner;
 Button swLeftAdvanceLane;
 Button swD;
-//bool mx4_sw1 = false;
+//Button mx4_sw1;
 Button swRightTarget;
 Button swRightSlingShot;
 Button swCenterTarget;
-//bool mx5_sw1 = false;
+//Button mx5_sw1;
 Button swRightBumper;
 Button swRightAdvanceLane;
-
-//bool prBallReturn = false;
-//bool prTilt = false;
-//bool prRightSpinner = false;
-//bool prRightExtraBallLane = false;
-//bool prA = false;
-//bool prStart = false;
-//bool prLeftTarget = false;
-//bool prLeftSlingShot = false;
-//bool prB = false;
-//bool prLeftThumperBumper = false;
-//bool prLeftBumper = false;
-//bool prLeftExtraBallLane = false;
-//bool prC = false;
-//bool prRightThumperBumper = false;
-//bool prLeftSpinner = false;
-//bool prLeftAdvanceLane = false;
-//bool prD = false;
-////bool mx4_sw1 = false;
-//bool prRightTarget = false;
-//bool prRightSlingShot = false;
-//bool prCenterTarget = false;
-////bool mx5_sw1 = false;
-//bool prRightBumper = false;
-//bool prRightAdvanceLane = false;
-//
-//unsigned long tmBallReturn;
-//unsigned long tmTilt;
-//unsigned long tmRightSpinner;
-//unsigned long tmRightExtraBallLane;
-//unsigned long tmA;
-//unsigned long tmStart;
-//unsigned long tmLeftTarget;
-//unsigned long tmLeftSlingShot;
-//unsigned long tmB;
-//unsigned long tmLeftThumperBumper;
-//unsigned long tmLeftBumper;
-//unsigned long tmLeftExtraBallLane;
-//unsigned long tmC;
-//unsigned long tmRightThumperBumper;
-//unsigned long tmLeftSpinner;
-//unsigned long tmLeftAdvanceLane;
-//unsigned long tmD;
-//unsigned long tmRightTarget;
-//unsigned long tmRightSlingShot;
-//unsigned long tmCenterTarget;
-//unsigned long tmRightBumper;
-//unsigned long tmRightAdvanceLane;
 
 bool mx0_lt0 = false; //NONE
 bool ltBonus8000 = false;
@@ -303,10 +272,10 @@ void checkSwitchesAndLightLights() {
 
   delayMicroseconds(SWITCH_READ_DELAY);
 
-  debounceSwitch(IN_SW0, &swBallReturn.sw, &swBallReturn.pr, &swBallReturn.tm);
-  debounceSwitch(IN_SW1, &swTilt.sw, &swTilt.pr, &swTilt.tm);
-  debounceSwitch(IN_SW2, &swRightSpinner.sw, &swRightSpinner.pr, &swRightSpinner.tm);
-  debounceSwitch(IN_SW3, &swRightExtraBallLane.sw, &swRightExtraBallLane.pr, &swRightExtraBallLane.tm);
+  swBallReturn.debounce(IN_SW0);
+  swTilt.debounce(IN_SW1);
+  swRightSpinner.debounce(IN_SW2);
+  swRightExtraBallLane.debounce(IN_SW3);
 
   digitalWrite(OUT_LT0, LOW);
   digitalWrite(OUT_LT1, LOW);
@@ -326,10 +295,10 @@ void checkSwitchesAndLightLights() {
 
   delayMicroseconds(SWITCH_READ_DELAY);
 
-  debounceSwitch(IN_SW0, &swA.sw, &swA.pr, &swA.tm);
-  debounceSwitch(IN_SW1, &swStart.sw, &swStart.pr, &swStart.tm);
-  debounceSwitch(IN_SW2, &swLeftTarget.sw, &swLeftTarget.pr, &swLeftTarget.tm);
-  debounceSwitch(IN_SW3, &swLeftSlingShot.sw, &swLeftSlingShot.pr, &swLeftSlingShot.tm);
+  swA.debounce(IN_SW0);
+  swStart.debounce(IN_SW1);
+  swLeftTarget.debounce(IN_SW2);
+  swLeftSlingShot.debounce(IN_SW3);
 
   digitalWrite(OUT_LT0, LOW);
   digitalWrite(OUT_LT1, LOW);
@@ -349,10 +318,10 @@ void checkSwitchesAndLightLights() {
 
   delayMicroseconds(SWITCH_READ_DELAY);
 
-  debounceSwitch(IN_SW0, &swB.sw, &swB.pr, &swB.tm);
-  debounceSwitch(IN_SW1, &swLeftThumperBumper.sw, &swLeftThumperBumper.pr, &swLeftThumperBumper.tm);
-  debounceSwitch(IN_SW2, &swLeftBumper.sw, &swLeftBumper.pr, &swLeftBumper.tm);
-  debounceSwitch(IN_SW3, &swLeftExtraBallLane.sw, &swLeftExtraBallLane.pr, &swLeftExtraBallLane.tm);
+  swB.debounce(IN_SW0);
+  swLeftThumperBumper.debounce(IN_SW1);
+  swLeftBumper.debounce(IN_SW2);
+  swLeftExtraBallLane.debounce(IN_SW3);
 
   digitalWrite(OUT_LT0, LOW);
   digitalWrite(OUT_LT1, LOW);
@@ -372,10 +341,10 @@ void checkSwitchesAndLightLights() {
 
   delayMicroseconds(SWITCH_READ_DELAY);
 
-  debounceSwitch(IN_SW0, &swC.sw, &swC.pr, &swC.tm);
-  debounceSwitch(IN_SW1, &swRightThumperBumper.sw, &swRightThumperBumper.pr, &swRightThumperBumper.tm);
-  debounceSwitch(IN_SW2, &swLeftSpinner.sw, &swLeftSpinner.pr, &swLeftSpinner.tm);
-  debounceSwitch(IN_SW3, &swLeftAdvanceLane.sw, &swLeftAdvanceLane.pr, &swLeftAdvanceLane.tm);
+  swC.debounce(IN_SW0);
+  swRightThumperBumper.debounce(IN_SW1);
+  swLeftSpinner.debounce(IN_SW2);
+  swLeftAdvanceLane.debounce(IN_SW3);
 
   digitalWrite(OUT_LT0, LOW);
   digitalWrite(OUT_LT1, LOW);
@@ -395,10 +364,10 @@ void checkSwitchesAndLightLights() {
 
   delayMicroseconds(SWITCH_READ_DELAY);
 
-  debounceSwitch(IN_SW0, &swD.sw, &swD.pr, &swD.tm);
-  //debounceSwitch(IN_SW1, &mx4_sw1, &prmx4_sw1);
-  debounceSwitch(IN_SW2, &swRightTarget.sw, &swRightTarget.pr, &swRightTarget.tm);
-  debounceSwitch(IN_SW3, &swRightSlingShot.sw, &swRightSlingShot.pr, &swRightSlingShot.tm);
+  swD.debounce(IN_SW0);
+  //mx4_sw1.debounce(IN_SW1);
+  swRightTarget.debounce(IN_SW2);
+  swRightSlingShot.debounce(IN_SW3);
 
   digitalWrite(OUT_LT0, LOW);
   digitalWrite(OUT_LT1, LOW);
@@ -419,10 +388,10 @@ void checkSwitchesAndLightLights() {
 
   delayMicroseconds(SWITCH_READ_DELAY);
 
-  debounceSwitch(IN_SW0, &swCenterTarget.sw, &swCenterTarget.pr, &swCenterTarget.tm);
-  //debounceSwitch(IN_SW1, &mx5_sw1, &prmx5_sw1);
-  debounceSwitch(IN_SW2, &swRightBumper.sw, &swRightBumper.pr, &swRightBumper.tm);
-  debounceSwitch(IN_SW3, &swRightAdvanceLane.sw, &swRightAdvanceLane.pr, &swRightAdvanceLane.tm);
+  swCenterTarget.debounce(IN_SW0);
+  //mx5_sw1.debounce(IN_SW1);
+  swRightBumper.debounce(IN_SW2);
+  swRightAdvanceLane.debounce(IN_SW3);
 
   digitalWrite(OUT_LT0, LOW);
   digitalWrite(OUT_LT1, LOW);
@@ -437,7 +406,7 @@ void updateScore() {
   long oldScore = score;
 
   if (swStart.pr) {
-    score = 0;
+    asm volatile ("  jmp 0"); //Restarts the arduino. Not the most elegant, but it works for now
   }
 
   //ThumperBumpers +100
@@ -515,24 +484,6 @@ void advanceBonus() {
 
 }
 
-
-
-void debounceSwitch(int switchNumber, bool * sw, bool * pr, unsigned long * lasttm) {
-
-  bool oldSw = *sw;
-  bool newSw;
-  newSw = analogRead(switchNumber) > ANALOG_THRESHOLD;
-  *sw = newSw;
-
-  *pr = false;
-  if (newSw && !oldSw) {
-    unsigned long currtm = millis();
-    if (currtm - *lasttm > DEBOUNCE_DELAY) {
-      *pr = true;
-    }
-    *lasttm = currtm;
-  }
-}
 void writeDisplay(long num) {
   writeDisplay(String(num));
 }
