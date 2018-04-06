@@ -431,16 +431,16 @@ void updateScore() {
 
   //trigger lights for ABCD
   if (swA.pr) {
-    ltA = !ltA;
+    ltA = false;
   }
   if (swB.pr) {
-    ltB = !ltB;
+    ltB = false;
   }
   if (swC.pr) {
-    ltC = !ltC;
+    ltC = false;
   }
   if (swD.pr) {
-    ltD = !ltD;
+    ltD = false;
   }
 
   //Advance bonus if ABCD is all off
@@ -452,23 +452,31 @@ void updateScore() {
     ltD = true;
   }
 
-  //Left & Right Targer +500
-  if (swLeftTarget.pr || swRightTarget.pr) {
-    score += 500;
-    advanceBonus();
-    advanceBonus();
-  }
-
   //Left and Right Bumper +50
   if (swLeftBumper.pr || swRightBumper.pr) {
     score += 50;
     advanceBonus();
   }
 
+//Targets
+
+  if(swLeftTarget.pr || swRightTarget.pr || swCenterTarget.pr){
+    advanceBonus();
+    advanceBonus();
+    score += 500;
+  }
+
+  if(swLeftTarget.pr){
+    lt1 = true;
+  }
+
+  if(swRightTarget.pr){
+    lt2 = true;
+  }
+
   if (swCenterTarget.pr) {
-    score += 1000;
-    advanceBonus();
-    advanceBonus();
+    score += 500; //Accounting fo 500 of above function
+    lt3= true;
   }
 
 
