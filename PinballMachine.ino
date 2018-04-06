@@ -33,6 +33,8 @@ const int NOTE_1 = 44;
 const int NOTE_2 = 45;
 const int NOTE_3 = 46;
 
+const unsigned long DEBOUNCE_DELAY = 90;
+
 
 bool swBallReturn = false;
 bool swTilt = false;
@@ -111,19 +113,19 @@ bool mx0_lt0 = false; //NONE
 bool ltBonus8000 = false;
 bool ltBonus9000 = false;
 bool ltExtraBallRight = false;
-bool ltA = false;
+bool ltA = true;
 bool ltBonus6000 = false;
 bool lt1 = false;
 bool ltBonus1000 = false;
-bool ltB = false;
+bool ltB = true;
 bool ltBonus5000 = false;
 bool ltDoubleBonus = false;
 bool ltExtraBallLeft = false;
-bool ltC = false;
+bool ltC = true;
 bool ltBonus7000 = false;
 bool ltBonus10000 = false;
 bool ltBonus2000 = false;
-bool ltD = false;
+bool ltD = true;
 bool ltBonus3000 = false;
 bool lt2 = false;
 bool ltSamePlayerShoots = false;
@@ -427,35 +429,86 @@ void checkSwitchesAndLightLights() {
 void updateScore() {
   long oldScore = score;
 
-  if(prStart){
+  if (prStart) {
     score = 0;
   }
 
-  if(prLeftThumperBumper || prRightThumperBumper){
+  //ThumperBumpers +100
+  if (prLeftThumperBumper || prRightThumperBumper) {
     score += 100;
   }
 
-  if(prLeftSpinner || prRightSpinner){
+  //Spinners +100
+  if (prLeftSpinner || prRightSpinner) {
     score += 100;
   }
 
-  if(prLeftExtraBallLane || prLeftAdvanceLane || prRightExtraBallLane || prRightAdvanceLane){
+  //Extra ball lanes and advance lanes +500
+  if (prLeftExtraBallLane || prLeftAdvanceLane || prRightExtraBallLane || prRightAdvanceLane) {
     score += 500;
   }
 
-  if(prA || prB || prC || prD){
+  //ABCD  +1000
+  if (prA || prB || prC || prD) {
     score += 1000;
   }
 
+  //trigger lights for ABCD
+  if (prA) {
+    ltA = !ltA;
+  }
+  if (prB) {
+    ltB = !ltB;
+  }
+  if (prC) {
+    ltC = !ltC;
+  }
+  if (prD) {
+    ltD = !ltD;
+  }
 
-//////////////////////////////////
+  //Advance bonus if ABCD is all off
+  if (!ltA && !ltB && !ltC && !ltD) {
+    advanceBonus();
+    ltA = true;
+    ltB = true;
+    ltC = true;
+    ltD = true;
+  }
+
+  //Left & Right Targer +500
+  if (prLeftTarget || prRightTarget) {
+    score += 500;
+    advanceBonus();
+    advanceBonus();
+  }
+
+  //Left and Right Bumper +50
+  if (prLeftBumper || prRightBumper) {
+    score += 50;
+    advanceBonus();
+  }
+
+  if (prCenterTarget) {
+    score += 1000;
+    advanceBonus();
+    advanceBonus();
+  }
+
+
+
+
+  //////////////////////////////////
   if (oldScore != score) {
     writeDisplay(score);
   }
 }
 
+void advanceBonus() {
 
-const unsigned long DEBOUNCE_DELAY = 90;
+}
+
+
 
 void debounceSwitch(int switchNumber, bool * sw, bool * pr, unsigned long * lasttm) {
 
@@ -466,11 +519,11 @@ void debounceSwitch(int switchNumber, bool * sw, bool * pr, unsigned long * last
 
   *pr = false;
   if (newSw && !oldSw) {
-    unsigned long currtm = millis(); 
+    unsigned long currtm = millis();
     if (currtm - *lasttm > DEBOUNCE_DELAY) {
       *pr = true;
     }
-    *lasttm = currtm;   
+    *lasttm = currtm;
   }
 }
 void writeDisplay(long num) {
