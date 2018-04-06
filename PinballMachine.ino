@@ -1,5 +1,6 @@
 #include <Playtune.h> //Music http://blog.bentgeorge.com/?p=119
 #include "Adafruit_LEDBackpack.h" //Display
+#include "long2text.h"
 
 const int SOLENOID_DELAY = 50; //60
 const int SWITCH_READ_DELAY = 500;
@@ -33,7 +34,9 @@ const int NOTE_1 = 44;
 const int NOTE_2 = 45;
 const int NOTE_3 = 46;
 
-const unsigned long DEBOUNCE_DELAY = 90;
+byte bonus = 0;
+
+const unsigned long DEBOUNCE_DELAY = 20;
 
 typedef struct Button {
   public:
@@ -409,18 +412,37 @@ void updateScore() {
     asm volatile ("  jmp 0"); //Restarts the arduino. Not the most elegant, but it works for now
   }
 
+  if(swBallReturn.pr){
+    endOfBall();
+  }
+
   //ThumperBumpers +100
   if (swLeftThumperBumper.pr || swRightThumperBumper.pr) {
     score += 100;
   }
 
   //Spinners +100
-  if (swLeftSpinner.pr || swRightSpinner.pr) {
+  if (swLeftSpinner.sw || swRightSpinner.sw) {
     score += 100;
   }
 
   //Extra ball lanes and advance lanes +500
-  if (swLeftExtraBallLane.pr || swLeftAdvanceLane.pr || swRightExtraBallLane.pr || swRightAdvanceLane.pr) {
+  if (swLeftExtraBallLane.pr || swRightExtraBallLane.pr) {
+    score += 500;
+  }
+
+  if(swLeftExtraBallLane.pr && ltExtraBallLeft){
+      extraBall();
+      ltExtraBallLeft = false;
+  }
+
+  if(swRightExtraBallLane.pr && ltExtraBallRight){
+      extraBall();
+      ltExtraBallRight = false;
+  }
+
+  if(swLeftAdvanceLane.pr || swRightAdvanceLane.pr){
+    advanceBonus();
     score += 500;
   }
 
@@ -430,57 +452,105 @@ void updateScore() {
   }
 
   //trigger lights for ABCD
-  if (swA.pr) {
+  if (swA.pr && ltA) {
     ltA = false;
+    advanceBonus();
   }
-  if (swB.pr) {
+  if (swB.pr && ltB) {
     ltB = false;
+    advanceBonus();
   }
-  if (swC.pr) {
+  if (swC.pr && ltC) {
     ltC = false;
+    advanceBonus();
   }
-  if (swD.pr) {
+  if (swD.pr && ltD) {
     ltD = false;
+    advanceBonus();
   }
 
   //Advance bonus if ABCD is all off
   if (!ltA && !ltB && !ltC && !ltD) {
-    advanceBonus();
     ltA = true;
     ltB = true;
     ltC = true;
     ltD = true;
+    score += 25000;
+    ltExtraBallLeft = true;
+    ltExtraBallRight = true;
   }
 
   //Left and Right Bumper +50
   if (swLeftBumper.pr || swRightBumper.pr) {
     score += 50;
-    advanceBonus();
   }
 
 //Targets
 
   if(swLeftTarget.pr || swRightTarget.pr || swCenterTarget.pr){
-    advanceBonus();
-    advanceBonus();
     score += 500;
   }
 
-  if(swLeftTarget.pr){
+  if(swLeftTarget.pr && !lt1){
     lt1 = true;
+    advanceBonus();
+    advanceBonus();
   }
 
-  if(swRightTarget.pr){
+  if(swRightTarget.pr && !lt2){
     lt2 = true;
+    advanceBonus();
+    advanceBonus();
   }
 
-  if (swCenterTarget.pr) {
+  if (swCenterTarget.pr && !lt3) {
     score += 500; //Accounting fo 500 of above function
     lt3= true;
+    advanceBonus();
+    advanceBonus();
   }
 
+  if(lt1 && lt2){
+    if(lt3){
+      ltDoubleBonus = false;
+      ltTrippleBonus = true;
+    } 
+    else {
+      ltDoubleBonus = true;
+    }
+  }
 
-
+  if(bonus >= 1){
+    ltBonus1000 = true;
+  }
+  if(bonus >= 2){
+    ltBonus2000 = true;
+  }
+  if(bonus >= 3){
+    ltBonus3000 = true;
+  }
+  if(bonus >= 4){
+    ltBonus4000 = true;
+  }
+  if(bonus >= 5){
+    ltBonus5000 = true;
+  }
+  if(bonus >= 6){
+    ltBonus6000 = true;
+  }
+  if(bonus >= 7){
+    ltBonus7000 = true;
+  }
+  if(bonus >= 8){
+    ltBonus8000 = true;
+  }
+  if(bonus >= 9){
+    ltBonus9000 = true;
+  }
+  if(bonus >= 10){
+    ltBonus10000 = true;
+  }
+  
 
   //////////////////////////////////
   if (oldScore != score) {
@@ -489,11 +559,56 @@ void updateScore() {
 }
 
 void advanceBonus() {
+  bonus++;
+  if(bonus > 10){
+    bonus = 10;
+  }
+}
 
+void extraBall(){
+  ltSamePlayerShoots = true;
+}
+
+void endOfBall(){
+  if(ltDoubleBonus){
+    score+= bonus * 1000 * 2;
+  } 
+  else if(ltTrippleBonus){
+    score += bonus * 1000 * 3;
+  }
+  else {
+    score += bonus * 1000;
+  }
+
+  lt1 = false;
+  lt2 = false;
+  lt3 = false;
+
+  bonus = 0;
+  
+  ltBonus1000 = false;
+  ltBonus2000 = false;
+  ltBonus3000 = false;
+  ltBonus4000 = false;
+  ltBonus5000 = false;
+  ltBonus6000 = false;
+  ltBonus7000 = false;
+  ltBonus8000 = false;
+  ltBonus9000 = false;
+  ltBonus10000 = false;
+
+  ltExtraBallLeft = false;
+  ltExtraBallRight = false;
+
+  ltDoubleBonus = false;
+  ltTrippleBonus = false;
+  
 }
 
 void writeDisplay(long num) {
-  writeDisplay(String(num));
+  char buffer[9]; 
+  long2text(num, buffer);
+  writeDisplay(buffer);
 }
 
 void writeDisplay(String msg) {
