@@ -107,30 +107,30 @@ unsigned long tmCenterTarget;
 unsigned long tmRightBumper;
 unsigned long tmRightAdvanceLane;
 
-bool mx0_lt0 = false;
+bool mx0_lt0 = false; //NONE
 bool ltBonus8000 = false;
 bool ltBonus9000 = false;
-bool mx0_lt3 = false; //ALSO ltBonus9000
+bool ltExtraBallRight = false;
 bool ltA = false;
 bool ltBonus6000 = false;
+bool lt1 = false;
 bool ltBonus1000 = false;
-bool mx1_lt3 = false; //ALSO ltBonus1000
 bool ltB = false;
 bool ltBonus5000 = false;
-bool mx2_lt2 = false; //Extra ball left and bonus light
-bool mx2_lt3 = false; //Extra ball left and bonus light
+bool ltDoubleBonus = false;
+bool ltExtraBallLeft = false;
 bool ltC = false;
 bool ltBonus7000 = false;
-bool mx3_lt2 = true; //Bonus 2000 and 10,000
-bool mx3_lt3 = false; //Bonus 2000 and 10,000
+bool ltBonus10000 = false;
+bool ltBonus2000 = false;
 bool ltD = false;
 bool ltBonus3000 = false;
 bool lt2 = false;
-bool mx4_lt3 = false; //ALSO lt2
+bool ltSamePlayerShoots = false;
 bool lt3 = false;
 bool ltBonus4000 = false;
 bool ltTrippleBonus = false;
-bool mx5_lt3 = false; //ALSO ltTrippleBonus
+bool mx5_lt3 = false; //NONE
 
 
 // Time (as returned by millis()) that solenoid should retract.
@@ -290,7 +290,7 @@ void checkSwitchesAndLightLights() {
   digitalWrite(OUT_LT0, mx0_lt0);
   digitalWrite(OUT_LT1, ltBonus8000);
   digitalWrite(OUT_LT2, ltBonus9000);
-  digitalWrite(OUT_LT3, mx0_lt3);
+  digitalWrite(OUT_LT3, ltExtraBallRight);
 
   delayMicroseconds(SWITCH_READ_DELAY);
 
@@ -312,8 +312,8 @@ void checkSwitchesAndLightLights() {
 
   digitalWrite(OUT_LT0, ltA);
   digitalWrite(OUT_LT1, ltBonus6000);
-  digitalWrite(OUT_LT2, ltBonus1000);
-  digitalWrite(OUT_LT3, mx1_lt3);
+  digitalWrite(OUT_LT2, lt1);
+  digitalWrite(OUT_LT3, ltBonus1000);
 
   delayMicroseconds(SWITCH_READ_DELAY);
 
@@ -335,8 +335,8 @@ void checkSwitchesAndLightLights() {
 
   digitalWrite(OUT_LT0, ltB);
   digitalWrite(OUT_LT1, ltBonus5000);
-  digitalWrite(OUT_LT2, mx2_lt2);
-  digitalWrite(OUT_LT3, mx2_lt3);
+  digitalWrite(OUT_LT2, ltDoubleBonus);
+  digitalWrite(OUT_LT3, ltExtraBallLeft);
 
   delayMicroseconds(SWITCH_READ_DELAY);
 
@@ -358,8 +358,8 @@ void checkSwitchesAndLightLights() {
 
   digitalWrite(OUT_LT0, ltC);
   digitalWrite(OUT_LT1, ltBonus7000);
-  digitalWrite(OUT_LT2, mx3_lt2);
-  digitalWrite(OUT_LT3, mx3_lt3);
+  digitalWrite(OUT_LT2, ltBonus10000);
+  digitalWrite(OUT_LT3, ltBonus2000);
 
   delayMicroseconds(SWITCH_READ_DELAY);
 
@@ -382,7 +382,7 @@ void checkSwitchesAndLightLights() {
   digitalWrite(OUT_LT0, ltD);
   digitalWrite(OUT_LT1, ltBonus3000);
   digitalWrite(OUT_LT2, lt2);
-  digitalWrite(OUT_LT3, mx4_lt3);
+  digitalWrite(OUT_LT3, ltSamePlayerShoots);
 
   delayMicroseconds(SWITCH_READ_DELAY);
 
