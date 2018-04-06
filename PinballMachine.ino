@@ -92,7 +92,7 @@ bool ltBonus9000 = false;
 bool ltExtraBallRight = false;
 bool ltA = true;
 bool ltBonus6000 = false;
-bool lt1 = false;
+bool lt1 = true;
 bool ltBonus1000 = false;
 bool ltB = true;
 bool ltBonus5000 = false;
@@ -104,9 +104,9 @@ bool ltBonus10000 = false;
 bool ltBonus2000 = false;
 bool ltD = true;
 bool ltBonus3000 = false;
-bool lt2 = false;
+bool lt2 = true;
 bool ltSamePlayerShoots = false;
-bool lt3 = false;
+bool lt3 = true;
 bool ltBonus4000 = false;
 bool ltTrippleBonus = false;
 bool mx5_lt3 = false; //NONE
@@ -491,27 +491,27 @@ void updateScore() {
     score += 500;
   }
 
-  if(swLeftTarget.pr && !lt1){
-    lt1 = true;
+  if(swLeftTarget.pr && lt1){
+    lt1 = false;
     advanceBonus();
     advanceBonus();
   }
 
-  if(swRightTarget.pr && !lt2){
-    lt2 = true;
+  if(swRightTarget.pr && lt2){
+    lt2 = false;
     advanceBonus();
     advanceBonus();
   }
 
-  if (swCenterTarget.pr && !lt3) {
+  if (swCenterTarget.pr && lt3) {
     score += 500; //Accounting fo 500 of above function
-    lt3= true;
+    lt3= false;
     advanceBonus();
     advanceBonus();
   }
 
-  if(lt1 && lt2){
-    if(lt3){
+  if(!lt1 && !lt2){
+    if(!lt3){
       ltDoubleBonus = false;
       ltTrippleBonus = true;
     } 
@@ -580,9 +580,9 @@ void endOfBall(){
     score += bonus * 1000;
   }
 
-  lt1 = false;
-  lt2 = false;
-  lt3 = false;
+  lt1 = true;
+  lt2 = true;
+  lt3 = true;
 
   bonus = 0;
   
