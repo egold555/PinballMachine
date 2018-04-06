@@ -5,6 +5,8 @@
 const int SOLENOID_DELAY = 50; //60
 const int SWITCH_READ_DELAY = 500;
 const int ANALOG_THRESHOLD = 200;
+const int SPINNER_SCORE_DELAY = 75;
+const unsigned int DEBOUNCE_DELAY = 20;
 
 const int OUT_SLINGSHOT_LEFT = 22;
 const int OUT_BALL_RETURN = 23;
@@ -35,8 +37,6 @@ const int NOTE_2 = 45;
 const int NOTE_3 = 46;
 
 byte bonus = 0;
-
-const unsigned long DEBOUNCE_DELAY = 20;
 
 typedef struct Button {
   public:
@@ -116,6 +116,8 @@ bool mx5_lt3 = false; //NONE
 unsigned long timeRetractLeftSlingshot = 0, timeRetractRightSlingshot = 0;
 unsigned long timeRetractLeftThumperBumper = 0, timeRetractRightThumperBumper = 0;
 unsigned long timeRetractBallReturn = 0;
+unsigned long timeNextSpinnerScore = 0;
+
 
 Adafruit_AlphaNum4 display1 = Adafruit_AlphaNum4();
 Adafruit_AlphaNum4 display2 = Adafruit_AlphaNum4();
@@ -412,7 +414,7 @@ void updateScore() {
     asm volatile ("  jmp 0"); //Restarts the arduino. Not the most elegant, but it works for now
   }
 
-  if(swBallReturn.pr){
+  if (swBallReturn.pr) {
     endOfBall();
   }
 
@@ -423,7 +425,11 @@ void updateScore() {
 
   //Spinners +100
   if (swLeftSpinner.sw || swRightSpinner.sw) {
-    score += 100;
+    unsigned long currTime = millis();
+    if (currTime > timeNextSpinnerScore) {
+      score += 100;
+      timeNextSpinnerScore = currTime + SPINNER_SCORE_DELAY;
+    }
   }
 
   //Extra ball lanes and advance lanes +500
@@ -431,17 +437,17 @@ void updateScore() {
     score += 500;
   }
 
-  if(swLeftExtraBallLane.pr && ltExtraBallLeft){
-      extraBall();
-      ltExtraBallLeft = false;
+  if (swLeftExtraBallLane.pr && ltExtraBallLeft) {
+    extraBall();
+    ltExtraBallLeft = false;
   }
 
-  if(swRightExtraBallLane.pr && ltExtraBallRight){
-      extraBall();
-      ltExtraBallRight = false;
+  if (swRightExtraBallLane.pr && ltExtraBallRight) {
+    extraBall();
+    ltExtraBallRight = false;
   }
 
-  if(swLeftAdvanceLane.pr || swRightAdvanceLane.pr){
+  if (swLeftAdvanceLane.pr || swRightAdvanceLane.pr) {
     advanceBonus();
     score += 500;
   }
@@ -485,19 +491,19 @@ void updateScore() {
     score += 50;
   }
 
-//Targets
+  //Targets
 
-  if(swLeftTarget.pr || swRightTarget.pr || swCenterTarget.pr){
+  if (swLeftTarget.pr || swRightTarget.pr || swCenterTarget.pr) {
     score += 500;
   }
 
-  if(swLeftTarget.pr && lt1){
+  if (swLeftTarget.pr && lt1) {
     lt1 = false;
     advanceBonus();
     advanceBonus();
   }
 
-  if(swRightTarget.pr && lt2){
+  if (swRightTarget.pr && lt2) {
     lt2 = false;
     advanceBonus();
     advanceBonus();
@@ -505,52 +511,52 @@ void updateScore() {
 
   if (swCenterTarget.pr && lt3) {
     score += 500; //Accounting fo 500 of above function
-    lt3= false;
+    lt3 = false;
     advanceBonus();
     advanceBonus();
   }
 
-  if(!lt1 && !lt2){
-    if(!lt3){
+  if (!lt1 && !lt2) {
+    if (!lt3) {
       ltDoubleBonus = false;
       ltTrippleBonus = true;
-    } 
+    }
     else {
       ltDoubleBonus = true;
     }
   }
 
-  if(bonus >= 1){
+  if (bonus >= 1) {
     ltBonus1000 = true;
   }
-  if(bonus >= 2){
+  if (bonus >= 2) {
     ltBonus2000 = true;
   }
-  if(bonus >= 3){
+  if (bonus >= 3) {
     ltBonus3000 = true;
   }
-  if(bonus >= 4){
+  if (bonus >= 4) {
     ltBonus4000 = true;
   }
-  if(bonus >= 5){
+  if (bonus >= 5) {
     ltBonus5000 = true;
   }
-  if(bonus >= 6){
+  if (bonus >= 6) {
     ltBonus6000 = true;
   }
-  if(bonus >= 7){
+  if (bonus >= 7) {
     ltBonus7000 = true;
   }
-  if(bonus >= 8){
+  if (bonus >= 8) {
     ltBonus8000 = true;
   }
-  if(bonus >= 9){
+  if (bonus >= 9) {
     ltBonus9000 = true;
   }
-  if(bonus >= 10){
+  if (bonus >= 10) {
     ltBonus10000 = true;
   }
-  
+
 
   //////////////////////////////////
   if (oldScore != score) {
@@ -560,20 +566,20 @@ void updateScore() {
 
 void advanceBonus() {
   bonus++;
-  if(bonus > 10){
+  if (bonus > 10) {
     bonus = 10;
   }
 }
 
-void extraBall(){
+void extraBall() {
   ltSamePlayerShoots = true;
 }
 
-void endOfBall(){
-  if(ltDoubleBonus){
-    score+= bonus * 1000 * 2;
-  } 
-  else if(ltTrippleBonus){
+void endOfBall() {
+  if (ltDoubleBonus) {
+    score += bonus * 1000 * 2;
+  }
+  else if (ltTrippleBonus) {
     score += bonus * 1000 * 3;
   }
   else {
@@ -585,7 +591,7 @@ void endOfBall(){
   lt3 = true;
 
   bonus = 0;
-  
+
   ltBonus1000 = false;
   ltBonus2000 = false;
   ltBonus3000 = false;
@@ -602,11 +608,11 @@ void endOfBall(){
 
   ltDoubleBonus = false;
   ltTrippleBonus = false;
-  
+
 }
 
 void writeDisplay(long num) {
-  char buffer[9]; 
+  char buffer[9];
   long2text(num, buffer);
   writeDisplay(buffer);
 }
