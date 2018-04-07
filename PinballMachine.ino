@@ -35,7 +35,6 @@ const int IN_SW3 = A15; //39
 const int NOTE_1 = 44;
 const int NOTE_2 = 45;
 const int NOTE_3 = 46;
-
 byte bonus = 0;
 
 typedef struct Button {
@@ -126,8 +125,28 @@ Playtune pt;
 
 
 const byte PROGMEM SOUND_STARTUP [] = {
-  0x91, 58, 0x92, 70, 0, 160, 0x81, 0x82, 0, 60, 0x91, 58, 0x92, 70, 0, 160, 0x81, 0x82, 0, 64, 0x91, 60,
-  0x92, 72, 0, 160, 0x81, 0x82, 0, 64, 0x91, 65, 0x92, 77, 5, 192, 0x80, 0x81, 0x82, 0xf0
+  0, 1, 0x90, 67, 0, 59, 0x80, 0, 3, 0x90, 71, 0, 55, 0x80, 0, 3, 0x90, 74, 0, 55, 0x80,
+  0, 3, 0x90, 79, 0, 55, 0x80, 0, 3, 0x90, 83, 0, 56, 0x80, 0, 3, 0x90, 68, 0, 56, 0x80,
+  0, 3, 0x90, 72, 0, 54, 0x80, 0, 3, 0x90, 75, 0, 54, 0x80, 0, 3, 0x90, 80, 0, 55, 0x80,
+  0, 3, 0x90, 84, 0, 56, 0x80, 0, 3, 0x90, 70, 0, 61, 0x80, 0, 3, 0x90, 74, 0, 55, 0x80,
+  0, 3, 0x90, 77, 0, 55, 0x80, 0, 3, 0x90, 82, 0, 55, 0x80, 0, 3, 0x90, 86, 0, 56, 0x80,
+  0xf0
+};
+
+const byte PROGMEM SOUND_POINT [] = {
+  0x91, 50, 0, 200, 0x81, 0xf0
+  //Start1, NoteNumMidi, Start delay, Delay, Stop1, End
+};
+
+const byte PROGMEM SOUND_NEWBALL [] = {
+  0, 1, 0x90, 72, 0, 38, 0x80, 0, 2, 0x90, 73, 0, 34, 0x80, 0, 2, 0x90, 74, 0, 29, 0x80,
+  1, 235, 0x90, 55, 0x91, 67, 0x92, 71, 0, 153, 0x80, 0x81, 0x82, 0, 0, 0x90, 74, 0x91, 77, 0, 146,
+  0, 3, 0x80, 0x81, 0, 34, 0, 37, 0, 37, 0, 38, 0, 1, 0x90, 74, 0x91, 55, 0x92, 77, 0, 36,
+  0, 38, 0, 38, 0, 38, 0x80, 0x82, 0x81, 0, 0, 0x90, 74, 0x91, 55, 0x92, 77, 0, 38, 0, 65,
+  0x80, 0x82, 0x81, 0, 100, 0x90, 72, 0x91, 57, 0x92, 76, 0, 99, 0x81, 0x80, 0x82, 0, 100, 0x90, 59, 0x91, 71,
+  0x92, 74, 0, 96, 0x80, 0x81, 0x82, 0, 100, 0x90, 60, 0x91, 67, 0x92, 72, 0, 153, 0x80, 0x81, 0x82, 0, 0,
+  0x90, 64, 0, 149, 0x80, 0, 0, 0x90, 55, 0, 148, 0x80, 0, 0, 0x90, 64, 0, 148, 0x80, 0, 0,
+  0x90, 48, 0x91, 60, 0, 153, 0x80, 0x81, 0xf0
 };
 
 //const byte PROGMEM SOUND_POINT [] = {
@@ -163,27 +182,23 @@ void setup() {
   pinMode(IN_SW2, INPUT);
   pinMode(IN_SW3, INPUT);
 
-  pt.tune_initchan (NOTE_1);
-  pt.tune_initchan (NOTE_2);
-  pt.tune_initchan (NOTE_3);
+  pt.tune_initchan(NOTE_1);
+  pt.tune_initchan(NOTE_2);
+  pt.tune_initchan(NOTE_3);
 
   display1.begin(0x70);
   display2.begin(0x71);
   writeDisplay("NO SCORE");
 
-  pt.tune_playscore(SOUND_STARTUP);
+  playSFX(SOUND_STARTUP);
 }
 
 
 
 void loop() {
-  if (!pt.tune_playing) {
-    //pt.tune_playscore(score);
-  }
   checkSwitchesAndLightLights();
-  solinoids();
   updateScore();
-
+  solinoids();
   //scrollTextTest();
 }
 
@@ -415,6 +430,7 @@ void updateScore() {
   }
 
   if (swBallReturn.pr) {
+    playSFX(SOUND_NEWBALL);
     endOfBall();
   }
 
@@ -484,6 +500,7 @@ void updateScore() {
     score += 25000;
     ltExtraBallLeft = true;
     ltExtraBallRight = true;
+    playSFX(SOUND_STARTUP);
   }
 
   //Left and Right Bumper +50
@@ -561,6 +578,7 @@ void updateScore() {
   //////////////////////////////////
   if (oldScore != score) {
     writeDisplay(score);
+    playSFX(SOUND_POINT);
   }
 }
 
@@ -576,14 +594,17 @@ void extraBall() {
 }
 
 void endOfBall() {
+
+  long bonusAmount = 0;
+
   if (ltDoubleBonus) {
-    score += bonus * 1000 * 2;
+    bonusAmount = bonus * 1000 * 2;
   }
   else if (ltTrippleBonus) {
-    score += bonus * 1000 * 3;
+    bonusAmount = bonus * 1000 * 3;
   }
   else {
-    score += bonus * 1000;
+    bonusAmount = bonus * 1000;
   }
 
   lt1 = true;
@@ -609,6 +630,28 @@ void endOfBall() {
   ltDoubleBonus = false;
   ltTrippleBonus = false;
 
+  while(pt.tune_playing){
+    /*do nothing*/
+  }
+
+  while (bonusAmount > 0) {
+    delay(500);
+    bonusAmount -= 1000;
+    score += 1000;
+    writeDisplay(score);
+    updateDisplay();
+    playSFX(SOUND_POINT);
+  }
+  delay(1000);
+  digitalWrite(OUT_BALL_RETURN, HIGH);
+  timeRetractBallReturn = millis() + /*SOLENOID_DELAY*/100;
+
+}
+
+void playSFX(byte* sfx) {
+  if (!pt.tune_playing) {
+    pt.tune_playscore(sfx);
+  }
 }
 
 void writeDisplay(long num) {
