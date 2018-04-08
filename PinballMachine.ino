@@ -1,6 +1,7 @@
-#include "Playtunes/Playtune.h" //Music http://blog.bentgeorge.com/?p=119
+#include "Playtune.h" //Music http://blog.bentgeorge.com/?p=119
 #include "Adafruit_LEDBackpack.h" //Display
 #include "long2text.h"
+#include "run.h"
 
 const int SOLENOID_DELAY = 50; //60
 const int SWITCH_READ_DELAY = 500;
@@ -39,8 +40,6 @@ const int IN_SW3 = A15; //39
 const int NOTE_1 = 44;
 const int NOTE_2 = 45;
 const int NOTE_3 = 46;
-
-void updateScore();
 
 typedef struct Button {
   public:
@@ -155,17 +154,18 @@ const byte PROGMEM SOUND_EXTRABALL [] = {
   0, 5, 0x80, 0, 142, 0x90, 86, 0, 5, 0x81, 0, 148, 0x91, 91, 0, 5, 0x80, 0, 149, 0x81, 0xf0
 };
 
-//const byte PROGMEM SOUND_SCORE_AMATEUR [] = {
-//0x90,72, 0x91,65, 0x92,62, 1,157, 1,157, 1,157, 0x81, 0x91,74, 0,206, 0x82, 0,206, 0x80,
-//0x81, 0x90,62, 0x91,53, 0x92,62, 1,157, 1,157, 1,157, 0,206, 0x80, 0x82, 0,17, 0,34,
-//0,68, 0,8, 0,8, 0,17, 0,17, 0x81, 0,34, 0x90,57, 0x91,84, 0x92,76, 1,157,
-//1,157, 0,206, 0,206, 0,206, 0,206, 0x80, 0x81, 0x82, 0x90,76, 0x91,64, 0x92,76, 0,206,
-//0x80, 0x82, 0,206, 0x90,52, 1,157, 0x92,60, 0,206, 0,206, 0x82, 0x92,64, 1,157, 0x81, 0x82,
-//0x80, 0x90,76, 0x91,72, 0x92,65, 1,157, 0x82, 1,157, 0x80, 0x90,65, 0x92,57, 0,206, 0x81, 0x91,57,
-//0,206, 0x80, 0x81, 0x82, 0x90,62, 0,206, 0x80, 0,206, 0x90,57, 0x91,65, 0x92,62, 1,157, 0x80,
-//0x81, 1,157, 0x90,57, 0x91,65, 1,157, 0x80, 0x81, 0x90,67, 0,206, 0,206, 0x82, 0x80, 0x90,65,
-//0x91,84, 0x92,76, 0,206, 0x80, 0,206, 0x90,52, 2,108, 0,206, 0,206, 0x80, 0,206, 0x81,
-//0x82, 0x90,57, 0x91,64, 0x92,72, 1,157, 1,157, 1,157, 1,157, 0x80, 0x81, 0x82, 0xf0};
+const byte PROGMEM SOUND_SCORE_AMATEUR [] = {
+  0x90, 72, 0x91, 65, 0x92, 62, 1, 157, 1, 157, 1, 157, 0x81, 0x91, 74, 0, 206, 0x82, 0, 206, 0x80,
+  0x81, 0x90, 62, 0x91, 53, 0x92, 62, 1, 157, 1, 157, 1, 157, 0, 206, 0x80, 0x82, 0, 17, 0, 34,
+  0, 68, 0, 8, 0, 8, 0, 17, 0, 17, 0x81, 0, 34, 0x90, 57, 0x91, 84, 0x92, 76, 1, 157,
+  1, 157, 0, 206, 0, 206, 0, 206, 0, 206, 0x80, 0x81, 0x82, 0x90, 76, 0x91, 64, 0x92, 76, 0, 206,
+  0x80, 0x82, 0, 206, 0x90, 52, 1, 157, 0x92, 60, 0, 206, 0, 206, 0x82, 0x92, 64, 1, 157, 0x81, 0x82,
+  0x80, 0x90, 76, 0x91, 72, 0x92, 65, 1, 157, 0x82, 1, 157, 0x80, 0x90, 65, 0x92, 57, 0, 206, 0x81, 0x91, 57,
+  0, 206, 0x80, 0x81, 0x82, 0x90, 62, 0, 206, 0x80, 0, 206, 0x90, 57, 0x91, 65, 0x92, 62, 1, 157, 0x80,
+  0x81, 1, 157, 0x90, 57, 0x91, 65, 1, 157, 0x80, 0x81, 0x90, 67, 0, 206, 0, 206, 0x82, 0x80, 0x90, 65,
+  0x91, 84, 0x92, 76, 0, 206, 0x80, 0, 206, 0x90, 52, 2, 108, 0, 206, 0, 206, 0x80, 0, 206, 0x81,
+  0x82, 0x90, 57, 0x91, 64, 0x92, 72, 1, 157, 1, 157, 1, 157, 1, 157, 0x80, 0x81, 0x82, 0xf0
+};
 
 const byte PROGMEM SOUND_TILT [] = {
   0x90, 63, 0, 225, 0x80, 0, 112, 0x90, 69, 0x91, 66, 0, 225, 0x80, 0x81, 0, 112, 0x90, 63, 0, 225,
@@ -176,8 +176,10 @@ long score = 0;
 byte balls = 1;
 byte extraBalls = 0;
 byte bonus = 0;
-const byte MAX_BALLS = 5;
+const byte MAX_BALLS = 6; //starts at 1 so you have 5 ba;ls
 boolean tilted = false;
+boolean isEndGame = false;
+boolean hasScoredThisRound = false;
 
 void setup() {
 
@@ -225,46 +227,51 @@ void setup() {
 
 
 void loop() {
+  runner();
   checkSwitchesAndLightLights();
   updateScore();
   updateMPXLeds();
   solinoids();
   //scrollTextTest();
+
+  if (isEndGame) {
+    scrollText("PRESS START TO PLAY AGAIN           ");
+  }
+
 }
 
-//long MSG_DELAY = 20;
-//long msgCount = 0;
-//int msgPos = 0;
-//String msg = "He's a pin ball wizard          There has got to be a twist         A pin ball wizard,           S'got such a supple wrist        How do you think he does it? I don't know!       What makes him so good?     # Ok Please Press Start #       ";
-//void scrollTextTest() {
-//  int len = msg.length();
-//  if ((msgCount % MSG_DELAY) == 0) {
-//    clearDisplay();
-//    writeDisplay(0, msg.charAt((msgPos) % len));
-//    writeDisplay(1, msg.charAt((msgPos + 1) % len));
-//    writeDisplay(2, msg.charAt((msgPos + 2) % len));
-//    writeDisplay(3, msg.charAt((msgPos + 3) % len));
-//    writeDisplay(4, msg.charAt((msgPos + 4) % len));
-//    writeDisplay(5, msg.charAt((msgPos + 5) % len));
-//    writeDisplay(6, msg.charAt((msgPos + 6) % len));
-//    writeDisplay(7, msg.charAt((msgPos + 7) % len));
-//    updateDisplay();
-//
-//    msgPos++;
-//    if (msgPos == len) {
-//      msgPos = 0;
-//    }
-//  }
-//
-//  msgCount++;
-//
-//}
+long MSG_DELAY = 20;
+long msgCount = 0;
+int msgPos = 0;
+void scrollText(String msg) {
+  int len = msg.length();
+  if ((msgCount % MSG_DELAY) == 0) {
+    clearDisplay();
+    writeDisplay(0, msg.charAt((msgPos) % len));
+    writeDisplay(1, msg.charAt((msgPos + 1) % len));
+    writeDisplay(2, msg.charAt((msgPos + 2) % len));
+    writeDisplay(3, msg.charAt((msgPos + 3) % len));
+    writeDisplay(4, msg.charAt((msgPos + 4) % len));
+    writeDisplay(5, msg.charAt((msgPos + 5) % len));
+    writeDisplay(6, msg.charAt((msgPos + 6) % len));
+    writeDisplay(7, msg.charAt((msgPos + 7) % len));
+    updateDisplay();
+
+    msgPos++;
+    if (msgPos == len) {
+      msgPos = 0;
+    }
+  }
+
+  msgCount++;
+
+}
 
 void solinoids() {
 
   unsigned long currentTime = millis();
 
-  if (swBallReturn.sw) {
+  if (swBallReturn.sw && !isEndGame) {
     digitalWrite(OUT_BALL_RETURN, HIGH);
     timeRetractBallReturn = currentTime + /*SOLENOID_DELAY*/100;
   }
@@ -483,8 +490,7 @@ void updateScore() {
     asm volatile ("  jmp 0"); //Restarts the arduino. Not the most elegant, but it works for now
   }
 
-  if (swBallReturn.pr) {
-    playSFX(SOUND_NEWBALL);
+  if (swBallReturn.pr && !isEndGame) {
     endOfBall();
   }
 
@@ -514,11 +520,13 @@ void updateScore() {
   if (swLeftExtraBallLane.pr && ltExtraBallLeft) {
     extraBall();
     ltExtraBallLeft = false;
+    runDelay(timerBlinkExtraBallLeft, 100, 20);
   }
 
   if (swRightExtraBallLane.pr && ltExtraBallRight) {
     extraBall();
     ltExtraBallRight = false;
+    runDelay(timerBlinkExtraBallLeft, 100, 20);
   }
 
   if (swLeftAdvanceLane.pr || swRightAdvanceLane.pr) {
@@ -551,10 +559,12 @@ void updateScore() {
 
   //Advance bonus if ABCD is all off
   if (!ltA && !ltB && !ltC && !ltD) {
+    //TODO
     ltA = true;
     ltB = true;
     ltC = true;
     ltD = true;
+    //runDelay(timerBlinkABCD, 100, 10);
     score += 25000;
     ltExtraBallLeft = true;
     ltExtraBallRight = true;
@@ -636,6 +646,7 @@ void updateScore() {
   //////////////////////////////////
   if (oldScore != score) {
     writeScore();
+    hasScoredThisRound = true;
   }
 }
 
@@ -659,8 +670,13 @@ void extraBall() {
 
 void endOfBall() {
 
+  if (!hasScoredThisRound) {
+    return; //Ball fireer has failed, so we should not count this as a new ball, we should keep trying to push the ball out of the shooter
+  }
+
   long bonusAmount = 0;
 
+  playSFX(SOUND_NEWBALL);
 
   if (extraBalls == 0) {
     balls++;
@@ -716,7 +732,6 @@ void endOfBall() {
     bonusAmount -= 1000;
     score += 1000;
     writeScore();
-    playSFX(SOUND_POINT);
   }
   delay(1000);
   if (balls >= MAX_BALLS) {
@@ -725,8 +740,11 @@ void endOfBall() {
       /*do nothing*/
     }
     writeScore();
+    delay(5000);
+
     return;
   }
+  hasScoredThisRound = false;
   digitalWrite(OUT_BALL_RETURN, HIGH);
   timeRetractBallReturn = millis() + /*SOLENOID_DELAY*/100;
   writeScore();
@@ -736,10 +754,12 @@ void endOfBall() {
 }
 
 void endGame() {
+  isEndGame = true;
+  playSFX(SOUND_SCORE_AMATEUR);
   if (score < 40000) {
-    //playSFX(SOUND_SCORE_AMATEUR);
+    
     writeDisplay("AMATEUR");
-  } 
+  }
   else if (score < 75000) {
     writeDisplay("SUPER");
   }
@@ -760,6 +780,21 @@ void endGame() {
 void tilt() {
   playSFX(SOUND_TILT);
   writeDisplay("TILTED");
+}
+
+void timerBlinkExtraBallLeft(void){
+  ltExtraBallLeft = !ltExtraBallLeft;
+}
+
+void timerBlinkExtraBallRight(void){
+  ltExtraBallRight = !ltExtraBallRight;
+}
+
+void timerBlinkABCD(void){
+  ltA = !ltA;
+  ltB = !ltB;
+  ltC = !ltC;
+  ltD = !ltD;
 }
 
 void playSFX(byte* sfx) {
