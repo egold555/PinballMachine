@@ -26,6 +26,10 @@ const int OUT_LT1 = 37;
 const int OUT_LT2 = 38;
 const int OUT_LT3 = 39;
 
+const int OUT_MPX_DATA = 4;
+const int OUT_MPX_LATCH = 5;
+const int OUT_MPX_CLOCK = 6;
+
 
 const int IN_SW0 = A12; //36
 const int IN_SW1 = A13; //37
@@ -35,7 +39,8 @@ const int IN_SW3 = A15; //39
 const int NOTE_1 = 44;
 const int NOTE_2 = 45;
 const int NOTE_3 = 46;
-byte bonus = 0;
+
+void updateScore();
 
 typedef struct Button {
   public:
@@ -110,19 +115,15 @@ bool ltBonus4000 = false;
 bool ltTrippleBonus = false;
 bool mx5_lt3 = false; //NONE
 
-
 // Time (as returned by millis()) that solenoid should retract.
 unsigned long timeRetractLeftSlingshot = 0, timeRetractRightSlingshot = 0;
 unsigned long timeRetractLeftThumperBumper = 0, timeRetractRightThumperBumper = 0;
 unsigned long timeRetractBallReturn = 0;
 unsigned long timeNextSpinnerScore = 0;
 
-
 Adafruit_AlphaNum4 display1 = Adafruit_AlphaNum4();
 Adafruit_AlphaNum4 display2 = Adafruit_AlphaNum4();
 Playtune pt;
-
-
 
 const byte PROGMEM SOUND_STARTUP [] = {
   0, 1, 0x90, 67, 0, 59, 0x80, 0, 3, 0x90, 71, 0, 55, 0x80, 0, 3, 0x90, 74, 0, 55, 0x80,
@@ -149,11 +150,34 @@ const byte PROGMEM SOUND_NEWBALL [] = {
   0x90, 48, 0x91, 60, 0, 153, 0x80, 0x81, 0xf0
 };
 
-//const byte PROGMEM SOUND_POINT [] = {
-//  0x92, 72, 0, 160, 0x81, 0x80, 0x81, 0x82, 0xf0
-//};
+const byte PROGMEM SOUND_EXTRABALL [] = {
+  0, 1, 0x90, 76, 0, 152, 0x91, 79, 0, 5, 0x80, 0, 143, 0x90, 88, 0, 5, 0x81, 0, 142, 0x91, 84,
+  0, 5, 0x80, 0, 142, 0x90, 86, 0, 5, 0x81, 0, 148, 0x91, 91, 0, 5, 0x80, 0, 149, 0x81, 0xf0
+};
+
+//const byte PROGMEM SOUND_SCORE_AMATEUR [] = {
+//0x90,72, 0x91,65, 0x92,62, 1,157, 1,157, 1,157, 0x81, 0x91,74, 0,206, 0x82, 0,206, 0x80,
+//0x81, 0x90,62, 0x91,53, 0x92,62, 1,157, 1,157, 1,157, 0,206, 0x80, 0x82, 0,17, 0,34,
+//0,68, 0,8, 0,8, 0,17, 0,17, 0x81, 0,34, 0x90,57, 0x91,84, 0x92,76, 1,157,
+//1,157, 0,206, 0,206, 0,206, 0,206, 0x80, 0x81, 0x82, 0x90,76, 0x91,64, 0x92,76, 0,206,
+//0x80, 0x82, 0,206, 0x90,52, 1,157, 0x92,60, 0,206, 0,206, 0x82, 0x92,64, 1,157, 0x81, 0x82,
+//0x80, 0x90,76, 0x91,72, 0x92,65, 1,157, 0x82, 1,157, 0x80, 0x90,65, 0x92,57, 0,206, 0x81, 0x91,57,
+//0,206, 0x80, 0x81, 0x82, 0x90,62, 0,206, 0x80, 0,206, 0x90,57, 0x91,65, 0x92,62, 1,157, 0x80,
+//0x81, 1,157, 0x90,57, 0x91,65, 1,157, 0x80, 0x81, 0x90,67, 0,206, 0,206, 0x82, 0x80, 0x90,65,
+//0x91,84, 0x92,76, 0,206, 0x80, 0,206, 0x90,52, 2,108, 0,206, 0,206, 0x80, 0,206, 0x81,
+//0x82, 0x90,57, 0x91,64, 0x92,72, 1,157, 1,157, 1,157, 1,157, 0x80, 0x81, 0x82, 0xf0};
+
+const byte PROGMEM SOUND_TILT [] = {
+  0x90, 63, 0, 225, 0x80, 0, 112, 0x90, 69, 0x91, 66, 0, 225, 0x80, 0x81, 0, 112, 0x90, 63, 0, 225,
+  0x80, 0, 112, 0x90, 72, 0x91, 66, 0, 225, 0x80, 0x81, 0xf0
+};
 
 long score = 0;
+byte balls = 1;
+byte extraBalls = 0;
+byte bonus = 0;
+const byte MAX_BALLS = 5;
+boolean tilted = false;
 
 void setup() {
 
@@ -177,6 +201,11 @@ void setup() {
   pinMode(OUT_LT2, OUTPUT);
   pinMode(OUT_LT3, OUTPUT);
 
+  pinMode(OUT_MPX_DATA, OUTPUT);
+  pinMode(OUT_MPX_LATCH, OUTPUT);
+  digitalWrite(OUT_MPX_LATCH, HIGH);
+  pinMode(OUT_MPX_CLOCK, OUTPUT);
+
   pinMode(IN_SW0, INPUT);
   pinMode(IN_SW1, INPUT);
   pinMode(IN_SW2, INPUT);
@@ -198,6 +227,7 @@ void setup() {
 void loop() {
   checkSwitchesAndLightLights();
   updateScore();
+  updateMPXLeds();
   solinoids();
   //scrollTextTest();
 }
@@ -231,33 +261,38 @@ void loop() {
 //}
 
 void solinoids() {
+
   unsigned long currentTime = millis();
-
-  // Fire solenoids that should be fired.
-  if (swLeftSlingShot.sw) {
-    digitalWrite(OUT_SLINGSHOT_LEFT, HIGH);
-    timeRetractLeftSlingshot = currentTime + SOLENOID_DELAY;
-  }
-
-  if (swRightSlingShot.sw) {
-    digitalWrite(OUT_SLINGSHOT_RIGHT, HIGH);
-    timeRetractRightSlingshot = currentTime + SOLENOID_DELAY;
-  }
-
-  if (swLeftThumperBumper.sw) {
-    digitalWrite(OUT_THUMPER_LEFT, HIGH);
-    timeRetractLeftThumperBumper = currentTime + SOLENOID_DELAY;
-  }
-
-  if (swRightThumperBumper.sw) {
-    digitalWrite(OUT_THUMPER_RIGHT, HIGH);
-    timeRetractRightThumperBumper = currentTime + SOLENOID_DELAY;
-  }
 
   if (swBallReturn.sw) {
     digitalWrite(OUT_BALL_RETURN, HIGH);
     timeRetractBallReturn = currentTime + /*SOLENOID_DELAY*/100;
   }
+
+  if (!tilted) {
+
+    // Fire solenoids that should be fired.
+    if (swLeftSlingShot.sw) {
+      digitalWrite(OUT_SLINGSHOT_LEFT, HIGH);
+      timeRetractLeftSlingshot = currentTime + SOLENOID_DELAY;
+    }
+
+    if (swRightSlingShot.sw) {
+      digitalWrite(OUT_SLINGSHOT_RIGHT, HIGH);
+      timeRetractRightSlingshot = currentTime + SOLENOID_DELAY;
+    }
+
+    if (swLeftThumperBumper.sw) {
+      digitalWrite(OUT_THUMPER_LEFT, HIGH);
+      timeRetractLeftThumperBumper = currentTime + SOLENOID_DELAY;
+    }
+
+    if (swRightThumperBumper.sw) {
+      digitalWrite(OUT_THUMPER_RIGHT, HIGH);
+      timeRetractRightThumperBumper = currentTime + SOLENOID_DELAY;
+    }
+  }
+
 
   // Retract solenoids that should be retracted.
   if (currentTime > timeRetractLeftSlingshot) {
@@ -420,9 +455,28 @@ void checkSwitchesAndLightLights() {
 
   digitalWrite(OUT_MX5, LOW);
 
+
+  if (swTilt.sw && !tilted) {
+    tilted = true;
+    tilt();
+  }
+
+}
+
+void updateMPXLeds() {
+  byte leds = 0;
+  bitSet(leds, balls);
+  //  bitSet(leds, 0);
+  //  bitSet(leds, 2);
+  //  bitSet(leds, 4);
+  //  bitSet(leds, 6);
+  digitalWrite(OUT_MPX_LATCH, LOW);
+  shiftOut(OUT_MPX_DATA, OUT_MPX_CLOCK, MSBFIRST, leds);
+  digitalWrite(OUT_MPX_LATCH, HIGH);
 }
 
 void updateScore() {
+
   long oldScore = score;
 
   if (swStart.pr) {
@@ -432,6 +486,10 @@ void updateScore() {
   if (swBallReturn.pr) {
     playSFX(SOUND_NEWBALL);
     endOfBall();
+  }
+
+  if (tilted) {
+    return;
   }
 
   //ThumperBumpers +100
@@ -577,9 +635,13 @@ void updateScore() {
 
   //////////////////////////////////
   if (oldScore != score) {
-    writeDisplay(score);
-    playSFX(SOUND_POINT);
+    writeScore();
   }
+}
+
+void writeScore() {
+  writeDisplay(score);
+  playSFX(SOUND_POINT);
 }
 
 void advanceBonus() {
@@ -591,21 +653,34 @@ void advanceBonus() {
 
 void extraBall() {
   ltSamePlayerShoots = true;
+  extraBalls++;
+  playSFX(SOUND_EXTRABALL);
 }
 
 void endOfBall() {
 
   long bonusAmount = 0;
 
-  if (ltDoubleBonus) {
-    bonusAmount = bonus * 1000 * 2;
+
+  if (extraBalls == 0) {
+    balls++;
+  } else {
+    extraBalls--;
   }
-  else if (ltTrippleBonus) {
-    bonusAmount = bonus * 1000 * 3;
+
+  if (!tilted) {
+
+    if (ltDoubleBonus) {
+      bonusAmount = bonus * 1000 * 2;
+    }
+    else if (ltTrippleBonus) {
+      bonusAmount = bonus * 1000 * 3;
+    }
+    else {
+      bonusAmount = bonus * 1000;
+    }
   }
-  else {
-    bonusAmount = bonus * 1000;
-  }
+
 
   lt1 = true;
   lt2 = true;
@@ -630,7 +705,9 @@ void endOfBall() {
   ltDoubleBonus = false;
   ltTrippleBonus = false;
 
-  while(pt.tune_playing){
+  writeDisplay(String("Ball ") + String(balls));
+
+  while (pt.tune_playing) {
     /*do nothing*/
   }
 
@@ -638,14 +715,51 @@ void endOfBall() {
     delay(500);
     bonusAmount -= 1000;
     score += 1000;
-    writeDisplay(score);
-    updateDisplay();
+    writeScore();
     playSFX(SOUND_POINT);
   }
   delay(1000);
+  if (balls >= MAX_BALLS) {
+    endGame();
+    while (pt.tune_playing) {
+      /*do nothing*/
+    }
+    writeScore();
+    return;
+  }
   digitalWrite(OUT_BALL_RETURN, HIGH);
   timeRetractBallReturn = millis() + /*SOLENOID_DELAY*/100;
+  writeScore();
+  tilted = false;
 
+
+}
+
+void endGame() {
+  if (score < 40000) {
+    //playSFX(SOUND_SCORE_AMATEUR);
+    writeDisplay("AMATEUR");
+  } 
+  else if (score < 75000) {
+    writeDisplay("SUPER");
+  }
+  else if (score < 100000) {
+    writeDisplay("CHAMP");
+  }
+  else if (score < 125000) {
+    writeDisplay("FANTASTIC");
+  }
+  else if (score < 150000) {
+    writeDisplay("WIZARD");
+  }
+  else if (score > 150000) {
+    writeDisplay("FIREBALL");
+  }
+}
+
+void tilt() {
+  playSFX(SOUND_TILT);
+  writeDisplay("TILTED");
 }
 
 void playSFX(byte* sfx) {
