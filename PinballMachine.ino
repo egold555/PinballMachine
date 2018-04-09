@@ -21,6 +21,9 @@ const int OUT_MX2 = 30;
 const int OUT_MX3 = 31;
 const int OUT_MX4 = 32;
 const int OUT_MX5 = 33;
+const int OUT_MX6 = 48;
+const int OUT_MX7 = 50;
+const int OUT_MX8 = 52;
 
 const int OUT_LT0 = 36;
 const int OUT_LT1 = 37;
@@ -113,6 +116,19 @@ bool lt3 = true;
 bool ltBonus4000 = false;
 bool ltTrippleBonus = false;
 bool mx5_lt3 = false; //NONE
+bool ltBall2 = false; //b2
+bool ltBall3 = false; //b3
+bool ltBall4 = false; //b4
+bool ltBall5 = false; //b5
+bool ltPlayer1 = false; //p1
+bool ltPlayer2 = false; //p2
+bool ltPlayer3 = false; //p3
+bool ltPlayer4 = false; //p4
+bool mx8_lt0 = false;
+bool mx8_lt1 = false;
+bool mx8_lt2 = false;
+bool ltBall1 = true; //b1
+
 
 // Time (as returned by millis()) that solenoid should retract.
 unsigned long timeRetractLeftSlingshot = 0, timeRetractRightSlingshot = 0;
@@ -197,6 +213,9 @@ void setup() {
   pinMode(OUT_MX3, OUTPUT);
   pinMode(OUT_MX4, OUTPUT);
   pinMode(OUT_MX5, OUTPUT);
+  pinMode(OUT_MX6, OUTPUT);
+  pinMode(OUT_MX7, OUTPUT);
+  pinMode(OUT_MX8, OUTPUT);
 
   pinMode(OUT_LT0, OUTPUT);
   pinMode(OUT_LT1, OUTPUT);
@@ -461,6 +480,60 @@ void checkSwitchesAndLightLights() {
   digitalWrite(OUT_LT3, LOW);
 
   digitalWrite(OUT_MX5, LOW);
+
+  ///////////////////////////////
+
+  digitalWrite(OUT_MX6, HIGH);
+
+  digitalWrite(OUT_LT0, ltBall2);
+  digitalWrite(OUT_LT1, ltBall3);
+  digitalWrite(OUT_LT2, ltBall4);
+  digitalWrite(OUT_LT3, ltBall5);
+
+  delayMicroseconds(SWITCH_READ_DELAY);
+
+  digitalWrite(OUT_LT0, LOW);
+  digitalWrite(OUT_LT1, LOW);
+  digitalWrite(OUT_LT2, LOW);
+  digitalWrite(OUT_LT3, LOW);
+
+  digitalWrite(OUT_MX6, LOW);
+
+  ///////////////////////////////
+
+  digitalWrite(OUT_MX7, HIGH);
+
+  digitalWrite(OUT_LT0, ltPlayer1);
+  digitalWrite(OUT_LT1, ltPlayer2);
+  digitalWrite(OUT_LT2, ltPlayer3);
+  digitalWrite(OUT_LT3, ltPlayer4);
+
+  delayMicroseconds(SWITCH_READ_DELAY);
+
+  digitalWrite(OUT_LT0, LOW);
+  digitalWrite(OUT_LT1, LOW);
+  digitalWrite(OUT_LT2, LOW);
+  digitalWrite(OUT_LT3, LOW);
+
+  digitalWrite(OUT_MX7, LOW);
+
+  ///////////////////////////////
+
+  digitalWrite(OUT_MX8, HIGH);
+
+  digitalWrite(OUT_LT0, mx8_lt0);
+  digitalWrite(OUT_LT1, mx8_lt1);
+  digitalWrite(OUT_LT2, mx8_lt2);
+  digitalWrite(OUT_LT3, ltBall1);
+
+  delayMicroseconds(SWITCH_READ_DELAY);
+
+  digitalWrite(OUT_LT0, LOW);
+  digitalWrite(OUT_LT1, LOW);
+  digitalWrite(OUT_LT2, LOW);
+  digitalWrite(OUT_LT3, LOW);
+
+  digitalWrite(OUT_MX8, LOW);
 
 
   if (swTilt.sw && !tilted) {
