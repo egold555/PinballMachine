@@ -4,7 +4,7 @@
 #include "run.h"
 
 const int SOLENOID_DELAY = 50; //60
-const int SWITCH_READ_DELAY = 500;
+const int SWITCH_READ_DELAY = 800; //680
 const int ANALOG_THRESHOLD = 200;
 const int SPINNER_SCORE_DELAY = 75;
 const unsigned int DEBOUNCE_DELAY = 20;
@@ -599,7 +599,7 @@ void updateScore() {
   if (swRightExtraBallLane.pr && ltExtraBallRight) {
     extraBall();
     ltExtraBallRight = false;
-    runDelay(timerBlinkExtraBallLeft, 100, 20);
+    runDelay(timerBlinkExtraBallRight, 100, 20);
   }
 
   if (swLeftAdvanceLane.pr || swRightAdvanceLane.pr) {
@@ -793,8 +793,22 @@ void endOfBall() {
 
   ltDoubleBonus = false;
   ltTrippleBonus = false;
+  ltSamePlayerShoots = false;
+  
+  ltBall1 = false;
+  ltBall2 = false;
+  ltBall3 = false;
+  ltBall4 = false;
+  ltBall5 = false;
 
-  writeDisplay(String("Ball ") + String(balls));
+  switch(balls){
+    case 1: ltBall1  = true; break;
+    case 2: ltBall2  = true; break;
+    case 3: ltBall3  = true; break;
+    case 4: ltBall4  = true; break;
+    case 5: ltBall5  = true; break;
+    
+  }
 
   while (pt.tune_playing) {
     /*do nothing*/
@@ -861,13 +875,6 @@ void timerBlinkExtraBallLeft(void){
 
 void timerBlinkExtraBallRight(void){
   ltExtraBallRight = !ltExtraBallRight;
-}
-
-void timerBlinkABCD(void){
-  ltA = !ltA;
-  ltB = !ltB;
-  ltC = !ltC;
-  ltD = !ltD;
 }
 
 void playSFX(byte* sfx) {
