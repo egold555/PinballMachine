@@ -44,28 +44,37 @@ const int NOTE_1 = 44;
 const int NOTE_2 = 45;
 const int NOTE_3 = 46;
 
+
+
 typedef struct Button {
-  public:
-    boolean sw = false; //Switch
-    boolean pr = false; //Pressed
-    long tm = 0; //Time
+  boolean sw = false; //Switch
+  boolean pr = false; //Pressed
+  long tm = 0; //Time
 
-    void debounce(int pin) {
-      bool oldSw = sw;
-      bool newSw;
-      newSw = analogRead(pin) > ANALOG_THRESHOLD;
-      sw = newSw;
+  void debounce(int pin) {
+    bool oldSw = sw;
+    bool newSw;
+    newSw = analogRead(pin) > ANALOG_THRESHOLD;
+    sw = newSw;
 
-      pr = false;
-      if (newSw && !oldSw) {
-        unsigned long currtm = millis();
-        if (currtm - tm > DEBOUNCE_DELAY) {
-          pr = true;
-        }
-        tm = currtm;
+    pr = false;
+    if (newSw && !oldSw) {
+      unsigned long currtm = millis();
+      if (currtm - tm > DEBOUNCE_DELAY) {
+        pr = true;
       }
+      tm = currtm;
     }
+  }
 } Button;
+
+typedef struct Player {
+  bool lightA;
+  bool lightB;
+  bool lightC;
+  bool lightD;
+  long score;
+} Player;
 
 Button swBallReturn;
 Button swTilt;
@@ -188,7 +197,12 @@ const byte PROGMEM SOUND_TILT [] = {
   0x80, 0, 112, 0x90, 72, 0x91, 66, 0, 225, 0x80, 0x81, 0xf0
 };
 
+Player players[4];
+int amountOfPlayers = 1;
+int currentPlayer = 0;
+
 long score = 0;
+long oldScore = 0;
 byte balls = 1;
 byte extraBalls = 0;
 byte bonus = 0;
@@ -237,11 +251,11 @@ void setup() {
   pt.tune_initchan(NOTE_2);
   pt.tune_initchan(NOTE_3);
 
+
   display1.begin(0x70);
   display2.begin(0x71);
-  writeDisplay("NO SCORE");
 
-  playSFX(SOUND_STARTUP);
+  reset();
 }
 
 
@@ -567,10 +581,10 @@ void updateMPXLeds() {
 
 void updateScore() {
 
-  long oldScore = score;
+  oldScore = score;
 
   if (swStart.pr) {
-    asm volatile ("  jmp 0"); //Restarts the arduino. Not the most elegant, but it works for now
+    startGame();
   }
 
   if (swBallReturn.pr && !isEndGame) {
@@ -751,6 +765,68 @@ void extraBall() {
   playSFX(SOUND_EXTRABALL);
 }
 
+// reset the game back to the initial state.
+void reset() {
+  memset(players, 0, sizeof(players));
+  amountOfPlayers = 1;
+  currentPlayer = 1;
+
+  score = 0;
+  oldScore = 0;
+  balls = 1;
+  extraBalls = 0;
+  bonus = 0;
+  tilted = false;
+  isEndGame = false;
+  hasScoredThisRound = false;
+
+  ltA = ltB = ltC = ltD = true;
+  lt1 = lt2 = lt3 = true;
+  ltBonus1000 = ltBonus2000 = ltBonus3000 = ltBonus4000 = ltBonus5000 = false;
+  ltBonus6000 = ltBonus7000 = ltBonus8000 = ltBonus9000 = ltBonus10000 = false;
+  ltExtraBallRight = ltDoubleBonus = ltExtraBallLeft = ltSamePlayerShoots = ltTrippleBonus = false;
+  ltBall1 = true;
+  ltBall2 = ltBall3 = ltBall4 = ltBall5 = false;
+  ltPlayer1 = true;
+  ltPlayer2 = ltPlayer3 = ltPlayer4 = false;
+
+  writeDisplay("NO SCORE");
+
+  playSFX(SOUND_STARTUP);
+}
+
+void startGame() {
+
+  if (isEndGame) {
+    reset();
+  }
+  else if (!hasScoredThisRound) {
+    amountOfPlayers++;
+    if (amountOfPlayers > 4) {
+      amountOfPlayers = 1;
+    }
+
+    if (amountOfPlayers == 1) {
+      ltPlayer1 = true;
+      ltPlayer4 = false;
+    }
+    else if (amountOfPlayers == 2) {
+      ltPlayer2 = true;
+      ltPlayer1 = false;
+    }
+    else if (amountOfPlayers == 3) {
+      ltPlayer3 = true;
+      ltPlayer2 = false;
+    }
+    else if (amountOfPlayers == 4) {
+      ltPlayer4 = true;
+      ltPlayer3 = false;
+    }
+  }
+
+
+}
+
 void endOfBall() {
 
   if (!hasScoredThisRound) {
@@ -804,20 +880,20 @@ void endOfBall() {
   ltDoubleBonus = false;
   ltTrippleBonus = false;
   ltSamePlayerShoots = false;
-  
+
   ltBall1 = false;
   ltBall2 = false;
   ltBall3 = false;
   ltBall4 = false;
   ltBall5 = false;
 
-  switch(balls){
+  switch (balls) {
     case 1: ltBall1  = true; break;
     case 2: ltBall2  = true; break;
     case 3: ltBall3  = true; break;
     case 4: ltBall4  = true; break;
     case 5: ltBall5  = true; break;
-    
+
   }
 
   while (pt.tune_playing) {
@@ -851,10 +927,11 @@ void endOfBall() {
 }
 
 void endGame() {
+
   isEndGame = true;
   playSFX(SOUND_SCORE_AMATEUR);
   if (score < 40000) {
-    
+
     writeDisplay("AMATEUR");
   }
   else if (score < 75000) {
@@ -879,11 +956,11 @@ void tilt() {
   writeDisplay("TILTED");
 }
 
-void timerBlinkExtraBallLeft(void){
+void timerBlinkExtraBallLeft(void) {
   ltExtraBallLeft = !ltExtraBallLeft;
 }
 
-void timerBlinkExtraBallRight(void){
+void timerBlinkExtraBallRight(void) {
   ltExtraBallRight = !ltExtraBallRight;
 }
 
