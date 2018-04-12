@@ -742,15 +742,19 @@ void updateScore() {
 
   //////////////////////////////////
   if (oldScore != players[currentPlayer].score) {
-    writeScore();
+    writeScore(players[currentPlayer].score);
     hasScoredThisRound = true;
     setPlayerLight();
   }
 }
 
-void writeScore() {
-  writeDisplay(players[currentPlayer].score);
-  playSFX(SOUND_POINT);
+void writeScore(long score) {
+  writeScore(score, true);
+}
+
+void writeScore(long score, bool sound) {
+  writeDisplay(score);
+  if(sound){playSFX(SOUND_POINT);}
 }
 
 void advanceBonus() {
@@ -930,7 +934,7 @@ void endOfBall() {
     delay(500);
     bonusAmount -= 1000;
     players[currentPlayer].score += 1000;
-    writeScore();
+    writeScore(players[currentPlayer].score);
   }
 
   delay(1000);
@@ -952,18 +956,12 @@ void endOfBall() {
 
   if (balls >= MAX_BALLS) {
     endGame();
-    while (pt.tune_playing) {
-      /*do nothing*/
-    }
-    writeScore();
-    delay(5000);
-
     return;
   }
   hasScoredThisRound = false;
   digitalWrite(OUT_BALL_RETURN, HIGH);
   timeRetractBallReturn = millis() + /*SOLENOID_DELAY*/100;
-  writeScore();
+  writeScore(players[currentPlayer].score);
   tilted = false;
 
 
@@ -973,24 +971,38 @@ void endGame() {
 
   isEndGame = true;
   playSFX(SOUND_SCORE_AMATEUR);
-  if (players[currentPlayer].score < 40000) {
 
-    writeDisplay("AMATEUR");
+  while (pt.tune_playing) {
+    //Do display animation
+    for(int i = 0; i < amountOfPlayers; i++){
+      Player p = players[i];
+      writeScore(p.score, false);
+      delay(1000);
+      writeDisplay(getRankingTitle(p.score));
+      delay(1000);
+    }
+  }
+  delay(3000);
+}
+
+String getRankingTitle(int score) {
+  if (players[currentPlayer].score < 40000) {
+    return "AMATEUR";
   }
   else if (players[currentPlayer].score < 75000) {
-    writeDisplay("SUPER");
+    return"SUPER";
   }
   else if (players[currentPlayer].score < 100000) {
-    writeDisplay("CHAMP");
+    return"CHAMP";
   }
   else if (players[currentPlayer].score < 125000) {
-    writeDisplay("FANTASTIC");
+    return"FANTASTIC";
   }
   else if (players[currentPlayer].score < 150000) {
-    writeDisplay("WIZARD");
+    return"WIZARD";
   }
   else if (players[currentPlayer].score > 150000) {
-    writeDisplay("FIREBALL");
+    return"FIREBALL";
   }
 }
 
