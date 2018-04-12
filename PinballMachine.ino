@@ -201,7 +201,7 @@ Player players[4];
 int amountOfPlayers = 1;
 int currentPlayer = 0;
 
-long score = 0;
+//long score = 0;
 long oldScore = 0;
 byte balls = 1;
 byte extraBalls = 0;
@@ -581,7 +581,7 @@ void updateMPXLeds() {
 
 void updateScore() {
 
-  oldScore = score;
+  oldScore = players[currentPlayer].score;
 
   if (swStart.pr) {
     startGame();
@@ -597,21 +597,21 @@ void updateScore() {
 
   //ThumperBumpers +100
   if (swLeftThumperBumper.pr || swRightThumperBumper.pr) {
-    score += 100;
+    players[currentPlayer].score += 100;
   }
 
   //Spinners +100
   if (swLeftSpinner.sw || swRightSpinner.sw) {
     unsigned long currTime = millis();
     if (currTime > timeNextSpinnerScore) {
-      score += 100;
+      players[currentPlayer].score += 100;
       timeNextSpinnerScore = currTime + SPINNER_SCORE_DELAY;
     }
   }
 
   //Extra ball lanes and advance lanes +500
   if (swLeftExtraBallLane.pr || swRightExtraBallLane.pr) {
-    score += 500;
+    players[currentPlayer].score += 500;
   }
 
   if (swLeftExtraBallLane.pr && ltExtraBallLeft) {
@@ -628,12 +628,12 @@ void updateScore() {
 
   if (swLeftAdvanceLane.pr || swRightAdvanceLane.pr) {
     advanceBonus();
-    score += 500;
+    players[currentPlayer].score += 500;
   }
 
   //ABCD  +1000
   if (swA.pr || swB.pr || swC.pr || swD.pr) {
-    score += 1000;
+    players[currentPlayer].score += 1000;
   }
 
   //trigger lights for ABCD
@@ -662,7 +662,7 @@ void updateScore() {
     ltC = true;
     ltD = true;
     //runDelay(timerBlinkABCD, 100, 10);
-    score += 25000;
+    players[currentPlayer].score += 25000;
     ltExtraBallLeft = true;
     ltExtraBallRight = true;
     playSFX(SOUND_STARTUP);
@@ -670,13 +670,13 @@ void updateScore() {
 
   //Left and Right Bumper +50
   if (swLeftBumper.pr || swRightBumper.pr) {
-    score += 50;
+    players[currentPlayer].score += 50;
   }
 
   //Targets
 
   if (swLeftTarget.pr || swRightTarget.pr || swCenterTarget.pr) {
-    score += 500;
+    players[currentPlayer].score += 500;
   }
 
   if (swLeftTarget.pr && lt1) {
@@ -692,7 +692,7 @@ void updateScore() {
   }
 
   if (swCenterTarget.pr && lt3) {
-    score += 500; //Accounting fo 500 of above function
+    players[currentPlayer].score += 500; //Accounting fo 500 of above function
     lt3 = false;
     advanceBonus();
     advanceBonus();
@@ -741,14 +741,15 @@ void updateScore() {
 
 
   //////////////////////////////////
-  if (oldScore != score) {
+  if (oldScore != players[currentPlayer].score) {
     writeScore();
     hasScoredThisRound = true;
+    setPlayerLight();
   }
 }
 
 void writeScore() {
-  writeDisplay(score);
+  writeDisplay(players[currentPlayer].score);
   playSFX(SOUND_POINT);
 }
 
@@ -767,11 +768,18 @@ void extraBall() {
 
 // reset the game back to the initial state.
 void reset() {
-  memset(players, 0, sizeof(players));
-  amountOfPlayers = 1;
-  currentPlayer = 1;
+  for (int p = 0; p < 4; ++p) {
+    players[p].score = 0;
+    players[p].lightA = true;
+    players[p].lightB = true;
+    players[p].lightC = true;
+    players[p].lightD = true;
+  }
 
-  score = 0;
+  amountOfPlayers = 1;
+  currentPlayer = 0;
+
+  players[currentPlayer].score = 0;
   oldScore = 0;
   balls = 1;
   extraBalls = 0;
@@ -827,6 +835,38 @@ void startGame() {
 
 }
 
+void setPlayerLight()
+{
+  ltPlayer1 = (currentPlayer == 0);
+  ltPlayer2 = (currentPlayer == 1);
+  ltPlayer3 = (currentPlayer == 2);
+  ltPlayer4 = (currentPlayer == 3);
+}
+
+// The current player has no extra balls hit end of ball.
+// Advance to the next player and/or next ball.
+void switchPlayersOrAdvanceBall()
+{
+  players[currentPlayer].lightA = ltA;
+  players[currentPlayer].lightB = ltB;
+  players[currentPlayer].lightC = ltC;
+  players[currentPlayer].lightD = ltD;
+
+  ++currentPlayer;
+  if (currentPlayer >= amountOfPlayers) {
+    balls++;
+    currentPlayer = 0;
+  }
+
+  ltA = players[currentPlayer].lightA;
+  ltB = players[currentPlayer].lightB;
+  ltC = players[currentPlayer].lightC;
+  ltD = players[currentPlayer].lightD;
+  oldScore = players[currentPlayer].score;
+
+  setPlayerLight();
+}
+
 void endOfBall() {
 
   if (!hasScoredThisRound) {
@@ -836,12 +876,6 @@ void endOfBall() {
   long bonusAmount = 0;
 
   playSFX(SOUND_NEWBALL);
-
-  if (extraBalls == 0) {
-    balls++;
-  } else {
-    extraBalls--;
-  }
 
   if (!tilted) {
 
@@ -887,14 +921,6 @@ void endOfBall() {
   ltBall4 = false;
   ltBall5 = false;
 
-  switch (balls) {
-    case 1: ltBall1  = true; break;
-    case 2: ltBall2  = true; break;
-    case 3: ltBall3  = true; break;
-    case 4: ltBall4  = true; break;
-    case 5: ltBall5  = true; break;
-
-  }
 
   while (pt.tune_playing) {
     /*do nothing*/
@@ -903,10 +929,27 @@ void endOfBall() {
   while (bonusAmount > 0) {
     delay(500);
     bonusAmount -= 1000;
-    score += 1000;
+    players[currentPlayer].score += 1000;
     writeScore();
   }
+
   delay(1000);
+
+  // Move to next ball or player.
+  if (extraBalls == 0) {
+    switchPlayersOrAdvanceBall();
+  } else {
+    extraBalls--;
+  }
+
+  switch (balls) {
+    case 1: ltBall1  = true; break;
+    case 2: ltBall2  = true; break;
+    case 3: ltBall3  = true; break;
+    case 4: ltBall4  = true; break;
+    case 5: ltBall5  = true; break;
+  }
+
   if (balls >= MAX_BALLS) {
     endGame();
     while (pt.tune_playing) {
@@ -930,23 +973,23 @@ void endGame() {
 
   isEndGame = true;
   playSFX(SOUND_SCORE_AMATEUR);
-  if (score < 40000) {
+  if (players[currentPlayer].score < 40000) {
 
     writeDisplay("AMATEUR");
   }
-  else if (score < 75000) {
+  else if (players[currentPlayer].score < 75000) {
     writeDisplay("SUPER");
   }
-  else if (score < 100000) {
+  else if (players[currentPlayer].score < 100000) {
     writeDisplay("CHAMP");
   }
-  else if (score < 125000) {
+  else if (players[currentPlayer].score < 125000) {
     writeDisplay("FANTASTIC");
   }
-  else if (score < 150000) {
+  else if (players[currentPlayer].score < 150000) {
     writeDisplay("WIZARD");
   }
-  else if (score > 150000) {
+  else if (players[currentPlayer].score > 150000) {
     writeDisplay("FIREBALL");
   }
 }
