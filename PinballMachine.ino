@@ -1,7 +1,7 @@
 #include "Playtune.h" //Music http://blog.bentgeorge.com/?p=119
 #include "Adafruit_LEDBackpack.h" //Display
-#include "long2text.h"
-#include "run.h"
+#include "long2text.h" //Peter
+#include "run.h" //Modified version of https://github.com/billroy/run
 
 const int SOLENOID_DELAY = 50; //60
 const int SWITCH_READ_DELAY = 800; //680
@@ -200,6 +200,7 @@ boolean hasScoredThisRound = false;
 void setup() {
 
   Serial.begin(57600);
+  //Serial2.begin(115200); //Recieve ESP
 
   pinMode(OUT_SLINGSHOT_LEFT, OUTPUT);
   pinMode(OUT_SLINGSHOT_RIGHT, OUTPUT);
@@ -257,7 +258,16 @@ void loop() {
     scrollText("PRESS START TO PLAY AGAIN           ");
   }
 
+  //serial();
+
 }
+
+//void serial(){
+//  while(Serial2.available() > 0){
+//    int c = Serial2.read();
+//    Serial.write(c);
+//  }
+//}
 
 long MSG_DELAY = 20;
 long msgCount = 0;
