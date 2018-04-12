@@ -211,6 +211,35 @@ boolean tilted = false;
 boolean isEndGame = false;
 boolean hasScoredThisRound = false;
 
+//Decare all functions
+void setup(void);
+void loop(void);
+void scrollText(String msg);
+void solinoids(void);
+void checkSwitchesAndLightLights(void);
+void updateMPXLeds(void);
+void updateScore(void);
+void writeScore(long score);
+void writeScore(long score, bool sound);
+void advanceBonus(void);
+void extraBall(void);
+void reset(void);
+void startGame(void);
+void setPlayerLight(void);
+void switchPlayersOrAdvanceBall(void);
+void endOfBall(void);
+void endGame(void);
+String getRankingTitle(int score);
+void tilt(void);
+void timerBlinkExtraBallLeft(void);
+void timerBlinkExtraBallRight(void);
+void playSFX(byte* sfx);
+void writeDisplay(long num);
+void writeDisplay(String msg);
+void writeDisplay(int place, char in);
+void updateDisplay(void);
+void clearDisplay(void);
+
 void setup() {
 
   Serial.begin(57600);
@@ -967,7 +996,7 @@ void endOfBall() {
 
 }
 
-void endGame() {
+void endGame(){
 
   isEndGame = true;
   playSFX(SOUND_SCORE_AMATEUR);
