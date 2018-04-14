@@ -930,12 +930,12 @@ void startGame() {
   if (isEndGame) {
     reset();
   }
-  else if (!hasScoredThisRound) {
+  else if (!hasScoredThisRound && players[0].score == 0) {
     amountOfPlayers++;
     if (amountOfPlayers > 4) {
       amountOfPlayers = 1;
     }
-
+    playSFX(SOUND_POINT);
     lightPlayerLights(amountOfPlayers);
    
   }
@@ -1095,6 +1095,8 @@ void endGame(){
   playSFX(SOUND_ENDING_SONG);
 
   ltBall1 = ltBall2 = ltBall3 = ltBall4 = ltBall5 = false;
+  ltA = ltB = ltC = ltD = true;
+  lt1 = lt2 = lt3 = true;
 
   while (pt.tune_playing && !endNow) {
     //Do display animation
