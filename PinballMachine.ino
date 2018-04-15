@@ -30,15 +30,13 @@ const int OUT_LT1 = 37;
 const int OUT_LT2 = 38;
 const int OUT_LT3 = 39;
 
-const int OUT_MPX_DATA = 4;
-const int OUT_MPX_LATCH = 5;
-const int OUT_MPX_CLOCK = 6;
-
-
 const int IN_SW0 = A12; //36
 const int IN_SW1 = A13; //37
 const int IN_SW2 = A14; //38
 const int IN_SW3 = A15; //39
+
+const int IN_FLIPPER_LEFT = 2;
+const int IN_FLIPPER_RIGHT = 3;
 
 const int NOTE_1 = 44;
 const int NOTE_2 = 45;
@@ -66,6 +64,23 @@ typedef struct Button {
       tm = currtm;
     }
   }
+
+  void debounceDigital(int pin) {
+    bool oldSw = sw;
+    bool newSw;
+    newSw = digitalRead(pin) == LOW;
+    sw = newSw;
+
+    pr = false;
+    if (newSw && !oldSw) {
+      unsigned long currtm = millis();
+      if (currtm - tm > DEBOUNCE_DELAY) {
+        pr = true;
+      }
+      tm = currtm;
+    }
+  }
+  
 } Button;
 
 typedef struct Player {
@@ -100,6 +115,8 @@ Button swCenterTarget;
 //Button mx5_sw1;
 Button swRightBumper;
 Button swRightAdvanceLane;
+Button swFlipperLeft;
+Button swFlipperRight;
 
 bool mx0_lt0 = false; //NONE
 bool ltBonus8000 = false;
@@ -355,10 +372,8 @@ void setup() {
   pinMode(OUT_LT2, OUTPUT);
   pinMode(OUT_LT3, OUTPUT);
 
-  pinMode(OUT_MPX_DATA, OUTPUT);
-  pinMode(OUT_MPX_LATCH, OUTPUT);
-  digitalWrite(OUT_MPX_LATCH, HIGH);
-  pinMode(OUT_MPX_CLOCK, OUTPUT);
+  pinMode(IN_FLIPPER_LEFT, INPUT_PULLUP);
+  pinMode(IN_FLIPPER_RIGHT, INPUT_PULLUP);
 
   pinMode(IN_SW0, INPUT);
   pinMode(IN_SW1, INPUT);
@@ -382,12 +397,19 @@ void loop() {
   runner();
   checkSwitchesAndLightLights();
   updateScore();
-  updateMPXLeds();
   solinoids();
   //scrollTextTest();
 
   if (isEndGame) {
     scrollText("PRESS START TO PLAY AGAIN           ");
+  }
+
+  if(swFlipperLeft.pr){
+    writeDisplay("LEFT");
+  }
+
+  if(swFlipperRight.pr){
+    writeDisplay("RIGHT");
   }
 
   //serial();
@@ -678,23 +700,17 @@ void checkSwitchesAndLightLights() {
   digitalWrite(OUT_MX8, LOW);
 
 
+
+  swFlipperLeft.debounceDigital(IN_FLIPPER_LEFT);
+  swFlipperRight.debounceDigital(IN_FLIPPER_RIGHT);
+
+
   if (swTilt.sw && !tilted) {
     tilted = true;
     tilt();
   }
 
-}
 
-void updateMPXLeds() {
-  byte leds = 0;
-  bitSet(leds, balls);
-  //  bitSet(leds, 0);
-  //  bitSet(leds, 2);
-  //  bitSet(leds, 4);
-  //  bitSet(leds, 6);
-  digitalWrite(OUT_MPX_LATCH, LOW);
-  shiftOut(OUT_MPX_DATA, OUT_MPX_CLOCK, MSBFIRST, leds);
-  digitalWrite(OUT_MPX_LATCH, HIGH);
 }
 
 void updateScore() {
