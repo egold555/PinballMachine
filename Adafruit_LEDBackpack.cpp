@@ -204,6 +204,7 @@ void Adafruit_LEDBackpack::begin(uint8_t _addr = 0x70) {
   i2c_addr = _addr;
 
   Wire.begin();
+  Wire.setClock(400000);
 
   Wire.beginTransmission(i2c_addr);
   Wire.write(0x21);  // turn on oscillator
