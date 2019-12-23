@@ -1,12 +1,9 @@
 #ifndef _ADAFRUIT_GFX_H
 #define _ADAFRUIT_GFX_H
 
-#if ARDUINO >= 100
- #include "Arduino.h"
- #include "Print.h"
-#else
- #include "WProgram.h"
-#endif
+#include "Arduino.h"
+#include "Print.h"
+
 #include "gfxfont.h"
 
 class Adafruit_GFX : public Print {

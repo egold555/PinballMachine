@@ -1,7 +1,12 @@
+//in VS CODE, set '"C_Cpp.intelliSenseEngine": "Tag Parser",' in the settings json file in appdata
+//https://github.com/microsoft/vscode-arduino/issues/438#issuecomment-343820369
+
+//imports
 #include "Playtune.h" //Music http://blog.bentgeorge.com/?p=119
 #include "Adafruit_LEDBackpack.h" //Display
 #include "long2text.h" //Peter
 #include "run.h" //Modified version of https://github.com/billroy/run
+#include <EEPROM.h>
 
 const int SOLENOID_DELAY = 50; //60
 const int SWITCH_READ_DELAY = 800; //680
@@ -30,10 +35,10 @@ const int OUT_LT1 = 37;
 const int OUT_LT2 = 38;
 const int OUT_LT3 = 39;
 
-const int IN_SW0 = A12; //36
-const int IN_SW1 = A13; //37
-const int IN_SW2 = A14; //38
-const int IN_SW3 = A15; //39
+const int IN_SW0 = A12;
+const int IN_SW1 = A13;
+const int IN_SW2 = A14;
+const int IN_SW3 = A15;
 
 const int IN_FLIPPER_LEFT = 2;
 const int IN_FLIPPER_RIGHT = 3;
@@ -410,19 +415,19 @@ void loop() {
   solinoids();
   //scrollTextTest();
 
-  if (state == GS_BEFORE) {
-    scrollText("PRESS START TO PLAY AGAIN           HIGH SCORE - (PLAYER) - (SCORE)            " );
-  }
+  // if (state == GS_BEFORE) {
+  //   scrollText("PRESS START TO PLAY AGAIN           HIGH SCORE - (PLAYER) - (SCORE)            " );
+  // }
 
-  //  if(swFlipperLeft.pr){
-  //    doTheDisplayThing();
-  //    theChar--;
-  //  }
-  //
-  //  if(swFlipperRight.pr){
-  //    doTheDisplayThing();
-  //    theChar++;
-  //  }
+   if(swFlipperLeft.pr){
+     doTheDisplayThing();
+     theChar--;
+   }
+  
+   if(swFlipperRight.pr){
+     doTheDisplayThing();
+     theChar++;
+   }
 
   //serial();
 
@@ -439,7 +444,8 @@ void doTheDisplayThing() {
 
   long place = (long) ((int)theChar);
   writeDisplay(place);
-  writeDisplay(posToWriteAt, theChar); updateDisplay();
+  writeDisplay(posToWriteAt, theChar); 
+  updateDisplay();
 }
 
 //void serial(){

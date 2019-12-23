@@ -20,11 +20,7 @@
 #ifndef Adafruit_LEDBackpack_h
 #define Adafruit_LEDBackpack_h
 
-#if (ARDUINO >= 100)
- #include "Arduino.h"
-#else
- #include "WProgram.h"
-#endif
+#include "Arduino.h"
 
 
  #include <Wire.h>
