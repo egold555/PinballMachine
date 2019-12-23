@@ -6,7 +6,7 @@
 #include "Adafruit_LEDBackpack.h" //Display
 #include "long2text.h" //Peter
 #include "run.h" //Modified version of https://github.com/billroy/run
-#include <EEPROM.h>
+//#include <EEPROM.h> //not used currently
 
 //Constants for delays ahs such. 
 //TODO: DOcument more
