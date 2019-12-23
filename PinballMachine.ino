@@ -8,12 +8,15 @@
 #include "run.h" //Modified version of https://github.com/billroy/run
 #include <EEPROM.h>
 
+//Constants for delays ahs such. 
+//TODO: DOcument more
 const int SOLENOID_DELAY = 50; //60
 const int SWITCH_READ_DELAY = 800; //680
 const int ANALOG_THRESHOLD = 200;
 const int SPINNER_SCORE_DELAY = 75;
 const unsigned int DEBOUNCE_DELAY = 20;
 
+//Constants for pins
 const int OUT_SLINGSHOT_LEFT = 22;
 const int OUT_BALL_RETURN = 23;
 const int OUT_SLINGSHOT_RIGHT = 24;
@@ -47,6 +50,7 @@ const int NOTE_1 = 44;
 const int NOTE_2 = 45;
 const int NOTE_3 = 46;
 
+//What state is the game in
 typedef enum GameState {
   GS_BEFORE,
   GS_PLAYING,
@@ -54,11 +58,17 @@ typedef enum GameState {
   GS_HIGHSCORE
 };
 
+//defines a button on the pinball machine
 typedef struct Button {
   boolean sw = false; //Switch
   boolean pr = false; //Pressed
   long tm = 0; //Time
 
+  /**
+   * magical debouncing code that works and should never be touched
+   * 
+   * @param pin pin to debounce
+   */
   void debounce(int pin) {
     bool oldSw = sw;
     bool newSw;
@@ -75,6 +85,11 @@ typedef struct Button {
     }
   }
 
+  /**
+    * magical debouncing code that works and should never be touched
+    * 
+    * @param pin pin to debounce
+    */
   void debounceDigital(int pin) {
     bool oldSw = sw;
     bool newSw;
@@ -93,6 +108,7 @@ typedef struct Button {
 
 } Button;
 
+//Defines a player. 1,2,3,4
 typedef struct Player {
   bool lightA;
   bool lightB;
@@ -101,6 +117,7 @@ typedef struct Player {
   long score;
 } Player;
 
+//Every button on the pinball machine
 Button swBallReturn;
 Button swTilt;
 Button swRightSpinner;
@@ -128,6 +145,7 @@ Button swRightAdvanceLane;
 Button swFlipperLeft;
 Button swFlipperRight;
 
+//all the lights on the pinball machine
 bool mx0_lt0 = false; //NONE
 bool ltBonus8000 = false;
 bool ltBonus9000 = false;
@@ -172,12 +190,17 @@ unsigned long timeRetractLeftThumperBumper = 0, timeRetractRightThumperBumper = 
 unsigned long timeRetractBallReturn = 0;
 unsigned long timeNextSpinnerScore = 0;
 
+//The matrix display
 Adafruit_AlphaNum4 display1 = Adafruit_AlphaNum4();
 Adafruit_AlphaNum4 display2 = Adafruit_AlphaNum4();
+
+//Music player
 Playtune pt;
 
+//Current game state we are in
 GameState state = GS_BEFORE;
 
+///////////////////////////////// [ MUSIC / SFX ] /////////////////////////////////
 const byte PROGMEM SOUND_STARTUP [] = {
   0, 1, 0x90, 67, 0, 59, 0x80, 0, 3, 0x90, 71, 0, 55, 0x80, 0, 3, 0x90, 74, 0, 55, 0x80,
   0, 3, 0x90, 79, 0, 55, 0x80, 0, 3, 0x90, 83, 0, 56, 0x80, 0, 3, 0x90, 68, 0, 56, 0x80,
@@ -314,11 +337,13 @@ const byte PROGMEM SOUND_TILT [] = {
   0x80, 0, 112, 0x90, 72, 0x91, 66, 0, 225, 0x80, 0x81, 0xf0
 };
 
+///////////////////////////////// [ END MUSIC / SFX ] /////////////////////////////////
+
+//player variables
 Player players[4];
 int amountOfPlayers = 0;
 int currentPlayer = 0;
 
-//long score = 0;
 long oldScore = 0;
 byte balls = 1;
 byte extraBalls = 0;
@@ -358,11 +383,16 @@ void writeDisplay(int place, char in);
 void updateDisplay(void);
 void clearDisplay(void);
 
+/**
+ * Arduino setup function
+ * TODO:
+ */
 void setup() {
 
   Serial.begin(57600);
   //Serial2.begin(115200); //Recieve ESP
 
+  //init al the matrix's and the misc outputs
   pinMode(OUT_SLINGSHOT_LEFT, OUTPUT);
   pinMode(OUT_SLINGSHOT_RIGHT, OUTPUT);
   pinMode(OUT_THUMPER_LEFT, OUTPUT);
@@ -384,6 +414,7 @@ void setup() {
   pinMode(OUT_LT2, OUTPUT);
   pinMode(OUT_LT3, OUTPUT);
 
+  //inputs
   pinMode(IN_FLIPPER_LEFT, INPUT_PULLUP);
   pinMode(IN_FLIPPER_RIGHT, INPUT_PULLUP);
 
@@ -392,11 +423,12 @@ void setup() {
   pinMode(IN_SW2, INPUT);
   pinMode(IN_SW3, INPUT);
 
+  //init music generators voices's
   pt.tune_initchan(NOTE_1);
   pt.tune_initchan(NOTE_2);
   pt.tune_initchan(NOTE_3);
 
-
+  //init the two displays
   display1.begin(0x70);
   display2.begin(0x71);
 
@@ -408,6 +440,10 @@ void setup() {
 char theChar = 'A';
 int posToWriteAt = 0;
 
+/**
+ * Arduino loop
+ * TODO: dd
+ */
 void loop() {
   runner();
   checkSwitchesAndLightLights();
@@ -433,6 +469,10 @@ void loop() {
 
 }
 
+/**
+ * WIP code to insert your name
+ * 
+ */
 void doTheDisplayThing() {
 
   if (theChar > 'Z') {
@@ -458,6 +498,12 @@ void doTheDisplayThing() {
 long MSG_DELAY = 20;
 long msgCount = 0;
 int msgPos = 0;
+
+/**
+ * Scroll text accross the displadisplay
+ * 
+ * @param msg Text to display
+ */
 void scrollText(String msg) {
   int len = msg.length();
   if ((msgCount % MSG_DELAY) == 0) {
@@ -481,7 +527,10 @@ void scrollText(String msg) {
   msgCount++;
 
 }
-
+/**
+ * Updates the solinoids states
+ * 
+ */
 void solinoids() {
 
   unsigned long currentTime = millis();
@@ -539,6 +588,10 @@ void solinoids() {
 
 }
 
+/**
+ * Check and update the giant matrix's for all the lights and buttons
+ * 
+ */
 void checkSwitchesAndLightLights() {
 
   digitalWrite(OUT_MX0, HIGH);
@@ -744,6 +797,10 @@ void checkSwitchesAndLightLights() {
 
 }
 
+/**
+ * update the currently playing player score
+ * TODO
+ */
 void updateScore() {
 
   oldScore = players[currentPlayer].score;
@@ -913,10 +970,21 @@ void updateScore() {
   }
 }
 
+/**
+ * Writes the score to the screen and plays the score sound
+ * 
+ * @param score 
+ */
 void writeScore(long score) {
   writeScore(score, true);
 }
 
+/**
+ * Writes the score to the screen
+ * 
+ * @param score players score
+ * @param sound should we play the score sound?
+ */
 void writeScore(long score, bool sound) {
   writeDisplay(score);
   if (sound) {
@@ -924,6 +992,10 @@ void writeScore(long score, bool sound) {
   }
 }
 
+/**
+ * Advance the bonus up by one
+ * 
+ */
 void advanceBonus() {
   bonus++;
   if (bonus > 10) {
@@ -931,13 +1003,20 @@ void advanceBonus() {
   }
 }
 
+/**
+ * Give the player a extra ball
+ * 
+ */
 void extraBall() {
   ltSamePlayerShoots = true;
   extraBalls++;
   playSFX(SOUND_EXTRABALL);
 }
 
-// reset the game back to the initial state.
+/**
+ * reset the game back to the initial state.
+ * 
+ */
 void reset() {
   for (int p = 0; p < 4; ++p) {
     players[p].score = 0;
@@ -974,6 +1053,10 @@ void reset() {
   playSFX(SOUND_STARTUP);
 }
 
+/**
+ * Start a brand new game
+ * 
+ */
 void startGame() {
 
   if (state == GS_BEFORE) {
@@ -998,6 +1081,16 @@ void startGame() {
 
 }
 
+/**
+ * Light up the current player light 
+ * A = 1
+ * B = 2
+ * C = 3
+ * D = 4
+ * CLEAR = any other number
+ * 
+ * @param num player light to display, see above comment
+ */
 void lightPlayerLights(int num) {
   ltPlayer1 = (num == 1);
   ltPlayer2 = (num == 2);
@@ -1005,13 +1098,19 @@ void lightPlayerLights(int num) {
   ltPlayer4 = (num == 4);
 }
 
+/**
+ * Set the Player Light object
+ * Light up the current players light
+ */
 void setPlayerLight()
 {
   lightPlayerLights(currentPlayer + 1);
 }
 
-// The current player has no extra balls hit end of ball.
-// Advance to the next player and/or next ball.
+/**
+ * The current player has no extra balls hit end of ball.
+ * Advance to the next player and/or next ball.
+ */
 void switchPlayersOrAdvanceBall()
 {
   players[currentPlayer].lightA = ltA;
@@ -1034,6 +1133,10 @@ void switchPlayersOrAdvanceBall()
   setPlayerLight();
 }
 
+/**
+ * When the ball goes into the "gutter"
+ * 
+ */
 void endOfBall() {
 
   if (!hasScoredThisRound) {
@@ -1089,6 +1192,7 @@ void endOfBall() {
   ltBall5 = false;
 
 
+  //Wait until the music finishes playing
   while (pt.tune_playing) {
     /*do nothing*/
   }
@@ -1144,6 +1248,11 @@ bool delayWithLights(int delayTime)
   return false;
 }
 
+/**
+ * Called when the game ends
+ * Plays the end game animation
+ * Automatically resets the game as well.
+ */
 void endGame() {
   bool endNow = false;
   state = GS_GAMEOVER;
@@ -1177,6 +1286,12 @@ void endGame() {
 
 }
 
+/**
+ * Get the Ranking Title based off of your score
+ * 
+ * @param score players score
+ * @return String their rank
+ */
 String getRankingTitle(long score) {
   if (score < 40000) {
     return "AMATEUR";
@@ -1198,31 +1313,58 @@ String getRankingTitle(long score) {
   }
 }
 
+/**
+ * Called if the machine is tilted during game play
+ * 
+ */
 void tilt() {
   playSFX(SOUND_TILT);
   writeDisplay("TILTED");
 }
 
+/**
+ * Blink the extra ball left light
+ * 
+ */
 void timerBlinkExtraBallLeft(void) {
   ltExtraBallLeft = !ltExtraBallLeft;
 }
 
+/**
+ * Blink the extra ball right light
+ * 
+ */
 void timerBlinkExtraBallRight(void) {
   ltExtraBallRight = !ltExtraBallRight;
 }
 
+/**
+ * Play the music / SFX music. Defined in the arrays above
+ * 
+ * @param sfx Array of music to play
+ */
 void playSFX(byte* sfx) {
   if (!pt.tune_playing) {
     pt.tune_playscore(sfx);
   }
 }
 
+/**
+ * Write a long to the display
+ * 
+ * @param num number to display on screen
+ */
 void writeDisplay(long num) {
   char buffer[9];
   long2text(num, buffer);
   writeDisplay(buffer);
 }
 
+/**
+ * Writes a string to the display(s)
+ * 
+ * @param msg String to write
+ */
 void writeDisplay(String msg) {
   clearDisplay(); //Not sure if I need to clear every time, Long run?
   for (int i = 0; i < 8; i++) {
@@ -1233,6 +1375,12 @@ void writeDisplay(String msg) {
   updateDisplay(); //Just like clear, should we auto update in long run?
 }
 
+/**
+ * Writes a character to a certian place on the display(s)
+ * 
+ * @param place Where to write it 0-7. Each display has 4 characters
+ * @param in Character to display. Displays all ASCII and some unicode characters
+ */
 void writeDisplay(int place, char in) {
   if (isprint(in)) {
     if (place > 3) {
@@ -1244,11 +1392,19 @@ void writeDisplay(int place, char in) {
   }
 }
 
+/**
+ * Updates both display units as one display
+ * 
+ */
 void updateDisplay() {
   display1.writeDisplay();
   display2.writeDisplay();
 }
 
+/**
+ * Clears both display units as one display
+ * 
+ */
 void clearDisplay() {
   display1.clear();
   display2.clear();
