@@ -976,6 +976,9 @@ void writeScore(long score, bool sound)
   writeDisplay(score);
   if (sound)
   {
+    if(pt.tune_playing){
+      pt.tune_stopscore();
+    }
     playSFX(SOUND_POINT);
   }
 }
