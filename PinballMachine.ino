@@ -1,3 +1,4 @@
+/**@file PinballMachine.ino */
 //in VS CODE, set '"C_Cpp.intelliSenseEngine": "Tag Parser",' in the settings json file in appdata
 //https://github.com/microsoft/vscode-arduino/issues/438#issuecomment-343820369
 
