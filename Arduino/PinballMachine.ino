@@ -58,7 +58,7 @@ const int NOTE_3 = 46;
 typedef struct Button
 {
 
-  Button(int id) : id(id){}
+  Button(int id) : id(id) {}
 
   int id;
   boolean sw = false; //Switch
@@ -66,27 +66,32 @@ typedef struct Button
   boolean pr = false; //Pressed
   long tm = 0;        //Time
 
-  void updateBTN() {
-    if(pr){
-        sendToSerialPR();
+  void updateBTN()
+  {
+    if (pr)
+    {
+      sendToSerialPR();
     }
-    if(sw != swLast) {
+    if (sw != swLast)
+    {
       sendToSerialSW();
       swLast = sw;
     }
   }
 
-  void sendToSerialSW() {
+  void sendToSerialSW()
+  {
 
-    Serial.print("BT-");
+    Serial.print("B-T-");
     Serial.print(id);
     Serial.print("-");
     Serial.print(sw);
     Serial.println();
   }
 
-  void sendToSerialPR() {
-    Serial.print("BP-");
+  void sendToSerialPR()
+  {
+    Serial.print("B-P-");
     Serial.print(id);
     Serial.println();
   }
@@ -216,7 +221,6 @@ Adafruit_AlphaNum4 display2 = Adafruit_AlphaNum4();
 //Music player
 Playtune pt;
 
-
 //Decare all functions
 void setup(void);
 void loop(void);
@@ -230,7 +234,11 @@ void writeDisplay(String msg);
 void writeDisplay(int place, char in);
 void updateDisplay(void);
 void clearDisplay(void);
-
+void incomingLightMessage(int light, boolean status);
+void incomingMessage(const char *message);
+void checkForIncomingMessages();
+void updateSolinoids();
+void incomingSolinoidMessage(int solinoid);
 /**
  * Arduino setup function
  * TODO:
@@ -283,7 +291,8 @@ void setup()
 
   //delay(200);
   writeDisplay("DEBUG");
-  Serial.println("Ready");
+  delay(200);
+  Serial.println("PC-Ready");
 }
 
 /**
@@ -294,6 +303,81 @@ void loop()
   //runner();
   checkSwitchesAndLightLights();
   checkForIncomingMessages();
+  updateSolinoids();
+}
+
+unsigned long timeRetractLeftSlingshot = 0, timeRetractRightSlingshot = 0;
+unsigned long timeRetractLeftThumperBumper = 0, timeRetractRightThumperBumper = 0;
+unsigned long timeRetractBallReturn = 0;
+unsigned long timeNextSpinnerScore = 0;
+bool snBallReturn = false;
+bool snLeftSlingShot = false;
+bool snRightSlingShot = false;
+bool snLeftThumperBumper = false;
+bool snRightThumperBumper = false;
+void updateSolinoids()
+{
+  unsigned long currentTime = millis();
+  if (snBallReturn)
+  {
+    digitalWrite(OUT_BALL_RETURN, HIGH);
+    timeRetractBallReturn = currentTime + 100;
+    snBallReturn = false;
+  }
+  // Fire solenoids that should be fired.
+  if (snLeftSlingShot)
+  {
+    digitalWrite(OUT_SLINGSHOT_LEFT, HIGH);
+    timeRetractLeftSlingshot = currentTime + SOLENOID_DELAY;
+    snLeftSlingShot = false;
+  }
+
+  if (snRightSlingShot)
+  {
+    digitalWrite(OUT_SLINGSHOT_RIGHT, HIGH);
+    timeRetractRightSlingshot = currentTime + SOLENOID_DELAY;
+    snRightSlingShot = false;
+  }
+
+  if (snLeftThumperBumper)
+  {
+    digitalWrite(OUT_THUMPER_LEFT, HIGH);
+    timeRetractLeftThumperBumper = currentTime + SOLENOID_DELAY;
+    snLeftThumperBumper = false;
+  }
+
+  if (snRightThumperBumper)
+  {
+    digitalWrite(OUT_THUMPER_RIGHT, HIGH);
+    timeRetractRightThumperBumper = currentTime + SOLENOID_DELAY;
+    snRightThumperBumper = false;
+  }
+
+  // Retract solenoids that should be retracted.
+  if (currentTime > timeRetractLeftSlingshot)
+  {
+    digitalWrite(OUT_SLINGSHOT_LEFT, LOW);
+  }
+
+  if (currentTime > timeRetractRightSlingshot)
+  {
+    digitalWrite(OUT_SLINGSHOT_RIGHT, LOW);
+  }
+
+  if (currentTime > timeRetractLeftThumperBumper)
+  {
+    digitalWrite(OUT_THUMPER_LEFT, LOW);
+  }
+
+  if (currentTime > timeRetractRightThumperBumper)
+  {
+    digitalWrite(OUT_THUMPER_RIGHT, LOW);
+  }
+
+  if (currentTime > timeRetractBallReturn)
+  {
+    digitalWrite(OUT_BALL_RETURN, LOW);
+  }
 }
 
 /*
@@ -307,58 +391,218 @@ int serialIndex = 0;
 // An incoming command has appeared.
 void incomingMessage(const char *message)
 {
-  switch (message[0]) {
-    case 'L':
-      // L-nn-0 or L-nn-1: Turn light on or off.
+  
+  switch (message[0])
+  {
+  case 'L':
+    // L-nn-0 or L-nn-1: Turn light on or off.
 
-      if (message[1] != '-') {
-        return;  // bad command.
-      }
-      
-      // Always a two digit number
-      if (! (message[2] >= '0' && message[2] <= '9' && message[3] >= '0' && message[3] <= '9')) {
-        return; // bad command.
-      }
-      int lightNumber = 10 * (message[2] - '0') + (message[3] - '0');
+    if (message[1] != '-')
+    {
+      return; // bad command.
+    }
 
-      if (message[4] != '-') {
-        return; // bad command
-      }
+    // Always a two digit number
+    if (!(message[2] >= '0' && message[2] <= '9' && message[3] >= '0' && message[3] <= '9'))
+    {
+      return; // bad command.
+    }
+    int lightNumber = 10 * (message[2] - '0') + (message[3] - '0');
 
-      if (message[5] == '0') {
-        incomingLightMessage(lightNumber, false);
-      }
-      else if (message[5] == '1') {
-        incomingLightMessage(lightNumber, true);
-      }
+    if (message[4] != '-')
+    {
+      return; // bad command
+    }
 
-      break;
+    if (message[5] == '0')
+    {
+      incomingLightMessage(lightNumber, false);
+    }
+    else if (message[5] == '1')
+    {
+      incomingLightMessage(lightNumber, true);
+    }
+
+    break;
+
+  case 'S':
+    // S-nn
+writeDisplay(message);
+
+    if (message[1] != '-')
+    {
+      return; // bad command.
+    }
+
+    // Always a two digit number
+    if (!(message[2] >= '0' && message[2] <= '9' && message[3] >= '0' && message[3] <= '9'))
+    {
+      return; // bad command.
+    }
+    int solinoid = 10 * (message[2] - '0') + (message[3] - '0');
+    
+    incomingSolinoidMessage(solinoid);
+
+    break;
+  }
+}
+
+void incomingSolinoidMessage(int solinoid)
+{
+  switch (solinoid)
+  {
+  case PID_SN_BALL_RETURN:
+    snBallReturn = true;
+    break;
+  case PID_SN_LEFT_SLING_SHOT:
+    snLeftSlingShot = true;
+    break;
+  case PID_SN_LEFT_THUMPER_BUMPER:
+    snLeftThumperBumper = true;
+    break;
+  case PID_SN_RIGHT_SLING_SHOT:
+    snRightSlingShot = true;
+    break;
+  case PID_SN_RIGHT_THUMPER_BUMPER:
+    snRightThumperBumper = true;
+    break;
+  default:
+    Serial.println("E-Unknown Solinoid sent!");
+    break;
+  }
+}
+
+//used to toggle lights based off of a incoming status message
+void incomingLightMessage(int light, boolean status)
+{
+
+  switch (light)
+  {
+  case PID_LT_1:
+    lt1 = status;
+    break;
+  case PID_LT_2:
+    lt2 = status;
+    break;
+  case PID_LT_3:
+    lt3 = status;
+    break;
+  case PID_LT_A:
+    ltA = status;
+    break;
+  case PID_LT_B:
+    ltB = status;
+    break;
+  case PID_LT_BALL_1:
+    ltBall1 = status;
+    break;
+  case PID_LT_BALL_2:
+    ltBall2 = status;
+    break;
+  case PID_LT_BALL_3:
+    ltBall3 = status;
+    break;
+  case PID_LT_BALL_4:
+    ltBall4 = status;
+    break;
+  case PID_LT_BALL_5:
+    ltBall5 = status;
+    break;
+  case PID_LT_BONUS_1000:
+    ltBonus1000 = status;
+    break;
+  case PID_LT_BONUS_2000:
+    ltBonus2000 = status;
+    break;
+  case PID_LT_BONUS_3000:
+    ltBonus3000 = status;
+    break;
+  case PID_LT_BONUS_4000:
+    ltBonus4000 = status;
+    break;
+  case PID_LT_BONUS_5000:
+    ltBonus5000 = status;
+    break;
+  case PID_LT_BONUS_6000:
+    ltBonus6000 = status;
+    break;
+  case PID_LT_BONUS_7000:
+    ltBonus7000 = status;
+    break;
+  case PID_LT_BONUS_8000:
+    ltBonus8000 = status;
+    break;
+  case PID_LT_BONUS_9000:
+    ltBonus9000 = status;
+    break;
+  case PID_LT_BONUS_10000:
+    ltBonus10000 = status;
+    break;
+  case PID_LT_C:
+    ltC = status;
+    break;
+  case PID_LT_D:
+    ltD = status;
+    break;
+  case PID_LT_DOUBLE_BONUS:
+    ltDoubleBonus = status;
+    break;
+  case PID_LT_EXTRA_BALL_LEFT:
+    ltExtraBallLeft = status;
+    break;
+  case PID_LT_EXTRA_BALL_RIGHT:
+    ltExtraBallRight = status;
+    break;
+  case PID_LT_PLAYER_1:
+    ltPlayer1 = status;
+    break;
+  case PID_LT_PLAYER_2:
+    ltPlayer2 = status;
+    break;
+  case PID_LT_PLAYER_3:
+    ltPlayer3 = status;
+    break;
+  case PID_LT_PLAYER_4:
+    ltPlayer4 = status;
+    break;
+  case PID_LT_SAME_PLAYER_SHOOTS:
+    ltSamePlayerShoots = status;
+    break;
+  case PID_LT_TRIPPLE_BONUS:
+    ltTrippleBonus = status;
+    break;
+  default:
+    Serial.println("E-Unknown Light Sent!");
+    break;
   }
 }
 
 // Read characters from the serial port and store into
 // a buffer. If we get a newline, dispatch the stored command
 // to incomingMessage();
-void checkForIncomingMessages() {
-  while (Serial.available() > 0) {
-      int b = Serial.read();
-      if (b == '\n') {
-        // Command terminator.
-        serialBuffer[serialIndex++] = '\0';  // terminate string.
-        incomingMessage(serialBuffer);
+void checkForIncomingMessages()
+{
+  while (Serial.available() > 0)
+  {
+    int b = Serial.read();
+    if (b == '\n')
+    {
+      // Command terminator.
+      serialBuffer[serialIndex++] = '\0'; // terminate string.
+      incomingMessage(serialBuffer);
+      serialIndex = 0;
+    }
+    else if (b > 0)
+    {
+      // Add to end of command.
+      if (serialIndex >= serialBufferSize - 1)
+      {
+        // Buffer overflow -- should never happen. Just ignore stuff.
         serialIndex = 0;
       }
-      else if (b > 0) {
-        // Add to end of command.
-        if (serialIndex >= serialBufferSize - 1) {
-          // Buffer overflow -- should never happen. Just ignore stuff.
-          serialIndex = 0;
-        }
-        serialBuffer[serialIndex++] = (char) b;
-      }
-
+      serialBuffer[serialIndex++] = (char)b;
+    }
   }
-
 }
 
 long MSG_DELAY = 20;
@@ -594,7 +838,6 @@ void checkSwitchesAndLightLights()
 
   swFlipperLeft.debounceDigital(IN_FLIPPER_LEFT);
   swFlipperRight.debounceDigital(IN_FLIPPER_RIGHT);
-
 }
 
 /**
@@ -618,7 +861,8 @@ void writeScore(long score, bool sound)
   writeDisplay(score);
   if (sound)
   {
-    if(pt.tune_playing){
+    if (pt.tune_playing)
+    {
       pt.tune_stopscore();
     }
     playSFX(SOUND_POINT);

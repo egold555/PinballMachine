@@ -1,4 +1,4 @@
-//Generated: Thu Dec 10 19:23:42 PST 2020
+//Generated: Thu Dec 10 20:56:40 PST 2020
 
 #define PID_SW_BALL_RETURN 1
 #define PID_SW_TILT 2
@@ -24,9 +24,9 @@
 #define PID_SW_RIGHT_ADVANCED_LANE 22
 #define PID_SW_FLIPPER_LEFT 23
 #define PID_SW_FLIPPER_RIGHT 24
-#define PID_LT_Bonus8000 25
+#define PID_LT_BONUS_8000 25
 #define PID_LT_BONUS_9000 26
-#define PID_LT_EXTRA_BALL_Right 27
+#define PID_LT_EXTRA_BALL_RIGHT 27
 #define PID_LT_A 28
 #define PID_LT_BONUS_6000 29
 #define PID_LT_1 30
@@ -34,7 +34,7 @@
 #define PID_LT_B 32
 #define PID_LT_BONUS_5000 33
 #define PID_LT_DOUBLE_BONUS 34
-#define PID_LT_EXTRA_BALL_Left 35
+#define PID_LT_EXTRA_BALL_LEFT 35
 #define PID_LT_C 36
 #define PID_LT_BONUS_7000 37
 #define PID_LT_BONUS_10000 38
@@ -42,7 +42,7 @@
 #define PID_LT_D 40
 #define PID_LT_BONUS_3000 41
 #define PID_LT_2 42
-#define PID_LT_SAME_PLAYER_Shoots 43
+#define PID_LT_SAME_PLAYER_SHOOTS 43
 #define PID_LT_3 44
 #define PID_LT_BONUS_4000 45
 #define PID_LT_TRIPPLE_BONUS 46
@@ -55,3 +55,8 @@
 #define PID_LT_PLAYER_3 53
 #define PID_LT_PLAYER_4 54
 #define PID_LT_BALL_1 55
+#define PID_SN_BALL_RETURN 56
+#define PID_SN_LEFT_SLING_SHOT 57
+#define PID_SN_RIGHT_SLING_SHOT 58
+#define PID_SN_LEFT_THUMPER_BUMPER 59
+#define PID_SN_RIGHT_THUMPER_BUMPER 60
