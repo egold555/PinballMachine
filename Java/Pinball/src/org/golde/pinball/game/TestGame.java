@@ -6,17 +6,12 @@ import java.util.TimerTask;
 import org.golde.pinball.MessageTranslator;
 import org.golde.pinball.constants.ProtocolIDs;
 
-public class NormalGame extends PinballGame {
+public class TestGame extends PinballGame {
 
 	int currentLight = ProtocolIDs.PID_LT_BONUS_8000;
 	int lastLight = ProtocolIDs.PID_LT_BALL_1;
 	
 	int currentSolinoid = ProtocolIDs.PID_SN_BALL_RETURN;
-
-	public NormalGame(MessageTranslator mp) {
-		super(mp);
-
-	}
 
 	@Override
 	public void onButtonHit(int id) {

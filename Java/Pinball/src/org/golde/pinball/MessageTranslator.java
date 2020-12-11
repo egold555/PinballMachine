@@ -15,6 +15,7 @@ public class MessageTranslator implements IncomingMessageCallback {
 
 	public void setCallback(MessageParserCallback callback) {
 		this.callback = callback;
+		callback.setMessageTranslator(this);
 	}
 
 	public interface MessageParserCallback {
@@ -22,6 +23,7 @@ public class MessageTranslator implements IncomingMessageCallback {
 		public void onButtonHit(int id);
 		public void onButtonStateChange(int id, boolean state);
 		public void start();
+		public default void setMessageTranslator(MessageTranslator translator) {};
 
 	}
 

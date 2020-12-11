@@ -1,0 +1,33 @@
+//Generated: Fri Dec 11 11:36:31 PST 2020
+
+#define PID_LT_BONUS_8000 25
+#define PID_LT_BONUS_9000 26
+#define PID_LT_EXTRA_BALL_RIGHT 27
+#define PID_LT_A 28
+#define PID_LT_BONUS_6000 29
+#define PID_LT_T1 30
+#define PID_LT_BONUS_1000 31
+#define PID_LT_B 32
+#define PID_LT_BONUS_5000 33
+#define PID_LT_DOUBLE_BONUS 34
+#define PID_LT_EXTRA_BALL_LEFT 35
+#define PID_LT_C 36
+#define PID_LT_BONUS_7000 37
+#define PID_LT_BONUS_10000 38
+#define PID_LT_BONUS_2000 39
+#define PID_LT_D 40
+#define PID_LT_BONUS_3000 41
+#define PID_LT_T2 42
+#define PID_LT_SAME_PLAYER_SHOOTS 43
+#define PID_LT_T3 44
+#define PID_LT_BONUS_4000 45
+#define PID_LT_TRIPPLE_BONUS 46
+#define PID_LT_BALL_2 47
+#define PID_LT_BALL_3 48
+#define PID_LT_BALL_4 49
+#define PID_LT_BALL_5 50
+#define PID_LT_PLAYER_1 51
+#define PID_LT_PLAYER_2 52
+#define PID_LT_PLAYER_3 53
+#define PID_LT_PLAYER_4 54
+#define PID_LT_BALL_1 55
