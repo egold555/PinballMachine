@@ -2,20 +2,22 @@ package org.golde.pinball.game;
 
 import org.golde.pinball.MessageTranslator;
 import org.golde.pinball.MessageTranslator.MessageParserCallback;
+import org.golde.pinball.constants.Lights;
+import org.golde.pinball.constants.Solinoids;
 
 public abstract class PinballGame implements MessageParserCallback {
 
 	private MessageTranslator mt;
 	
-	public final void setLight(int id, boolean value) {
+	public final void setLight(Lights light, boolean value) {
 		if(mt != null) {
-			mt.setLight(id, value);
+			mt.setLight(light, value);
 		}
 	}
 
-	public final void fireSolinoid(int id) {
+	public final void fireSolinoid(Solinoids solinoid) {
 		if(mt != null) {
-			mt.fireSolinoid(id);
+			mt.fireSolinoid(solinoid);
 		}
 	}
 	

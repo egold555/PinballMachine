@@ -3,86 +3,48 @@ package org.golde.pinball.game;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import org.golde.pinball.MessageTranslator;
-import org.golde.pinball.constants.ProtocolIDs;
+import org.golde.pinball.constants.Buttons;
+import org.golde.pinball.constants.Solinoids;
 
 public class TestGame extends PinballGame {
 
-	int currentLight = ProtocolIDs.PID_LT_BONUS_8000;
-	int lastLight = ProtocolIDs.PID_LT_BALL_1;
-	
-	int currentSolinoid = ProtocolIDs.PID_SN_BALL_RETURN;
-
 	@Override
-	public void onButtonHit(int id) {
-		System.out.println("Button hit: " + id);
-		if(id == ProtocolIDs.PID_SW_LEFT_THUMPER_BUMPER) {
-			fireSolinoid(ProtocolIDs.PID_SN_LEFT_THUMPER_BUMPER);
+	public void onButtonHit(Buttons btn) {
+		System.out.println("Button hit: " + btn);
+		if(btn == Buttons.LEFT_THUMPER_BUMPER) {
+			fireSolinoid(Solinoids.LEFT_THUMPER_BUMPER);
 		}
-		if(id == ProtocolIDs.PID_SW_RIGHT_THUMPER_BUMPER) {
-			fireSolinoid(ProtocolIDs.PID_SN_RIGHT_THUMPER_BUMPER);
+		if(btn == Buttons.RIGHT_THUMPER_BUMPER) {
+			fireSolinoid(Solinoids.RIGHT_THUMPER_BUMPER);
 		}
-		if(id == ProtocolIDs.PID_SW_LEFT_SLING_SHOT) {
-			fireSolinoid(ProtocolIDs.PID_SN_LEFT_SLING_SHOT);
+		if(btn == Buttons.LEFT_SLING_SHOT) {
+			fireSolinoid(Solinoids.LEFT_SLING_SHOT);
 		}
-		if(id == ProtocolIDs.PID_SW_RIGHT_SLING_SHOT) {
-			fireSolinoid(ProtocolIDs.PID_SN_RIGHT_SLING_SHOT);
+		if(btn == Buttons.RIGHT_SLING_SHOT) {
+			fireSolinoid(Solinoids.RIGHT_SLING_SHOT);
 		}
-		if(id == ProtocolIDs.PID_SW_BALL_RETURN) {
-			fireSolinoid(ProtocolIDs.PID_SN_BALL_RETURN);
+		if(btn == Buttons.BALL_RETURN) {
+			fireSolinoid(Solinoids.BALL_RETURN);
 		}
 	}
 
 	@Override
-	public void onButtonStateChange(int id, boolean state) {
-		System.out.println("State changed: " + id + " " + state);
+	public void onButtonStateChange(Buttons btn, boolean state) {
+		System.out.println("State changed: " + btn + " " + state);
 	}
 
 	@Override
 	public void start() {
-		
-		for(int i = ProtocolIDs.PID_LT_BONUS_8000; i < ProtocolIDs.PID_LT_BALL_1; i++) {
-			setLight(i, false);
-		}
-		
+
 		new Timer().scheduleAtFixedRate(new TimerTask() {
 
 			@Override
 			public void run() {
 
-				setLight(currentLight, true);
-				setLight(lastLight, false);
-
-				lastLight = currentLight;
-				currentLight++;
-
-				if(currentLight > ProtocolIDs.PID_LT_BALL_1) {
-					currentLight = ProtocolIDs.PID_LT_BONUS_8000;
-				}
-
 
 
 			}
 		}, 0, 100);
-		
-//		new Timer().scheduleAtFixedRate(new TimerTask() {
-//
-//			@Override
-//			public void run() {
-//
-//				fireSolinoid(currentSolinoid);
-//				
-//				currentSolinoid++;
-//				if(currentSolinoid > ProtocolIDs.PID_SN_RIGHT_THUMPER_BUMPER) {
-//					currentSolinoid = ProtocolIDs.PID_SN_BALL_RETURN;
-//				}
-//				
-//
-//			}
-//		}, 0, 1000);
-		
-		
-		System.out.println("Set");
 	}
 
 }

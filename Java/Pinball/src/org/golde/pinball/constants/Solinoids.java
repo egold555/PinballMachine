@@ -1,6 +1,6 @@
 package org.golde.pinball.constants;
 
-//Generated: Fri Dec 11 11:36:31 PST 2020
+//Generated: Fri Dec 11 14:57:35 PST 2020
 public enum Solinoids {
 
 	BALL_RETURN(56),
@@ -10,13 +10,22 @@ public enum Solinoids {
 	RIGHT_THUMPER_BUMPER(60),
 	;
 
-	private final int id;
-	Solinoids(int id) {
+	private final Object id;
+	Solinoids(Object id) {
 		this.id = id;
 	}
 
-	public int getId() {
+	public Object getId() {
 		return id;
 	}
 
+	public static Solinoids get(Object o) {
+		for(Solinoids i : values()) {
+			if(i.id.equals(o)) {
+				return i;
+			}
+		}
+	System.err.println("Failed to get Solinoids with id of: " + o);
+	return null;
+	}
 }

@@ -10,7 +10,9 @@
 //#include <EEPROM.h> //not used currently
 
 #include "SFXAndMusic.h"
-#include "ProtocolIDs.h"
+#include "ProtocolButtons.h"
+#include "ProtocolLights.h"
+#include "ProtocolSolinoids.h"
 
 //Constants for delays ahs such.
 //TODO: DOcument more

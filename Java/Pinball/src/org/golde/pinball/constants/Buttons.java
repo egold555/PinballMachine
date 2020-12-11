@@ -1,7 +1,7 @@
 package org.golde.pinball.constants;
 
-//Generated: Fri Dec 11 11:36:31 PST 2020
-public enum Switches {
+//Generated: Fri Dec 11 14:57:35 PST 2020
+public enum Buttons {
 
 	BALL_RETURN(1),
 	TILT(2),
@@ -29,13 +29,22 @@ public enum Switches {
 	FLIPPER_RIGHT(24),
 	;
 
-	private final int id;
-	Switches(int id) {
+	private final Object id;
+	Buttons(Object id) {
 		this.id = id;
 	}
 
-	public int getId() {
+	public Object getId() {
 		return id;
 	}
 
+	public static Buttons get(Object o) {
+		for(Buttons i : values()) {
+			if(i.id.equals(o)) {
+				return i;
+			}
+		}
+	System.err.println("Failed to get Buttons with id of: " + o);
+	return null;
+	}
 }

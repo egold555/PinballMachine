@@ -3,6 +3,9 @@ package org.golde.pinball;
 import java.util.Arrays;
 
 import org.golde.pinball.SerialPortManager.IncomingMessageCallback;
+import org.golde.pinball.constants.Buttons;
+import org.golde.pinball.constants.Lights;
+import org.golde.pinball.constants.Solinoids;
 
 public class MessageTranslator implements IncomingMessageCallback {
 
@@ -20,8 +23,8 @@ public class MessageTranslator implements IncomingMessageCallback {
 
 	public interface MessageParserCallback {
 
-		public void onButtonHit(int id);
-		public void onButtonStateChange(int id, boolean state);
+		public void onButtonHit(Buttons button);
+		public void onButtonStateChange(Buttons button, boolean state);
 		public void start();
 		public default void setMessageTranslator(MessageTranslator translator) {};
 
@@ -56,7 +59,8 @@ public class MessageTranslator implements IncomingMessageCallback {
 		try {
 			if(split[1].equals("P")) {
 				if(callback != null) {
-					callback.onButtonHit(Integer.valueOf(split[2]));
+					int id = Integer.valueOf(split[2]);
+					callback.onButtonHit(Buttons.get(id));
 				}
 
 			}
@@ -64,7 +68,7 @@ public class MessageTranslator implements IncomingMessageCallback {
 				int id = Integer.valueOf(split[2]);
 				boolean state = (Integer.valueOf(split[3]) == 1 ? true : false);
 				if(callback != null) {
-					callback.onButtonStateChange(id, state);
+					callback.onButtonStateChange(Buttons.get(id), state);
 				}
 
 			}
@@ -78,12 +82,12 @@ public class MessageTranslator implements IncomingMessageCallback {
 		}
 	}
 
-	public void fireSolinoid(int id) {
-		spm.write("S-" + id);
+	public void fireSolinoid(Solinoids id) {
+		spm.write("S-" + id.getId());
 	}
 
-	public void setLight(int id, boolean value) {
-		spm.write("L-" + id + "-" + (value ? 1 : 0));
+	public void setLight(Lights id, boolean value) {
+		spm.write("L-" + id.getId() + "-" + (value ? 1 : 0));
 	}
 
 }

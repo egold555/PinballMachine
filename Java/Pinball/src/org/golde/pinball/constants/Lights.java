@@ -1,6 +1,6 @@
 package org.golde.pinball.constants;
 
-//Generated: Fri Dec 11 11:36:31 PST 2020
+//Generated: Fri Dec 11 14:57:35 PST 2020
 public enum Lights {
 
 	BONUS_8000(25),
@@ -36,13 +36,22 @@ public enum Lights {
 	BALL_1(55),
 	;
 
-	private final int id;
-	Lights(int id) {
+	private final Object id;
+	Lights(Object id) {
 		this.id = id;
 	}
 
-	public int getId() {
+	public Object getId() {
 		return id;
 	}
 
+	public static Lights get(Object o) {
+		for(Lights i : values()) {
+			if(i.id.equals(o)) {
+				return i;
+			}
+		}
+	System.err.println("Failed to get Lights with id of: " + o);
+	return null;
+	}
 }

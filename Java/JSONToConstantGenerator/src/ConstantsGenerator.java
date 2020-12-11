@@ -1,5 +1,4 @@
 import java.io.FileNotFoundException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -7,44 +6,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 
 public class ConstantsGenerator implements Runnable {
 
 	private static final String FILE_NAME = "Protocol";
-	
-	@SuppressWarnings("unchecked")
+
 	@Override
 	public void run() {
-	
-		
-//		//Protocol Ids
-//		HashMap<String, Double> ids = FileUtil.loadFromFile("ProtocolIDs", HashMap.class);
-//		
-//		
-//		try {
-//			
-//			PrintWriter pwJava = PrintWriterUtil.Java.begin("ProtocolIDs");
-//			PrintWriter pwH = PrintWriterUtil.H.begin("ProtocolIDs");
-//			ids = (HashMap<String, Double>) sortByValue(ids);
-//			for(String key : ids.keySet()) {
-//				int value = ids.get(key).intValue();
-//				PrintWriterUtil.Java.writeIntConstant(pwJava, key, value);
-//				PrintWriterUtil.H.writeIntConstant(pwH, key, value);
-//			}
-//			
-//			PrintWriterUtil.Java.end(pwJava);
-//			PrintWriterUtil.H.end(pwH);
-//		}
-//		catch(FileNotFoundException e) {
-//			e.printStackTrace();
-//		}
 		
 		try {
-			intConstants("Switches", "PID_SW_");
+			intConstants("Buttons", "PID_SW_");
 			intConstants("Lights", "PID_LT_");
 			intConstants("Solinoids", "PID_SN_");
 		} catch (FileNotFoundException e) {
