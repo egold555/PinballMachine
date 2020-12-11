@@ -10,6 +10,7 @@
 //#include <EEPROM.h> //not used currently
 
 #include "SFXAndMusic.h"
+#include "ProtocolIDs.h"
 
 //Constants for delays ahs such.
 //TODO: DOcument more
@@ -53,25 +54,42 @@ const int NOTE_1 = 44;
 const int NOTE_2 = 45;
 const int NOTE_3 = 46;
 
-//What state is the game in
-typedef enum GameState
-{
-  GS_BEFORE,
-  GS_PLAYING,
-  GS_GAMEOVER,
-  GS_HIGHSCORE,
-  GS_TEST_NAME
-};
-
-//Current game state we are in
-GameState state = GS_BEFORE;
-
 //defines a button on the pinball machine
 typedef struct Button
 {
+
+  Button(int id) : id(id){}
+
+  int id;
   boolean sw = false; //Switch
+  boolean swLast = sw;
   boolean pr = false; //Pressed
   long tm = 0;        //Time
+
+  void updateBTN() {
+    if(pr){
+        sendToSerialPR();
+    }
+    if(sw != swLast) {
+      sendToSerialSW();
+      swLast = sw;
+    }
+  }
+
+  void sendToSerialSW() {
+
+    Serial.print("BT-");
+    Serial.print(id);
+    Serial.print("-");
+    Serial.print(sw);
+    Serial.println();
+  }
+
+  void sendToSerialPR() {
+    Serial.print("BP-");
+    Serial.print(id);
+    Serial.println();
+  }
 
   /**
    * magical debouncing code that works and should never be touched
@@ -95,6 +113,7 @@ typedef struct Button
       }
       tm = currtm;
     }
+    updateBTN();
   }
 
   /**
@@ -119,47 +138,38 @@ typedef struct Button
       }
       tm = currtm;
     }
+    updateBTN();
   }
 
 } Button;
 
-//Defines a player. 1,2,3,4
-typedef struct Player
-{
-  bool lightA;
-  bool lightB;
-  bool lightC;
-  bool lightD;
-  long score;
-} Player;
-
 //Every button on the pinball machine
-Button swBallReturn;
-Button swTilt;
-Button swRightSpinner;
-Button swRightExtraBallLane;
-Button swA;
-Button swStart;
-Button swLeftTarget;
-Button swLeftSlingShot;
-Button swB;
-Button swLeftThumperBumper;
-Button swLeftBumper;
-Button swLeftExtraBallLane;
-Button swC;
-Button swRightThumperBumper;
-Button swLeftSpinner;
-Button swLeftAdvanceLane;
-Button swD;
+Button swBallReturn(PID_SW_BALL_RETURN);
+Button swTilt(PID_SW_TILT);
+Button swRightSpinner(PID_SW_RIGHT_SPINNER);
+Button swRightExtraBallLane(PID_SW_RIGHT_EXTRA_BALL_RETURN);
+Button swA(PID_SW_A);
+Button swStart(PID_SW_START);
+Button swLeftTarget(PID_SW_LEFT_TARGET);
+Button swLeftSlingShot(PID_SW_LEFT_SLING_SHOT);
+Button swB(PID_SW_B);
+Button swLeftThumperBumper(PID_SW_LEFT_THUMPER_BUMPER);
+Button swLeftBumper(PID_SW_LEFT_BUMPER);
+Button swLeftExtraBallLane(PID_SW_LEFT_EXTRA_BALL_LANE);
+Button swC(PID_SW_C);
+Button swRightThumperBumper(PID_SW_RIGHT_THUMPER_BUMPER);
+Button swLeftSpinner(PID_SW_LEFT_SPINNER);
+Button swLeftAdvanceLane(PID_SW_LEFT_ADVANCED_LANE);
+Button swD(PID_SW_D);
 //Button mx4_sw1;
-Button swRightTarget;
-Button swRightSlingShot;
-Button swCenterTarget;
+Button swRightTarget(PID_SW_RIGHT_TARGET);
+Button swRightSlingShot(PID_SW_RIGHT_SLING_SHOT);
+Button swCenterTarget(PID_SW_CENTER_TARGET);
 //Button mx5_sw1;
-Button swRightBumper;
-Button swRightAdvanceLane;
-Button swFlipperLeft;
-Button swFlipperRight;
+Button swRightBumper(PID_SW_RIGHT_BUMPER);
+Button swRightAdvanceLane(PID_SW_RIGHT_ADVANCED_LANE);
+Button swFlipperLeft(PID_SW_FLIPPER_LEFT);
+Button swFlipperRight(PID_SW_FLIPPER_RIGHT);
 
 //all the lights on the pinball machine
 bool mx0_lt0 = false; //NONE
@@ -199,12 +209,6 @@ bool mx8_lt1 = false;
 bool mx8_lt2 = false;
 bool ltBall1 = true; //b1
 
-// Time (as returned by millis()) that solenoid should retract.
-unsigned long timeRetractLeftSlingshot = 0, timeRetractRightSlingshot = 0;
-unsigned long timeRetractLeftThumperBumper = 0, timeRetractRightThumperBumper = 0;
-unsigned long timeRetractBallReturn = 0;
-unsigned long timeNextSpinnerScore = 0;
-
 //The matrix display
 Adafruit_AlphaNum4 display1 = Adafruit_AlphaNum4();
 Adafruit_AlphaNum4 display2 = Adafruit_AlphaNum4();
@@ -213,44 +217,13 @@ Adafruit_AlphaNum4 display2 = Adafruit_AlphaNum4();
 Playtune pt;
 
 
-
-//player variables
-Player players[4];
-int amountOfPlayers = 0;
-int currentPlayer = 0;
-
-long oldScore = 0;
-byte balls = 1;
-byte extraBalls = 0;
-byte bonus = 0;
-const byte MAX_BALLS = 6; //starts at 1 so you have 5 balls
-boolean tilted = false;
-boolean hasScoredThisRound = false;
-
 //Decare all functions
 void setup(void);
 void loop(void);
 void scrollText(String msg);
-void solinoids(void);
 void checkSwitchesAndLightLights(void);
-void updateMPXLeds(void);
-void updateScore(void);
 void writeScore(long score);
 void writeScore(long score, bool sound);
-void advanceBonus(void);
-void extraBall(void);
-void reset(void);
-void startGame(void);
-void lightPlayerLights(int num);
-void setPlayerLight(void);
-void switchPlayersOrAdvanceBall(void);
-void endOfBall(void);
-bool delayWithLights(int delayTime);
-void endGame(void);
-String getRankingTitle(int score);
-void tilt(void);
-void timerBlinkExtraBallLeft(void);
-void timerBlinkExtraBallRight(void);
 void playSFX(byte *sfx);
 void writeDisplay(long num);
 void writeDisplay(String msg);
@@ -307,11 +280,6 @@ void setup()
   //init the two displays
   display1.begin(0x70);
   display2.begin(0x71);
-
-  reset();
-  //playSFX(SOUND_WIZARD);
-  //state = GS_TEST_NAME; //JUST FOR TESTING
-  //clearDisplay(); //debug
 }
 
 /**
@@ -322,120 +290,7 @@ void loop()
 {
   runner();
   checkSwitchesAndLightLights();
-  updateScore();
-  solinoids();
-  typingInYourName();
-  //scrollTextTest();
-
-  if (state == GS_BEFORE)
-  {
-    scrollText("PRESS START TO PLAY AGAIN           HIGH SCORE - (PLAYER) - (SCORE)            ");
-  }
-
-  //serial();
 }
-
-/**
- * WIP code to insert your name
- * 
- */
-char nameChars[8] = {'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A'};
-int posToWriteAt = 0;
-int charsShouldRender = 0;
-char theCharLast = ' ';
-boolean charIsOn = true;
-int charInOnCount = 0;
-boolean enteredName = false;
-String winName = "";
-void typingInYourName()
-{
-  if (state != GS_TEST_NAME)
-  {
-    return;
-  }
-
-  if (!enteredName)
-  {
-    if (swFlipperLeft.pr)
-    {
-      if (charsShouldRender < 7)
-      {
-        charsShouldRender++;
-      }
-      posToWriteAt++;
-      if (posToWriteAt > 7)
-      {
-        posToWriteAt = 0;
-      }
-    }
-
-    if (swFlipperRight.pr)
-    {
-      nameChars[posToWriteAt]++;
-      charIsOn = true;
-      charInOnCount = 0;
-    }
-  }
-
-  if (swStart.pr)
-  {
-    playSFX(SOUND_NAME_ENTER);
-    for (int i = 0; i < charsShouldRender; i++)
-    {
-      winName += nameChars[i];
-    }
-    enteredName = true;
-  }
-
-  if (!enteredName)
-  {
-
-    if (nameChars[posToWriteAt] > 'Z')
-    {
-      nameChars[posToWriteAt] = 'A';
-    }
-
-    if (charInOnCount > 70)
-    {
-      charInOnCount = 0;
-      charIsOn = !charIsOn;
-    }
-
-    charInOnCount++;
-
-    if (charIsOn)
-    {
-      if (theCharLast != nameChars[posToWriteAt])
-      {
-        writeDisplay(posToWriteAt, nameChars[posToWriteAt]);
-        updateDisplay();
-        theCharLast = nameChars[posToWriteAt];
-
-        for (int i = 0; i < charsShouldRender; i++)
-        {
-          writeDisplay(i, nameChars[i]);
-        }
-      }
-    }
-    else
-    {
-      writeDisplay(posToWriteAt, ' ');
-      updateDisplay();
-      theCharLast = ' ';
-    }
-  }
-  else
-  {
-    scrollText("Hello, " + winName + "   ");
-  }
-}
-
-//void serial(){
-//  while(Serial2.available() > 0){
-//    int c = Serial2.read();
-//    Serial.write(c);
-//  }
-//}
 
 long MSG_DELAY = 20;
 long msgCount = 0;
@@ -470,76 +325,6 @@ void scrollText(String msg)
   }
 
   msgCount++;
-}
-/**
- * Updates the solinoids states
- * 
- */
-void solinoids()
-{
-
-  unsigned long currentTime = millis();
-
-  if (swBallReturn.sw && state != GS_GAMEOVER && state != GS_BEFORE)
-  {
-    digitalWrite(OUT_BALL_RETURN, HIGH);
-    timeRetractBallReturn = currentTime + /*SOLENOID_DELAY*/ 100;
-  }
-
-  if (!tilted)
-  {
-
-    // Fire solenoids that should be fired.
-    if (swLeftSlingShot.sw)
-    {
-      digitalWrite(OUT_SLINGSHOT_LEFT, HIGH);
-      timeRetractLeftSlingshot = currentTime + SOLENOID_DELAY;
-    }
-
-    if (swRightSlingShot.sw)
-    {
-      digitalWrite(OUT_SLINGSHOT_RIGHT, HIGH);
-      timeRetractRightSlingshot = currentTime + SOLENOID_DELAY;
-    }
-
-    if (swLeftThumperBumper.sw)
-    {
-      digitalWrite(OUT_THUMPER_LEFT, HIGH);
-      timeRetractLeftThumperBumper = currentTime + SOLENOID_DELAY;
-    }
-
-    if (swRightThumperBumper.sw)
-    {
-      digitalWrite(OUT_THUMPER_RIGHT, HIGH);
-      timeRetractRightThumperBumper = currentTime + SOLENOID_DELAY;
-    }
-  }
-
-  // Retract solenoids that should be retracted.
-  if (currentTime > timeRetractLeftSlingshot)
-  {
-    digitalWrite(OUT_SLINGSHOT_LEFT, LOW);
-  }
-
-  if (currentTime > timeRetractRightSlingshot)
-  {
-    digitalWrite(OUT_SLINGSHOT_RIGHT, LOW);
-  }
-
-  if (currentTime > timeRetractLeftThumperBumper)
-  {
-    digitalWrite(OUT_THUMPER_LEFT, LOW);
-  }
-
-  if (currentTime > timeRetractRightThumperBumper)
-  {
-    digitalWrite(OUT_THUMPER_RIGHT, LOW);
-  }
-
-  if (currentTime > timeRetractBallReturn)
-  {
-    digitalWrite(OUT_BALL_RETURN, LOW);
-  }
 }
 
 /**
@@ -741,219 +526,6 @@ void checkSwitchesAndLightLights()
   swFlipperLeft.debounceDigital(IN_FLIPPER_LEFT);
   swFlipperRight.debounceDigital(IN_FLIPPER_RIGHT);
 
-  if (swTilt.sw && !tilted)
-  {
-    tilted = true;
-    tilt();
-  }
-}
-
-/**
- * update the currently playing player score
- * TODO
- */
-void updateScore()
-{
-
-  oldScore = players[currentPlayer].score;
-
-  if (swStart.pr)
-  {
-    startGame();
-  }
-
-  if (swBallReturn.pr && state != GS_GAMEOVER)
-  {
-    endOfBall();
-  }
-
-  if (tilted)
-  {
-    return;
-  }
-
-  //ThumperBumpers +100
-  if (swLeftThumperBumper.pr || swRightThumperBumper.pr)
-  {
-    players[currentPlayer].score += 100;
-  }
-
-  //Spinners +100
-  if (swLeftSpinner.sw || swRightSpinner.sw)
-  {
-    unsigned long currTime = millis();
-    if (currTime > timeNextSpinnerScore)
-    {
-      players[currentPlayer].score += 100;
-      timeNextSpinnerScore = currTime + SPINNER_SCORE_DELAY;
-    }
-  }
-
-  //Extra ball lanes and advance lanes +500
-  if (swLeftExtraBallLane.pr || swRightExtraBallLane.pr)
-  {
-    players[currentPlayer].score += 500;
-  }
-
-  if (swLeftExtraBallLane.pr && ltExtraBallLeft)
-  {
-    extraBall();
-    ltExtraBallLeft = false;
-    runDelay(timerBlinkExtraBallLeft, 100, 20);
-  }
-
-  if (swRightExtraBallLane.pr && ltExtraBallRight)
-  {
-    extraBall();
-    ltExtraBallRight = false;
-    runDelay(timerBlinkExtraBallRight, 100, 20);
-  }
-
-  if (swLeftAdvanceLane.pr || swRightAdvanceLane.pr)
-  {
-    advanceBonus();
-    players[currentPlayer].score += 500;
-  }
-
-  //ABCD  +1000
-  if (swA.pr || swB.pr || swC.pr || swD.pr)
-  {
-    players[currentPlayer].score += 1000;
-  }
-
-  //trigger lights for ABCD
-  if (swA.pr && ltA)
-  {
-    ltA = false;
-    advanceBonus();
-  }
-  if (swB.pr && ltB)
-  {
-    ltB = false;
-    advanceBonus();
-  }
-  if (swC.pr && ltC)
-  {
-    ltC = false;
-    advanceBonus();
-  }
-  if (swD.pr && ltD)
-  {
-    ltD = false;
-    advanceBonus();
-  }
-
-  //Advance bonus if ABCD is all off
-  if (!ltA && !ltB && !ltC && !ltD)
-  {
-    //TODO
-    ltA = true;
-    ltB = true;
-    ltC = true;
-    ltD = true;
-    //runDelay(timerBlinkABCD, 100, 10);
-    players[currentPlayer].score += 25000;
-    ltExtraBallLeft = true;
-    ltExtraBallRight = true;
-    playSFX(SOUND_STARTUP);
-  }
-
-  //Left and Right Bumper +50
-  if (swLeftBumper.pr || swRightBumper.pr)
-  {
-    players[currentPlayer].score += 50;
-  }
-
-  //Targets
-
-  if (swLeftTarget.pr || swRightTarget.pr || swCenterTarget.pr)
-  {
-    players[currentPlayer].score += 500;
-  }
-
-  if (swLeftTarget.pr && lt1)
-  {
-    lt1 = false;
-    advanceBonus();
-    advanceBonus();
-  }
-
-  if (swRightTarget.pr && lt2)
-  {
-    lt2 = false;
-    advanceBonus();
-    advanceBonus();
-  }
-
-  if (swCenterTarget.pr && lt3)
-  {
-    players[currentPlayer].score += 500; //Accounting fo 500 of above function
-    lt3 = false;
-    advanceBonus();
-    advanceBonus();
-  }
-
-  if (!lt1 && !lt2)
-  {
-    if (!lt3)
-    {
-      ltDoubleBonus = false;
-      ltTrippleBonus = true;
-    }
-    else
-    {
-      ltDoubleBonus = true;
-    }
-  }
-
-  if (bonus >= 1)
-  {
-    ltBonus1000 = true;
-  }
-  if (bonus >= 2)
-  {
-    ltBonus2000 = true;
-  }
-  if (bonus >= 3)
-  {
-    ltBonus3000 = true;
-  }
-  if (bonus >= 4)
-  {
-    ltBonus4000 = true;
-  }
-  if (bonus >= 5)
-  {
-    ltBonus5000 = true;
-  }
-  if (bonus >= 6)
-  {
-    ltBonus6000 = true;
-  }
-  if (bonus >= 7)
-  {
-    ltBonus7000 = true;
-  }
-  if (bonus >= 8)
-  {
-    ltBonus8000 = true;
-  }
-  if (bonus >= 9)
-  {
-    ltBonus9000 = true;
-  }
-  if (bonus >= 10)
-  {
-    ltBonus10000 = true;
-  }
-
-  //////////////////////////////////
-  if (oldScore != players[currentPlayer].score)
-  {
-    writeScore(players[currentPlayer].score);
-    hasScoredThisRound = true;
-    setPlayerLight();
-  }
 }
 
 /**
@@ -982,393 +554,6 @@ void writeScore(long score, bool sound)
     }
     playSFX(SOUND_POINT);
   }
-}
-
-/**
- * Advance the bonus up by one
- * 
- */
-void advanceBonus()
-{
-  bonus++;
-  if (bonus > 10)
-  {
-    bonus = 10;
-  }
-}
-
-/**
- * Give the player a extra ball
- * 
- */
-void extraBall()
-{
-  ltSamePlayerShoots = true;
-  extraBalls++;
-  playSFX(SOUND_EXTRABALL);
-}
-
-/**
- * reset the game back to the initial state.
- * 
- */
-void reset()
-{
-  for (int p = 0; p < 4; ++p)
-  {
-    players[p].score = 0;
-    players[p].lightA = true;
-    players[p].lightB = true;
-    players[p].lightC = true;
-    players[p].lightD = true;
-  }
-
-  amountOfPlayers = 0;
-  currentPlayer = 0;
-
-  players[currentPlayer].score = 0;
-  oldScore = 0;
-  balls = 1;
-  extraBalls = 0;
-  bonus = 0;
-  tilted = false;
-
-  hasScoredThisRound = false;
-
-  ltA = ltB = ltC = ltD = true;
-  lt1 = lt2 = lt3 = true;
-  ltBonus1000 = ltBonus2000 = ltBonus3000 = ltBonus4000 = ltBonus5000 = false;
-  ltBonus6000 = ltBonus7000 = ltBonus8000 = ltBonus9000 = ltBonus10000 = false;
-  ltExtraBallRight = ltDoubleBonus = ltExtraBallLeft = ltSamePlayerShoots = ltTrippleBonus = false;
-  ltBall1 = false;
-  ltBall2 = ltBall3 = ltBall4 = ltBall5 = false;
-  ltPlayer1 = false;
-  ltPlayer2 = ltPlayer3 = ltPlayer4 = false;
-
-  state = GS_BEFORE;
-
-  playSFX(SOUND_STARTUP);
-}
-
-/**
- * Start a brand new game
- * 
- */
-void startGame()
-{
-
-  if (state == GS_BEFORE)
-  {
-    state = GS_PLAYING;
-    ltBall1 = true;
-    writeDisplay(0);
-  }
-
-  if (state == GS_GAMEOVER)
-  {
-    reset();
-  }
-  else if (state != GS_TEST_NAME && !hasScoredThisRound && players[0].score == 0)
-  {
-    amountOfPlayers++;
-    if (amountOfPlayers > 4)
-    {
-      amountOfPlayers = 1;
-    }
-    playSFX(SOUND_POINT);
-    lightPlayerLights(amountOfPlayers);
-  }
-}
-
-/**
- * Light up the current player light 
- * A = 1
- * B = 2
- * C = 3
- * D = 4
- * CLEAR = any other number
- * 
- * @param num player light to display, see above comment
- */
-void lightPlayerLights(int num)
-{
-  ltPlayer1 = (num == 1);
-  ltPlayer2 = (num == 2);
-  ltPlayer3 = (num == 3);
-  ltPlayer4 = (num == 4);
-}
-
-/**
- * Set the Player Light object
- * Light up the current players light
- */
-void setPlayerLight()
-{
-  lightPlayerLights(currentPlayer + 1);
-}
-
-/**
- * The current player has no extra balls hit end of ball.
- * Advance to the next player and/or next ball.
- */
-void switchPlayersOrAdvanceBall()
-{
-  players[currentPlayer].lightA = ltA;
-  players[currentPlayer].lightB = ltB;
-  players[currentPlayer].lightC = ltC;
-  players[currentPlayer].lightD = ltD;
-
-  ++currentPlayer;
-  if (currentPlayer >= amountOfPlayers)
-  {
-    balls++;
-    currentPlayer = 0;
-  }
-
-  ltA = players[currentPlayer].lightA;
-  ltB = players[currentPlayer].lightB;
-  ltC = players[currentPlayer].lightC;
-  ltD = players[currentPlayer].lightD;
-  oldScore = players[currentPlayer].score;
-
-  setPlayerLight();
-}
-
-/**
- * When the ball goes into the "gutter"
- * 
- */
-void endOfBall()
-{
-
-  if (!hasScoredThisRound)
-  {
-    return; //Ball fireer has failed, so we should not count this as a new ball, we should keep trying to push the ball out of the shooter
-  }
-
-  long bonusAmount = 0;
-
-  playSFX(SOUND_NEWBALL);
-
-  if (!tilted)
-  {
-
-    if (ltDoubleBonus)
-    {
-      bonusAmount = bonus * 1000 * 2;
-    }
-    else if (ltTrippleBonus)
-    {
-      bonusAmount = bonus * 1000 * 3;
-    }
-    else
-    {
-      bonusAmount = bonus * 1000;
-    }
-  }
-
-  lt1 = true;
-  lt2 = true;
-  lt3 = true;
-
-  bonus = 0;
-
-  ltBonus1000 = false;
-  ltBonus2000 = false;
-  ltBonus3000 = false;
-  ltBonus4000 = false;
-  ltBonus5000 = false;
-  ltBonus6000 = false;
-  ltBonus7000 = false;
-  ltBonus8000 = false;
-  ltBonus9000 = false;
-  ltBonus10000 = false;
-
-  ltExtraBallLeft = false;
-  ltExtraBallRight = false;
-
-  ltDoubleBonus = false;
-  ltTrippleBonus = false;
-  ltSamePlayerShoots = false;
-
-  ltBall1 = false;
-  ltBall2 = false;
-  ltBall3 = false;
-  ltBall4 = false;
-  ltBall5 = false;
-
-  //Wait until the music finishes playing
-  while (pt.tune_playing)
-  {
-    /*do nothing*/
-  }
-
-  while (bonusAmount > 0)
-  {
-    delay(500);
-    bonusAmount -= 1000;
-    players[currentPlayer].score += 1000;
-    writeScore(players[currentPlayer].score);
-  }
-
-  delay(1000);
-
-  // Move to next ball or player.
-  if (extraBalls == 0)
-  {
-    switchPlayersOrAdvanceBall();
-  }
-  else
-  {
-    extraBalls--;
-  }
-
-  switch (balls)
-  {
-  case 1:
-    ltBall1 = true;
-    break;
-  case 2:
-    ltBall2 = true;
-    break;
-  case 3:
-    ltBall3 = true;
-    break;
-  case 4:
-    ltBall4 = true;
-    break;
-  case 5:
-    ltBall5 = true;
-    break;
-  }
-
-  if (balls >= MAX_BALLS)
-  {
-    endGame();
-    return;
-  }
-  hasScoredThisRound = false;
-  digitalWrite(OUT_BALL_RETURN, HIGH);
-  timeRetractBallReturn = millis() + /*SOLENOID_DELAY*/ 100;
-  writeScore(players[currentPlayer].score);
-  tilted = false;
-}
-
-bool delayWithLights(int delayTime)
-{
-  long startTime = millis();
-  long endTime = startTime + delayTime;
-  while (millis() < endTime)
-  {
-    checkSwitchesAndLightLights();
-    if (swStart.pr)
-    {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-/**
- * Called when the game ends
- * Plays the end game animation
- * Automatically resets the game as well.
- */
-void endGame()
-{
-  bool endNow = false;
-  state = GS_GAMEOVER;
-  playSFX(SOUND_ENDING_SONG);
-
-  ltBall1 = ltBall2 = ltBall3 = ltBall4 = ltBall5 = false;
-  ltA = ltB = ltC = ltD = true;
-  lt1 = lt2 = lt3 = true;
-
-  while (pt.tune_playing && !endNow)
-  {
-    //Do display animation
-    int animationDelay = 2000;
-    for (int i = 0; i < amountOfPlayers; i++)
-    {
-      Player p = players[i];
-      lightPlayerLights(i + 1);
-      writeScore(p.score, false);
-      endNow = delayWithLights(animationDelay);
-      if (endNow)
-        break;
-      writeDisplay(getRankingTitle(p.score));
-      endNow = delayWithLights(animationDelay);
-      if (endNow)
-        break;
-    }
-  }
-
-  pt.tune_stopscore();
-  lightPlayerLights(0);
-  reset();
-}
-
-/**
- * Get the Ranking Title based off of your score
- * 
- * @param score players score
- * @return String their rank
- */
-String getRankingTitle(long score)
-{
-  if (score < 40000)
-  {
-    return "AMATEUR";
-  }
-  else if (score < 75000)
-  {
-    return "SUPER";
-  }
-  else if (score < 100000)
-  {
-    return "CHAMP";
-  }
-  else if (score < 125000)
-  {
-    return "FANTASTIC";
-  }
-  else if (score < 150000)
-  {
-    return "WIZARD";
-  }
-  else if (score > 150000)
-  {
-    return "FIREBALL";
-  }
-}
-
-/**
- * Called if the machine is tilted during game play
- * 
- */
-void tilt()
-{
-  playSFX(SOUND_TILT);
-  writeDisplay("TILTED");
-}
-
-/**
- * Blink the extra ball left light
- * 
- */
-void timerBlinkExtraBallLeft(void)
-{
-  ltExtraBallLeft = !ltExtraBallLeft;
-}
-
-/**
- * Blink the extra ball right light
- * 
- */
-void timerBlinkExtraBallRight(void)
-{
-  ltExtraBallRight = !ltExtraBallRight;
 }
 
 /**
