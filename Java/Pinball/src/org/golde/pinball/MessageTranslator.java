@@ -31,7 +31,7 @@ public class MessageTranslator implements IncomingMessageCallback {
 		if(split[0].equals("B")) {
 			parseButton(split);
 		}
-		if(split[0].equals("PC")) {
+		else if(split[0].equals("PC")) {
 			System.out.println("Message from arduino: " + split[1]);
 			if(split[1].equals("Ready")) {
 				if(callback != null) {

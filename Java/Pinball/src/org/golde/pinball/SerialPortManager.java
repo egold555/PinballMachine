@@ -76,14 +76,14 @@ public class SerialPortManager {
 		}
 		msg += "\n";
 		byte[] buffer = msg.getBytes();
-		System.out.println("About to write data: " + Arrays.toString(buffer));
+		//System.out.println("About to write data: " + Arrays.toString(buffer));
 		int response = sp.writeBytes(buffer, buffer.length);
 		
 		if(response == -1) {
 			System.err.println("Failed to write to COM port: " + msg);
 		}
 		else {
-			System.out.println("Wrote " + response + "/" + buffer.length +  " bytes to the serial port");
+			//System.out.println("Wrote " + response + "/" + buffer.length +  " bytes to the serial port");
 		}
 	}
 

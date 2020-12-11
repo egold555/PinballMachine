@@ -4,7 +4,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import org.golde.pinball.MessageTranslator;
-import org.golde.pinball.SerialPortManager;
 import org.golde.pinball.constants.ProtocolIDs;
 
 public class NormalGame extends PinballGame {
@@ -22,6 +21,21 @@ public class NormalGame extends PinballGame {
 	@Override
 	public void onButtonHit(int id) {
 		System.out.println("Button hit: " + id);
+		if(id == ProtocolIDs.PID_SW_LEFT_THUMPER_BUMPER) {
+			fireSolinoid(ProtocolIDs.PID_SN_LEFT_THUMPER_BUMPER);
+		}
+		if(id == ProtocolIDs.PID_SW_RIGHT_THUMPER_BUMPER) {
+			fireSolinoid(ProtocolIDs.PID_SN_RIGHT_THUMPER_BUMPER);
+		}
+		if(id == ProtocolIDs.PID_SW_LEFT_SLING_SHOT) {
+			fireSolinoid(ProtocolIDs.PID_SN_LEFT_SLING_SHOT);
+		}
+		if(id == ProtocolIDs.PID_SW_RIGHT_SLING_SHOT) {
+			fireSolinoid(ProtocolIDs.PID_SN_RIGHT_SLING_SHOT);
+		}
+		if(id == ProtocolIDs.PID_SW_BALL_RETURN) {
+			fireSolinoid(ProtocolIDs.PID_SN_BALL_RETURN);
+		}
 	}
 
 	@Override
@@ -56,21 +70,21 @@ public class NormalGame extends PinballGame {
 			}
 		}, 0, 100);
 		
-		new Timer().scheduleAtFixedRate(new TimerTask() {
-
-			@Override
-			public void run() {
-
-				fireSolinoid(currentSolinoid);
-				
-				currentSolinoid++;
-				if(currentSolinoid > ProtocolIDs.PID_SN_RIGHT_THUMPER_BUMPER) {
-					currentSolinoid = ProtocolIDs.PID_SN_BALL_RETURN;
-				}
-				
-
-			}
-		}, 0, 100);
+//		new Timer().scheduleAtFixedRate(new TimerTask() {
+//
+//			@Override
+//			public void run() {
+//
+//				fireSolinoid(currentSolinoid);
+//				
+//				currentSolinoid++;
+//				if(currentSolinoid > ProtocolIDs.PID_SN_RIGHT_THUMPER_BUMPER) {
+//					currentSolinoid = ProtocolIDs.PID_SN_BALL_RETURN;
+//				}
+//				
+//
+//			}
+//		}, 0, 1000);
 		
 		
 		System.out.println("Set");

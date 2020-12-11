@@ -291,6 +291,8 @@ void setup()
 
   //delay(200);
   writeDisplay("DEBUG");
+  
+  Serial.println("PC-This message is to get rid of junk");
   delay(200);
   Serial.println("PC-Ready");
 }
@@ -391,10 +393,7 @@ int serialIndex = 0;
 // An incoming command has appeared.
 void incomingMessage(const char *message)
 {
-  
-  switch (message[0])
-  {
-  case 'L':
+  if (message[0] == 'L') {
     // L-nn-0 or L-nn-1: Turn light on or off.
 
     if (message[1] != '-')
@@ -423,12 +422,10 @@ void incomingMessage(const char *message)
       incomingLightMessage(lightNumber, true);
     }
 
-    break;
-
-  case 'S':
+  }
+  else if (message[0] == 'S') {
     // S-nn
-writeDisplay(message);
-
+    //writeDisplay(message);
     if (message[1] != '-')
     {
       return; // bad command.
@@ -442,8 +439,6 @@ writeDisplay(message);
     int solinoid = 10 * (message[2] - '0') + (message[3] - '0');
     
     incomingSolinoidMessage(solinoid);
-
-    break;
   }
 }
 
