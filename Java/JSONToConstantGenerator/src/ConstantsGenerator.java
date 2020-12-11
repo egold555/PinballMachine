@@ -13,10 +13,12 @@ public class ConstantsGenerator implements Runnable {
 	@Override
 	public void run() {
 	
+		
+		//Protocol Ids
 		HashMap<String, Double> ids = FileUtil.loadFromFile("ProtocolIDs", HashMap.class);
 		
 		try {
-			//Write Java
+			
 			PrintWriter pwJava = PrintWriterUtil.Java.begin("ProtocolIDs");
 			PrintWriter pwH = PrintWriterUtil.H.begin("ProtocolIDs");
 			ids = (HashMap<String, Double>) sortByValue(ids);

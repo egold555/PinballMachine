@@ -1,6 +1,6 @@
 package org.golde.pinball.constants;
 
-//Generated: Thu Dec 10 16:54:32 PST 2020
+//Generated: Thu Dec 10 19:23:42 PST 2020
 public class ProtocolIDs {
 
 	public static final int PID_SW_BALL_RETURN = 1;
@@ -27,4 +27,35 @@ public class ProtocolIDs {
 	public static final int PID_SW_RIGHT_ADVANCED_LANE = 22;
 	public static final int PID_SW_FLIPPER_LEFT = 23;
 	public static final int PID_SW_FLIPPER_RIGHT = 24;
+	public static final int PID_LT_Bonus8000 = 25;
+	public static final int PID_LT_BONUS_9000 = 26;
+	public static final int PID_LT_EXTRA_BALL_Right = 27;
+	public static final int PID_LT_A = 28;
+	public static final int PID_LT_BONUS_6000 = 29;
+	public static final int PID_LT_1 = 30;
+	public static final int PID_LT_BONUS_1000 = 31;
+	public static final int PID_LT_B = 32;
+	public static final int PID_LT_BONUS_5000 = 33;
+	public static final int PID_LT_DOUBLE_BONUS = 34;
+	public static final int PID_LT_EXTRA_BALL_Left = 35;
+	public static final int PID_LT_C = 36;
+	public static final int PID_LT_BONUS_7000 = 37;
+	public static final int PID_LT_BONUS_10000 = 38;
+	public static final int PID_LT_BONUS_2000 = 39;
+	public static final int PID_LT_D = 40;
+	public static final int PID_LT_BONUS_3000 = 41;
+	public static final int PID_LT_2 = 42;
+	public static final int PID_LT_SAME_PLAYER_Shoots = 43;
+	public static final int PID_LT_3 = 44;
+	public static final int PID_LT_BONUS_4000 = 45;
+	public static final int PID_LT_TRIPPLE_BONUS = 46;
+	public static final int PID_LT_BALL_2 = 47;
+	public static final int PID_LT_BALL_3 = 48;
+	public static final int PID_LT_BALL_4 = 49;
+	public static final int PID_LT_BALL_5 = 50;
+	public static final int PID_LT_PLAYER_1 = 51;
+	public static final int PID_LT_PLAYER_2 = 52;
+	public static final int PID_LT_PLAYER_3 = 53;
+	public static final int PID_LT_PLAYER_4 = 54;
+	public static final int PID_LT_BALL_1 = 55;
 }

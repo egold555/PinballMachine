@@ -280,16 +280,85 @@ void setup()
   //init the two displays
   display1.begin(0x70);
   display2.begin(0x71);
+
+  //delay(200);
+  writeDisplay("DEBUG");
+  Serial.println("Ready");
 }
 
 /**
  * Arduino loop
- * TODO: dd
  */
 void loop()
 {
-  runner();
+  //runner();
   checkSwitchesAndLightLights();
+  checkForIncomingMessages();
+}
+
+/*
+Check for incoming serial messages about the lights
+*/
+
+const int serialBufferSize = 128;
+char serialBuffer[serialBufferSize];
+int serialIndex = 0;
+
+// An incoming command has appeared.
+void incomingMessage(const char *message)
+{
+  switch (message[0]) {
+    case 'L':
+      // L-nn-0 or L-nn-1: Turn light on or off.
+
+      if (message[1] != '-') {
+        return;  // bad command.
+      }
+      
+      // Always a two digit number
+      if (! (message[2] >= '0' && message[2] <= '9' && message[3] >= '0' && message[3] <= '9')) {
+        return; // bad command.
+      }
+      int lightNumber = 10 * (message[2] - '0') + (message[3] - '0');
+
+      if (message[4] != '-') {
+        return; // bad command
+      }
+
+      if (message[5] == '0') {
+        incomingLightMessage(lightNumber, false);
+      }
+      else if (message[5] == '1') {
+        incomingLightMessage(lightNumber, true);
+      }
+
+      break;
+  }
+}
+
+// Read characters from the serial port and store into
+// a buffer. If we get a newline, dispatch the stored command
+// to incomingMessage();
+void checkForIncomingMessages() {
+  while (Serial.available() > 0) {
+      int b = Serial.read();
+      if (b == '\n') {
+        // Command terminator.
+        serialBuffer[serialIndex++] = '\0';  // terminate string.
+        incomingMessage(serialBuffer);
+        serialIndex = 0;
+      }
+      else if (b > 0) {
+        // Add to end of command.
+        if (serialIndex >= serialBufferSize - 1) {
+          // Buffer overflow -- should never happen. Just ignore stuff.
+          serialIndex = 0;
+        }
+        serialBuffer[serialIndex++] = (char) b;
+      }
+
+  }
+
 }
 
 long MSG_DELAY = 20;
