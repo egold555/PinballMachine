@@ -11,10 +11,10 @@ import lombok.ToString;
 @EqualsAndHashCode
 public class Player {
 	
-	boolean lightA;
-	boolean lightB;
-	boolean lightC;
-	boolean lightD;
-	long score;
+	boolean lightA = true;
+	boolean lightB = true;
+	boolean lightC = true;
+	boolean lightD = true;
+	long score = 0;
 	
 }
