@@ -65,12 +65,15 @@
 		"LEFT_THUMPER_BUMPER": 59,
 		"RIGHT_THUMPER_BUMPER": 60
 	},
-	"messages": {
-		"solinoid": "SN",
-		"light": "LT",
-		"buttonPressed": "BP",
-		"buttonToggled": "BT",
-		"PC": "PC",
-		"error": "ER"
+	"Messages": {
+		"SOLINOID": "SN",
+		"LIGHT": "LT",
+		"BUTTON_PRESSED": "BP",
+		"BUTTON_TOGGLED": "BT",
+		"LOG": "LG",
+		"ERROR": "ER",
+		"DISPLAY_SCORE": "DS",
+		"DISPLAY_TEXT": "DT",
+		"DISPLAY_TEXT_SCROLL": "DC"
 	}
 }

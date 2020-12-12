@@ -15,51 +15,68 @@ public class ConstantsGenerator implements Runnable {
 
 	@Override
 	public void run() {
-		
+
 		try {
-			intConstants("Buttons", "PID_SW_");
-			intConstants("Lights", "PID_LT_");
-			intConstants("Solinoids", "PID_SN_");
+			intConstants("Buttons", "PID_SW_", false);
+			intConstants("Lights", "PID_LT_", false);
+			intConstants("Solinoids", "PID_SN_", false);
+			intConstants("Messages", null, true);
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+
 	}
-	
-	private void intConstants(String name, String prefix) throws FileNotFoundException {
-		
+
+	@SuppressWarnings("unchecked")
+	private void intConstants(String name, String prefix, boolean ignoreCPP) throws FileNotFoundException {
+
 		JsonObject obj = FileUtil.loadFromFile(FILE_NAME, JsonObject.class);
-		Map<String, Integer> mapObj = Main.GSON.fromJson(obj.get(name), new TypeToken<HashMap<String, Integer>>() {}.getType());
-		mapObj = sortByValue(mapObj);
-		
+		Map<String, Object> mapObj = Main.GSON.fromJson(obj.get(name), new TypeToken<HashMap<String, Object>>() {}.getType());
+		Map<String, Comparable<Object>> stupidHack = new HashMap<String, Comparable<Object>>();
+
+		for(String key : mapObj.keySet()) {
+			Object value = mapObj.get(key);
+			stupidHack.put(key, (Comparable<Object>)value);
+		}
+
+		stupidHack = sortByValue(stupidHack);
+
 		PrintWriterUtil.PrintWriterTemplate pwJava = new PrintWriterUtil.JavaEnumInt(name);
 		pwJava.begin();
-		
+
 		PrintWriterUtil.PrintWriterTemplate pwH = new PrintWriterUtil.HInt(name);
-		pwH.begin();
-		
-		for(String key : mapObj.keySet()) {
-			int value = mapObj.get(key);
-			pwJava.writeConstant(key, value);
-			pwH.writeConstant(prefix + key, value);
+
+		if(!ignoreCPP) {
+			pwH.begin();
 		}
-		
+
+		for(String key : stupidHack.keySet()) {
+			Object value = stupidHack.get(key);
+			pwJava.writeConstant(key, value);
+			if(!ignoreCPP) {
+				pwH.writeConstant(prefix + key, value);
+			}
+		}
+
 		pwJava.end();
-		pwH.end();
+
+		if(!ignoreCPP) {
+			pwH.end();
+		}
 
 	}
-	
+
 	public static <K, V extends Comparable<? super V>> Map<K, V> sortByValue(Map<K, V> map) {
-        List<Entry<K, V>> list = new ArrayList<>(map.entrySet());
-        list.sort(Entry.comparingByValue());
+		List<Entry<K, V>> list = new ArrayList<>(map.entrySet());
+		list.sort(Entry.comparingByValue());
 
-        Map<K, V> result = new LinkedHashMap<>();
-        for (Entry<K, V> entry : list) {
-            result.put(entry.getKey(), entry.getValue());
-        }
+		Map<K, V> result = new LinkedHashMap<>();
+		for (Entry<K, V> entry : list) {
+			result.put(entry.getKey(), entry.getValue());
+		}
 
-        return result;
-    }
-	
+		return result;
+	}
+
 }

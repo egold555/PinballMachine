@@ -79,8 +79,8 @@ public class PrintWriterUtil {
 			l.add("				return i;");
 			l.add("			}");
 			l.add("		}");
-			l.add("	System.err.println(\"Failed to get " + name + " with id of: \" + o);");
-			l.add("	return null;");
+			l.add("		System.err.println(\"Failed to get " + name + " with id of: \" + o);");
+			l.add("		return null;");
 			l.add("	}");
 			l.add("}");
 		}
@@ -118,6 +118,12 @@ public class PrintWriterUtil {
 		}
 		
 		public final void writeConstant(String name, Object id) {
+			if(id instanceof String) {
+				id = "\"" + id + "\"";
+			}
+			if(id instanceof Double) {
+				id = ((Double)id).intValue();
+			}
 			pw.println(getConstantFormatting(name, id));
 		}
 		

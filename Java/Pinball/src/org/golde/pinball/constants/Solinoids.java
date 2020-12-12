@@ -1,6 +1,6 @@
 package org.golde.pinball.constants;
 
-//Generated: Fri Dec 11 14:57:35 PST 2020
+//Generated: Fri Dec 11 17:29:57 PST 2020
 public enum Solinoids {
 
 	BALL_RETURN(56),
@@ -25,7 +25,7 @@ public enum Solinoids {
 				return i;
 			}
 		}
-	System.err.println("Failed to get Solinoids with id of: " + o);
-	return null;
+		System.err.println("Failed to get Solinoids with id of: " + o);
+		return null;
 	}
 }

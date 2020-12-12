@@ -5,6 +5,7 @@ import java.util.Arrays;
 import org.golde.pinball.SerialPortManager.IncomingMessageCallback;
 import org.golde.pinball.constants.Buttons;
 import org.golde.pinball.constants.Lights;
+import org.golde.pinball.constants.Messages;
 import org.golde.pinball.constants.Solinoids;
 
 public class MessageTranslator implements IncomingMessageCallback {
@@ -23,8 +24,8 @@ public class MessageTranslator implements IncomingMessageCallback {
 
 	public interface MessageParserCallback {
 
-		public void onButtonHit(Buttons button);
-		public void onButtonStateChange(Buttons button, boolean state);
+		public void onButtonHit(Buttons btn);
+		public void onButtonStateChange(Buttons btn, boolean state);
 		public void start();
 		public default void setMessageTranslator(MessageTranslator translator) {};
 
@@ -33,11 +34,11 @@ public class MessageTranslator implements IncomingMessageCallback {
 	@Override
 	public void onMessageRecieved(String msg) {
 		String[] split = msg.split("\\-");
-		if(split[0].equals("B")) {
+		if(split[0].equals(Messages.BUTTON_PRESSED.getId()) || split[0].equals(Messages.BUTTON_TOGGLED.getId())) {
 			parseButton(split);
 		}
-		else if(split[0].equals("PC")) {
-			System.out.println("Message from arduino: " + split[1]);
+		else if(split[0].equals(Messages.LOG.getId())) {
+			System.out.println("[Arduino Info] " + split[1]);
 			if(split[1].equals("Ready")) {
 				if(callback != null) {
 					callback.start();
@@ -45,49 +46,49 @@ public class MessageTranslator implements IncomingMessageCallback {
 			}
 			
 		}
-		else if(split[0].equals("E")) {
-			System.err.println("[OLD - Error] " + split[1]);
+		else if(split[0].equals(Messages.ERROR.getId())) {
+			System.err.println("[Arduino Error] " + split[1]);
 		}
 		else {
-			System.err.println("Unrecognised message: " + msg);
+			System.err.println("[Com Warning] Unrecognised message: " + msg);
 		}
 	}
 
-	//B-P-ID
-	//B-T-ID-01
+	//BP-ID
+	//BT-ID-01
 	private void parseButton(String[] split) {
 		try {
-			if(split[1].equals("P")) {
+			if(split[0].equals(Messages.BUTTON_PRESSED.getId())) {
 				if(callback != null) {
-					int id = Integer.valueOf(split[2]);
+					int id = Integer.valueOf(split[1]);
 					callback.onButtonHit(Buttons.get(id));
 				}
 
 			}
-			else if(split[1].equals("T")) {
-				int id = Integer.valueOf(split[2]);
-				boolean state = (Integer.valueOf(split[3]) == 1 ? true : false);
+			else if(split[0].equals(Messages.BUTTON_TOGGLED.getId())) {
+				int id = Integer.valueOf(split[1]);
+				boolean state = (Integer.valueOf(split[2]) == 1 ? true : false);
 				if(callback != null) {
 					callback.onButtonStateChange(Buttons.get(id), state);
 				}
 
 			}
 			else {
-				System.err.println("Got a strange button request: " + Arrays.toString(split));
+				System.err.println("[Com Warning] Got a strange button request: " + Arrays.toString(split));
 			}
 		}
 		catch(Exception e) {
 			e.printStackTrace();
-			System.err.println("Malformed button: " + Arrays.toString(split));
+			System.err.println("[Com Error] Malformed button: " + Arrays.toString(split));
 		}
 	}
 
 	public void fireSolinoid(Solinoids id) {
-		spm.write("S-" + id.getId());
+		spm.write(Messages.SOLINOID.getId() + "-" + id.getId());
 	}
 
 	public void setLight(Lights id, boolean value) {
-		spm.write("L-" + id.getId() + "-" + (value ? 1 : 0));
+		spm.write(Messages.SOLINOID.getId() + "-" + id.getId() + "-" + (value ? 1 : 0));
 	}
 
 }

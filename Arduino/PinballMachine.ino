@@ -84,7 +84,7 @@ typedef struct Button
   void sendToSerialSW()
   {
 
-    Serial.print("B-T-");
+    Serial.print("BT-");
     Serial.print(id);
     Serial.print("-");
     Serial.print(sw);
@@ -93,7 +93,7 @@ typedef struct Button
 
   void sendToSerialPR()
   {
-    Serial.print("B-P-");
+    Serial.print("BP-");
     Serial.print(id);
     Serial.println();
   }
@@ -294,9 +294,9 @@ void setup()
   //delay(200);
   writeDisplay("DEBUG");
   
-  Serial.println("PC-This message is to get rid of junk");
+  Serial.println("LG-This message is to get rid of junk");
   delay(200);
-  Serial.println("PC-Ready");
+  Serial.println("LG-Ready");
 }
 
 /**
@@ -395,50 +395,50 @@ int serialIndex = 0;
 // An incoming command has appeared.
 void incomingMessage(const char *message)
 {
-  if (message[0] == 'L') {
-    // L-nn-0 or L-nn-1: Turn light on or off.
+  if (message[0] == 'L' && message[1] == 'T') {
+    // LT-nn-0 or LT-nn-1: Turn light on or off.
 
-    if (message[1] != '-')
+    if (message[2] != '-')
     {
       return; // bad command.
     }
 
     // Always a two digit number
-    if (!(message[2] >= '0' && message[2] <= '9' && message[3] >= '0' && message[3] <= '9'))
+    if (!(message[3] >= '0' && message[3] <= '9' && message[4] >= '0' && message[5] <= '9'))
     {
       return; // bad command.
     }
-    int lightNumber = 10 * (message[2] - '0') + (message[3] - '0');
+    int lightNumber = 10 * (message[3] - '0') + (message[4] - '0');
 
-    if (message[4] != '-')
+    if (message[5] != '-')
     {
       return; // bad command
     }
 
-    if (message[5] == '0')
+    if (message[6] == '0')
     {
       incomingLightMessage(lightNumber, false);
     }
-    else if (message[5] == '1')
+    else if (message[6] == '1')
     {
       incomingLightMessage(lightNumber, true);
     }
 
   }
-  else if (message[0] == 'S') {
+  else if (message[0] == 'S' && message[1] == 'N') {
     // S-nn
     //writeDisplay(message);
-    if (message[1] != '-')
+    if (message[2] != '-')
     {
       return; // bad command.
     }
 
     // Always a two digit number
-    if (!(message[2] >= '0' && message[2] <= '9' && message[3] >= '0' && message[3] <= '9'))
+    if (!(message[3] >= '0' && message[3] <= '9' && message[4] >= '0' && message[5] <= '9'))
     {
       return; // bad command.
     }
-    int solinoid = 10 * (message[2] - '0') + (message[3] - '0');
+    int solinoid = 10 * (message[3] - '0') + (message[4] - '0');
     
     incomingSolinoidMessage(solinoid);
   }
@@ -464,7 +464,7 @@ void incomingSolinoidMessage(int solinoid)
     snRightThumperBumper = true;
     break;
   default:
-    Serial.println("E-Unknown Solinoid sent!");
+    Serial.println("ER-Unknown Solinoid sent!");
     break;
   }
 }
@@ -475,13 +475,13 @@ void incomingLightMessage(int light, boolean status)
 
   switch (light)
   {
-  case PID_LT_1:
+  case PID_LT_T1:
     lt1 = status;
     break;
-  case PID_LT_2:
+  case PID_LT_T2:
     lt2 = status;
     break;
-  case PID_LT_3:
+  case PID_LT_T3:
     lt3 = status;
     break;
   case PID_LT_A:
@@ -569,7 +569,7 @@ void incomingLightMessage(int light, boolean status)
     ltTrippleBonus = status;
     break;
   default:
-    Serial.println("E-Unknown Light Sent!");
+    Serial.println("ER-Unknown Light Sent!");
     break;
   }
 }

@@ -32,6 +32,11 @@ public abstract class PinballGame implements MessageParserCallback {
 	}
 	
 	@Deprecated
+	public final void writeScrollingText(String text) {
+		
+	}
+	
+	@Deprecated
 	public final void playSFX(int sfx) {
 		
 	}
