@@ -1,6 +1,6 @@
 package org.golde.pinball.constants;
 
-//Generated: Fri Dec 11 17:29:57 PST 2020
+//Generated: Fri Dec 11 18:12:54 PST 2020
 public enum Lights {
 
 	BONUS_8000(25),

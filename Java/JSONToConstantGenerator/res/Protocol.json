@@ -72,8 +72,17 @@
 		"BUTTON_TOGGLED": "BT",
 		"LOG": "LG",
 		"ERROR": "ER",
-		"DISPLAY_SCORE": "DS",
 		"DISPLAY_TEXT": "DT",
-		"DISPLAY_TEXT_SCROLL": "DC"
+		"DISPLAY_TEXT_SCROLL": "DS",
+		"SOUND": "SD"
+	},
+	"Sounds": {
+		"STARTUP": 10,
+		"POINT": 11,
+		"NEW_BALL": 12,
+		"EXTRA_BALL": 13,
+		"TILT": 14,
+		"ENDING_SONG": 15,
+		"NAME_ENTER": 16
 	}
 }

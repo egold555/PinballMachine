@@ -1,0 +1,9 @@
+//Generated: Fri Dec 11 18:12:54 PST 2020
+
+#define PID_SD_STARTUP 10
+#define PID_SD_POINT 11
+#define PID_SD_NEW_BALL 12
+#define PID_SD_EXTRA_BALL 13
+#define PID_SD_TILT 14
+#define PID_SD_ENDING_SONG 15
+#define PID_SD_NAME_ENTER 16

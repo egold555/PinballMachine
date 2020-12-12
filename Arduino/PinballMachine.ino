@@ -13,6 +13,7 @@
 #include "ProtocolButtons.h"
 #include "ProtocolLights.h"
 #include "ProtocolSolinoids.h"
+#include "ProtocolSounds.h"
 
 //Constants for delays ahs such.
 //TODO: DOcument more
@@ -241,6 +242,7 @@ void incomingMessage(const char *message);
 void checkForIncomingMessages();
 void updateSolinoids();
 void incomingSolinoidMessage(int solinoid);
+void incomingSoundMessage(int soundNumber);
 /**
  * Arduino setup function
  * TODO:
@@ -395,6 +397,7 @@ int serialIndex = 0;
 // An incoming command has appeared.
 void incomingMessage(const char *message)
 {
+  //Lights
   if (message[0] == 'L' && message[1] == 'T') {
     // LT-nn-0 or LT-nn-1: Turn light on or off.
 
@@ -425,9 +428,9 @@ void incomingMessage(const char *message)
     }
 
   }
+  //Solinoid
   else if (message[0] == 'S' && message[1] == 'N') {
     // S-nn
-    //writeDisplay(message);
     if (message[2] != '-')
     {
       return; // bad command.
@@ -441,6 +444,39 @@ void incomingMessage(const char *message)
     int solinoid = 10 * (message[3] - '0') + (message[4] - '0');
     
     incomingSolinoidMessage(solinoid);
+  }
+  //Display Score
+  else if (message[0] == 'D' && message[1] == 'T') {
+    // S-msg
+    //writeDisplay(message);
+    if (message[2] != '-')
+    {
+      return; // bad command.
+    }
+     writeDisplay(String(message).substring(3));
+  }
+  //sound
+  else if (message[0] == 'S' && message[1] == 'D') {
+    // SD-nn
+
+    if (message[2] != '-')
+    {
+      return; // bad command.
+    }
+
+    // Always a two digit number
+    if (!(message[3] >= '0' && message[3] <= '9' && message[4] >= '0' && message[5] <= '9'))
+    {
+      return; // bad command.
+    }
+    int soundNumber = 10 * (message[3] - '0') + (message[4] - '0');
+
+    incomingSoundMessage(soundNumber);
+
+  }
+  else {
+    Serial.print("ER-Got Unknown incoming message: ");
+    Serial.println(message);
   }
 }
 
@@ -464,7 +500,8 @@ void incomingSolinoidMessage(int solinoid)
     snRightThumperBumper = true;
     break;
   default:
-    Serial.println("ER-Unknown Solinoid sent!");
+    Serial.print("ER-Unknown Solinoid sent: ");
+    Serial.println(solinoid);
     break;
   }
 }
@@ -569,9 +606,27 @@ void incomingLightMessage(int light, boolean status)
     ltTrippleBonus = status;
     break;
   default:
-    Serial.println("ER-Unknown Light Sent!");
+    Serial.print("ER-Unknown Light Sent: ");
+    Serial.println(light);
     break;
   }
+}
+
+//Sound messages
+void incomingSoundMessage(int soundNumber) {
+    switch(soundNumber) {
+      case PID_SD_ENDING_SONG: playSFX(SOUND_ENDING_SONG); break;
+      case PID_SD_EXTRA_BALL: playSFX(SOUND_EXTRABALL); break;
+      case PID_SD_NEW_BALL: playSFX(SOUND_NEWBALL); break;
+      case PID_SD_POINT: playSFX(SOUND_POINT); break;
+      case PID_SD_STARTUP: playSFX(SOUND_STARTUP); break;
+      case PID_SD_TILT: playSFX(SOUND_TILT); break;
+      case PID_SD_NAME_ENTER: playSFX(SOUND_NAME_ENTER); break;
+      default: 
+        Serial.print("ER-Unknown sound sent: ");
+        Serial.println(soundNumber);
+        break;
+    }
 }
 
 // Read characters from the serial port and store into

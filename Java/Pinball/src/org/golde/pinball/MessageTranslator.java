@@ -7,6 +7,7 @@ import org.golde.pinball.constants.Buttons;
 import org.golde.pinball.constants.Lights;
 import org.golde.pinball.constants.Messages;
 import org.golde.pinball.constants.Solinoids;
+import org.golde.pinball.constants.Sounds;
 
 public class MessageTranslator implements IncomingMessageCallback {
 
@@ -50,7 +51,7 @@ public class MessageTranslator implements IncomingMessageCallback {
 			System.err.println("[Arduino Error] " + split[1]);
 		}
 		else {
-			System.err.println("[Com Warning] Unrecognised message: " + msg);
+			System.err.println("[Com Warning] Unrecognised message recieved: " + msg);
 		}
 	}
 
@@ -88,7 +89,28 @@ public class MessageTranslator implements IncomingMessageCallback {
 	}
 
 	public void setLight(Lights id, boolean value) {
-		spm.write(Messages.SOLINOID.getId() + "-" + id.getId() + "-" + (value ? 1 : 0));
+		spm.write(Messages.LIGHT.getId() + "-" + id.getId() + "-" + (value ? 1 : 0));
+	}
+	
+	public void writeScore(int score) {
+		//right align
+		String scoreText = Integer.toString(score);
+		scoreText = scoreText.substring(0, Math.min(scoreText.length(), 8));
+		scoreText = String.format("%8s", scoreText);
+		writeText(scoreText);
+	}
+	
+	public void writeText(String text) {
+		spm.write(Messages.DISPLAY_TEXT.getId() + "-" + text);
+	}
+	
+	@Deprecated
+	public void writeScrollingText(String text) {
+		
+	}
+	
+	public void playSound(Sounds sound) {
+		spm.write(Messages.SOUND.getId() + "-" + sound.getId());
 	}
 
 }

@@ -4,11 +4,12 @@ import org.golde.pinball.MessageTranslator;
 import org.golde.pinball.MessageTranslator.MessageParserCallback;
 import org.golde.pinball.constants.Lights;
 import org.golde.pinball.constants.Solinoids;
+import org.golde.pinball.constants.Sounds;
 
 public abstract class PinballGame implements MessageParserCallback {
 
 	private MessageTranslator mt;
-	
+
 	public final void setLight(Lights light, boolean value) {
 		if(mt != null) {
 			mt.setLight(light, value);
@@ -20,27 +21,32 @@ public abstract class PinballGame implements MessageParserCallback {
 			mt.fireSolinoid(solinoid);
 		}
 	}
-	
-	@Deprecated
+
 	public final void writeScore(int score) {
-		
+		if(mt != null) {
+			mt.writeScore(score);
+		}
 	}
-	
-	@Deprecated
+
 	public final void writeText(String text) {
-		
+		if(mt != null) {
+			mt.writeText(text);
+		}
 	}
-	
+
 	@Deprecated
 	public final void writeScrollingText(String text) {
-		
+		if(mt != null) {
+			mt.writeScrollingText(text);
+		}
 	}
-	
-	@Deprecated
-	public final void playSFX(int sfx) {
-		
+
+	public final void playSound(Sounds sound) {
+		if(mt != null) {
+			mt.playSound(sound);
+		}
 	}
-	
+
 	@Override
 	public final void setMessageTranslator(MessageTranslator translator) {
 		this.mt = translator;
