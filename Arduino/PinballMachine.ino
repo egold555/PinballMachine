@@ -155,7 +155,7 @@ typedef struct Button
 Button swBallReturn(PID_SW_BALL_RETURN);
 Button swTilt(PID_SW_TILT);
 Button swRightSpinner(PID_SW_RIGHT_SPINNER);
-Button swRightExtraBallLane(PID_SW_RIGHT_EXTRA_BALL_RETURN);
+Button swRightExtraBallLane(PID_SW_RIGHT_EXTRA_BALL_LANE);
 Button swA(PID_SW_A);
 Button swStart(PID_SW_START);
 Button swLeftTarget(PID_SW_LEFT_TARGET);

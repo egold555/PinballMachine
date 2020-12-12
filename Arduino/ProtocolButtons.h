@@ -1,9 +1,9 @@
-//Generated: Fri Dec 11 18:12:54 PST 2020
+//Generated: Sat Dec 12 11:51:13 PST 2020
 
 #define PID_SW_BALL_RETURN 1
 #define PID_SW_TILT 2
 #define PID_SW_RIGHT_SPINNER 3
-#define PID_SW_RIGHT_EXTRA_BALL_RETURN 4
+#define PID_SW_RIGHT_EXTRA_BALL_LANE 4
 #define PID_SW_A 5
 #define PID_SW_START 6
 #define PID_SW_LEFT_TARGET 7

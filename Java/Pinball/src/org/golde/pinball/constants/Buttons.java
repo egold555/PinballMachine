@@ -1,12 +1,12 @@
 package org.golde.pinball.constants;
 
-//Generated: Fri Dec 11 18:12:54 PST 2020
+//Generated: Sat Dec 12 11:51:13 PST 2020
 public enum Buttons {
 
 	BALL_RETURN(1),
 	TILT(2),
 	RIGHT_SPINNER(3),
-	RIGHT_EXTRA_BALL_RETURN(4),
+	RIGHT_EXTRA_BALL_LANE(4),
 	A(5),
 	START(6),
 	LEFT_TARGET(7),

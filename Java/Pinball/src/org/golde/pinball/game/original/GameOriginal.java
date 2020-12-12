@@ -13,11 +13,14 @@ public class GameOriginal extends PinballGame {
 	private Player[] players = new Player[MAX_AMOUNT_OF_PLAYERS];
 	private int currentPlayer;
 	private int amountOfPlayers;
-	
+
 	//reset every round
 	private boolean hasScoredThisRound = false;
-	
+
 	private boolean target1 = true, target2 = true, target3 = true;
+	private boolean extraBallLeft = false, extraBallRight = false;
+	private boolean doubleBonus = false, trippleBonus = false;
+	private int bonus = 0;
 
 	@Override
 	public void onButtonHit(Buttons btn) {
@@ -36,7 +39,7 @@ public class GameOriginal extends PinballGame {
 				fireSolinoid(Solinoids.RIGHT_SLING_SHOT);
 			}
 
-			
+
 
 			//ABCD Advance bonus
 			if(btn == Buttons.A && players[currentPlayer].lightA) {
@@ -66,51 +69,70 @@ public class GameOriginal extends PinballGame {
 			//Advance bonus if ABCD is all off
 			if (!players[currentPlayer].lightA && !players[currentPlayer].lightB && !players[currentPlayer].lightC && !players[currentPlayer].lightD)
 			{
-				//TODO
 				players[currentPlayer].lightA = true;
 				players[currentPlayer].lightB = true;
 				players[currentPlayer].lightC = true;
 				players[currentPlayer].lightD = true;
 				updateABCDLightsforCurrentPlayer();
 				players[currentPlayer].score += 25000;
-				//ltExtraBallLeft = true;
-				//ltExtraBallRight = true;
+				extraBallLeft = true;
+				extraBallRight = true;
 				setLight(Lights.EXTRA_BALL_LEFT, true);
 				setLight(Lights.EXTRA_BALL_RIGHT, true);
 				playSound(Sounds.STARTUP);
 			}
-			
+
 			//ABCD Points
 			if(btn == Buttons.A || btn == Buttons.B || btn == Buttons.C || btn == Buttons.D) {
 				updatePlayerScore(100);
 			}
-			
+
 			if(btn == Buttons.LEFT_BUMPER || btn == Buttons.RIGHT_BUMPER) {
 				updatePlayerScore(50);
 			}
-			
-			
+
+
 			if(btn == Buttons.LEFT_TARGET && target1) {
 				target1 = false;
 				advanceBonus();
 				advanceBonus();
 			}
-			
+
 			if(btn == Buttons.CENTER_TARGET && target2) {
 				target2 = false;
 				updatePlayerScore(500); //Not sure why but this is in the old code. (Accounting fo 500 of above function)
 				advanceBonus();
 				advanceBonus();
 			}
-			
-			if(btn == Buttons.RIGHT_TARGET && target1) {
+
+			if(btn == Buttons.RIGHT_TARGET && target3) {
 				target3 = false;
 				advanceBonus();
 				advanceBonus();
 			}
-			
+
 			if(btn == Buttons.LEFT_TARGET || btn == Buttons.RIGHT_TARGET || btn == Buttons.CENTER_TARGET) {
 				updatePlayerScore(500);
+			}
+
+			//spinners
+			if(btn == Buttons.LEFT_SPINNER || btn == Buttons.RIGHT_SPINNER) {
+				updatePlayerScore(100);
+			}
+
+			if(btn == Buttons.LEFT_EXTRA_BALL_LANE && extraBallLeft) {
+				extraBallLeft = false;
+				setLight(Lights.EXTRA_BALL_LEFT, false); //TODO: Make it blink
+			}
+
+			if(btn == Buttons.RIGHT_EXTRA_BALL_LANE && extraBallRight) {
+				extraBallRight = false;
+				setLight(Lights.EXTRA_BALL_RIGHT, false); //TODO: Make it blink
+			}
+
+			if(btn == Buttons.LEFT_ADVANCED_LANE || btn == Buttons.RIGHT_ADVANCED_LANE) {
+				updatePlayerScore(500);
+				advanceBonus();
 			}
 
 		}
@@ -145,7 +167,7 @@ public class GameOriginal extends PinballGame {
 		for(Lights l : Lights.values()) {
 			setLight(l, false);
 		}
-		
+
 	}
 
 	private void startGame() {
@@ -203,6 +225,68 @@ public class GameOriginal extends PinballGame {
 	}
 
 	private void advanceBonus() {
+		if (!target1 && !target2)
+		{
+			if (!target3)
+			{
+				doubleBonus = false;
+				trippleBonus = true;
+				setLight(Lights.DOUBLE_BONUS, false);
+				setLight(Lights.TRIPPLE_BONUS, true);
+			}
+			else
+			{
+				doubleBonus = true;
+				setLight(Lights.DOUBLE_BONUS, true);
+			}
+		}
+
+		bonus++;
+		if (bonus > 10)
+		{
+			bonus = 10;
+		}
+
+		if (bonus == 1)
+		{
+			setLight(Lights.BONUS_1000, true);
+		}
+		if (bonus == 2)
+		{
+			setLight(Lights.BONUS_2000, true);
+		}
+		if (bonus == 3)
+		{
+			setLight(Lights.BONUS_3000, true);
+		}
+		if (bonus == 4)
+		{
+			setLight(Lights.BONUS_4000, true);
+		}
+		if (bonus == 5)
+		{
+			setLight(Lights.BONUS_5000, true);
+		}
+		if (bonus == 6)
+		{
+			setLight(Lights.BONUS_6000, true);
+		}
+		if (bonus == 7)
+		{
+			setLight(Lights.BONUS_7000, true);
+		}
+		if (bonus == 8)
+		{
+			setLight(Lights.BONUS_8000, true);
+		}
+		if (bonus == 9)
+		{
+			setLight(Lights.BONUS_9000, true);
+		}
+		if (bonus == 10)
+		{
+			setLight(Lights.BONUS_10000, true);
+		}
 
 	}
 

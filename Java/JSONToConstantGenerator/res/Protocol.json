@@ -3,7 +3,7 @@
 		"BALL_RETURN": 1,
 		"TILT": 2,
 		"RIGHT_SPINNER": 3,
-		"RIGHT_EXTRA_BALL_RETURN": 4,
+		"RIGHT_EXTRA_BALL_LANE": 4,
 		"A": 5,
 		"START": 6,
 		"LEFT_TARGET": 7,
