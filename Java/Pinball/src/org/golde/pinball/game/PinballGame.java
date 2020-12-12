@@ -8,6 +8,7 @@ import org.golde.pinball.constants.Sounds;
 
 public abstract class PinballGame implements MessageParserCallback {
 
+	protected static final int MAX_AMOUNT_OF_PLAYERS = 4;
 	private MessageTranslator mt;
 
 	public final void setLight(Lights light, boolean value) {
@@ -22,7 +23,7 @@ public abstract class PinballGame implements MessageParserCallback {
 		}
 	}
 
-	public final void writeScore(int score) {
+	public final void writeScore(long score) {
 		if(mt != null) {
 			mt.writeScore(score);
 		}

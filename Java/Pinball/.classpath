@@ -7,5 +7,10 @@
 			<attribute name="javadoc_location" value="https://fazecast.github.io/jSerialComm/javadoc/"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry kind="lib" path="C:/Users/eric/Documents/Projects/PinballMachine/Java/Pinball/lib/lombok.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="https://projectlombok.org/api/"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

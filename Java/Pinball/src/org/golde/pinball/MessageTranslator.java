@@ -92,9 +92,9 @@ public class MessageTranslator implements IncomingMessageCallback {
 		spm.write(Messages.LIGHT.getId() + "-" + id.getId() + "-" + (value ? 1 : 0));
 	}
 	
-	public void writeScore(int score) {
+	public void writeScore(long score) {
 		//right align
-		String scoreText = Integer.toString(score);
+		String scoreText = Long.toString(score);
 		scoreText = scoreText.substring(0, Math.min(scoreText.length(), 8));
 		scoreText = String.format("%8s", scoreText);
 		writeText(scoreText);
