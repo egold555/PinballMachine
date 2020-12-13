@@ -1,6 +1,6 @@
 package org.golde.pinball.constants;
 
-//Generated: Sat Dec 12 11:51:13 PST 2020
+//Generated: Sat Dec 12 17:03:10 PST 2020
 public enum Lights {
 
 	BONUS_8000(25),
@@ -8,7 +8,7 @@ public enum Lights {
 	EXTRA_BALL_RIGHT(27),
 	A(28),
 	BONUS_6000(29),
-	T1(30),
+	TARGET_LEFT(30),
 	BONUS_1000(31),
 	B(32),
 	BONUS_5000(33),
@@ -20,9 +20,9 @@ public enum Lights {
 	BONUS_2000(39),
 	D(40),
 	BONUS_3000(41),
-	T2(42),
+	TARGET_RIGHT(42),
 	SAME_PLAYER_SHOOTS(43),
-	T3(44),
+	TARGET_CENTER(44),
 	BONUS_4000(45),
 	TRIPPLE_BONUS(46),
 	BALL_2(47),

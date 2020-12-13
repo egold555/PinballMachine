@@ -1,6 +1,6 @@
 package org.golde.pinball.constants;
 
-//Generated: Sat Dec 12 11:51:13 PST 2020
+//Generated: Sat Dec 12 17:03:10 PST 2020
 public enum Messages {
 
 	BUTTON_PRESSED("BP"),
@@ -10,8 +10,9 @@ public enum Messages {
 	ERROR("ER"),
 	LOG("LG"),
 	LIGHT("LT"),
-	SOUND("SD"),
+	SOUND_DATA("SD"),
 	SOLINOID("SN"),
+	SOUND_PLAY("SP"),
 	;
 
 	private final Object id;

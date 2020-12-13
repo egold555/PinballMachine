@@ -7,6 +7,7 @@ import org.golde.pinball.constants.Buttons;
 import org.golde.pinball.constants.Lights;
 import org.golde.pinball.constants.Messages;
 import org.golde.pinball.constants.Solinoids;
+import org.golde.pinball.constants.SoundData;
 import org.golde.pinball.constants.Sounds;
 
 public class MessageTranslator implements IncomingMessageCallback {
@@ -28,7 +29,8 @@ public class MessageTranslator implements IncomingMessageCallback {
 		public void onButtonHit(Buttons btn);
 		public void onButtonStateChange(Buttons btn, boolean state);
 		public void start();
-		public default void setMessageTranslator(MessageTranslator translator) {};
+		public default void setMessageTranslator(MessageTranslator translator) {}
+		public void onSoundData(SoundData soundData);;
 
 	}
 
@@ -37,6 +39,13 @@ public class MessageTranslator implements IncomingMessageCallback {
 		String[] split = msg.split("\\-");
 		if(split[0].equals(Messages.BUTTON_PRESSED.getId()) || split[0].equals(Messages.BUTTON_TOGGLED.getId())) {
 			parseButton(split);
+		}
+		else if(split[0].equals(Messages.SOUND_DATA.getId())) {
+			int id = Integer.valueOf(split[1]);
+			if(callback != null) {
+				callback.onSoundData(SoundData.get(id));
+			}
+
 		}
 		else if(split[0].equals(Messages.LOG.getId())) {
 			System.out.println("[Arduino Info] " + split[1]);
@@ -110,7 +119,11 @@ public class MessageTranslator implements IncomingMessageCallback {
 	}
 	
 	public void playSound(Sounds sound) {
-		spm.write(Messages.SOUND.getId() + "-" + sound.getId());
+		spm.write(Messages.SOUND_PLAY.getId() + "-" + sound.getId());
+	}
+	
+	public void sendSoundData(SoundData sd) {
+		spm.write(Messages.SOUND_DATA.getId() + "-" + sd.getId());
 	}
 
 }

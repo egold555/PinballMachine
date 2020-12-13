@@ -1,11 +1,11 @@
-//Generated: Sat Dec 12 11:51:13 PST 2020
+//Generated: Sat Dec 12 17:03:10 PST 2020
 
 #define PID_LT_BONUS_8000 25
 #define PID_LT_BONUS_9000 26
 #define PID_LT_EXTRA_BALL_RIGHT 27
 #define PID_LT_A 28
 #define PID_LT_BONUS_6000 29
-#define PID_LT_T1 30
+#define PID_LT_TARGET_LEFT 30
 #define PID_LT_BONUS_1000 31
 #define PID_LT_B 32
 #define PID_LT_BONUS_5000 33
@@ -17,9 +17,9 @@
 #define PID_LT_BONUS_2000 39
 #define PID_LT_D 40
 #define PID_LT_BONUS_3000 41
-#define PID_LT_T2 42
+#define PID_LT_TARGET_RIGHT 42
 #define PID_LT_SAME_PLAYER_SHOOTS 43
-#define PID_LT_T3 44
+#define PID_LT_TARGET_CENTER 44
 #define PID_LT_BONUS_4000 45
 #define PID_LT_TRIPPLE_BONUS 46
 #define PID_LT_BALL_2 47

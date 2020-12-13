@@ -14,6 +14,7 @@
 #include "ProtocolLights.h"
 #include "ProtocolSolinoids.h"
 #include "ProtocolSounds.h"
+#include "ProtocolSoundData.h"
 
 //Constants for delays ahs such.
 //TODO: DOcument more
@@ -242,16 +243,15 @@ void incomingMessage(const char *message);
 void checkForIncomingMessages();
 void updateSolinoids();
 void incomingSolinoidMessage(int solinoid);
-void incomingSoundMessage(int soundNumber);
-/**
- * Arduino setup function
- * TODO:
- */
+void incomingSoundPlayMessage(int soundNumber);
+void incomingSoundDataMessage(int soundData);
+void sendSoundFeedback(int id);
+void checkForOutgoingMessages();
+
 void setup()
 {
 
   Serial.begin(57600);
-  //Serial2.begin(115200); //Recieve ESP
 
   //init al the matrix's and the misc outputs
   pinMode(OUT_SLINGSHOT_LEFT, OUTPUT);
@@ -310,6 +310,7 @@ void loop()
   checkSwitchesAndLightLights();
   checkForIncomingMessages();
   updateSolinoids();
+  checkForOutgoingMessages();
 }
 
 unsigned long timeRetractLeftSlingshot = 0, timeRetractRightSlingshot = 0;
@@ -456,8 +457,8 @@ void incomingMessage(const char *message)
      writeDisplay(String(message).substring(3));
   }
   //sound
-  else if (message[0] == 'S' && message[1] == 'D') {
-    // SD-nn
+  else if (message[0] == 'S' && message[1] == 'P') {
+    // SP-nn
 
     if (message[2] != '-')
     {
@@ -471,7 +472,26 @@ void incomingMessage(const char *message)
     }
     int soundNumber = 10 * (message[3] - '0') + (message[4] - '0');
 
-    incomingSoundMessage(soundNumber);
+    incomingSoundPlayMessage(soundNumber);
+
+  }
+  //Sound data messages
+  else if (message[0] == 'S' && message[1] == 'D') {
+    // SD-nn
+
+    if (message[2] != '-')
+    {
+      return; // bad command.
+    }
+
+    // Always a two digit number
+    if (!(message[3] >= '0' && message[3] <= '9' && message[4] >= '0' && message[5] <= '9'))
+    {
+      return; // bad command.
+    }
+    int soundData = 10 * (message[3] - '0') + (message[4] - '0');
+
+    incomingSoundDataMessage(soundData);
 
   }
   else {
@@ -512,13 +532,13 @@ void incomingLightMessage(int light, boolean status)
 
   switch (light)
   {
-  case PID_LT_T1:
+  case PID_LT_TARGET_LEFT:
     lt1 = status;
     break;
-  case PID_LT_T2:
+  case PID_LT_TARGET_RIGHT:
     lt2 = status;
     break;
-  case PID_LT_T3:
+  case PID_LT_TARGET_CENTER:
     lt3 = status;
     break;
   case PID_LT_A:
@@ -613,20 +633,36 @@ void incomingLightMessage(int light, boolean status)
 }
 
 //Sound messages
-void incomingSoundMessage(int soundNumber) {
+void incomingSoundPlayMessage(int soundNumber) {
     switch(soundNumber) {
-      case PID_SD_ENDING_SONG: playSFX(SOUND_ENDING_SONG); break;
-      case PID_SD_EXTRA_BALL: playSFX(SOUND_EXTRABALL); break;
-      case PID_SD_NEW_BALL: playSFX(SOUND_NEWBALL); break;
-      case PID_SD_POINT: playSFX(SOUND_POINT); break;
-      case PID_SD_STARTUP: playSFX(SOUND_STARTUP); break;
-      case PID_SD_TILT: playSFX(SOUND_TILT); break;
-      case PID_SD_NAME_ENTER: playSFX(SOUND_NAME_ENTER); break;
+      case PID_SP_ENDING_SONG: playSFX(SOUND_ENDING_SONG); break;
+      case PID_SP_EXTRA_BALL: playSFX(SOUND_EXTRABALL); break;
+      case PID_SP_NEW_BALL: playSFX(SOUND_NEWBALL); break;
+      case PID_SP_POINT: playSFX(SOUND_POINT); break;
+      case PID_SP_STARTUP: playSFX(SOUND_STARTUP); break;
+      case PID_SP_TILT: playSFX(SOUND_TILT); break;
+      case PID_SP_NAME_ENTER: playSFX(SOUND_NAME_ENTER); break;
       default: 
         Serial.print("ER-Unknown sound sent: ");
         Serial.println(soundNumber);
         break;
     }
+}
+
+void sendSoundFeedback(int id) {
+  Serial.print("SD-");
+  Serial.println(id);
+}
+
+//Sound data messages
+void incomingSoundDataMessage(int soundData) {
+  switch(soundData) {
+    case PID_SD_STOP: pt.tune_stopscore(); break;
+    default: 
+        Serial.print("ER-Unknown sound data sent: ");
+        Serial.println(soundData);
+        break;
+  }
 }
 
 // Read characters from the serial port and store into
@@ -654,6 +690,20 @@ void checkForIncomingMessages()
       }
       serialBuffer[serialIndex++] = (char)b;
     }
+  }
+}
+
+bool lastPlayTune;
+void checkForOutgoingMessages() {
+
+  //check for when a sound is playing and not playing.
+   
+  if(pt.tune_playing && !lastPlayTune) {
+      lastPlayTune = true;
+  }
+  if(!pt.tune_playing && lastPlayTune) {
+    lastPlayTune = false;
+    sendSoundFeedback(PID_SD_FEEDBACK_STOPPED);
   }
 }
 

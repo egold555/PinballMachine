@@ -39,8 +39,18 @@ public class SerialPortManager {
 							byte[] data = event.getReceivedData();
 							for (int i = 0; i < data.length; ++i) {
 								if (data[i] == '\n') {
-									incomingMessageCallback.onMessageRecieved(stringBuilder.toString().replace("\n", "").replace("\r", ""));
+									final String clone = stringBuilder.toString().replace("\n", "").replace("\r", "");
+						
+									new Thread() {
+										final String clone2 = clone;
+										public void run() {
+											incomingMessageCallback.onMessageRecieved(clone2);
+										};
+										
+									}.start();
+									
 									stringBuilder.setLength(0); // clear the stringBuilder
+									
 								}
 								else {
 									stringBuilder.append((char) data[i]);  // Just ASCII, so char convert from byte directly.

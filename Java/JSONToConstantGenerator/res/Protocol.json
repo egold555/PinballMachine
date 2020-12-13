@@ -31,7 +31,7 @@
 		"EXTRA_BALL_RIGHT": 27,
 		"A": 28,
 		"BONUS_6000": 29,
-		"T1": 30,
+		"TARGET_LEFT": 30,
 		"BONUS_1000": 31,
 		"B": 32,
 		"BONUS_5000": 33,
@@ -43,9 +43,9 @@
 		"BONUS_2000": 39,
 		"D": 40,
 		"BONUS_3000": 41,
-		"T2": 42,
+		"TARGET_RIGHT": 42,
 		"SAME_PLAYER_SHOOTS": 43,
-		"T3": 44,
+		"TARGET_CENTER": 44,
 		"BONUS_4000": 45,
 		"TRIPPLE_BONUS": 46,
 		"BALL_2": 47,
@@ -74,7 +74,8 @@
 		"ERROR": "ER",
 		"DISPLAY_TEXT": "DT",
 		"DISPLAY_TEXT_SCROLL": "DS",
-		"SOUND": "SD"
+		"SOUND_PLAY": "SP",
+		"SOUND_DATA": "SD"
 	},
 	"Sounds": {
 		"STARTUP": 10,
@@ -84,5 +85,9 @@
 		"TILT": 14,
 		"ENDING_SONG": 15,
 		"NAME_ENTER": 16
+	},
+	"SoundData": {
+		"STOP": 10,
+		"FEEDBACK_STOPPED": 11
 	}
 }

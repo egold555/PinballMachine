@@ -21,7 +21,8 @@ public class ConstantsGenerator implements Runnable {
 			intConstants("Lights", "PID_LT_", false);
 			intConstants("Solinoids", "PID_SN_", false);
 			intConstants("Messages", null, true);
-			intConstants("Sounds", "PID_SD_", false);
+			intConstants("Sounds", "PID_SP_", false);
+			intConstants("SoundData", "PID_SD_", false);
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

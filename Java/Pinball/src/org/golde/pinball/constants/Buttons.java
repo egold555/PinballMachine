@@ -1,6 +1,6 @@
 package org.golde.pinball.constants;
 
-//Generated: Sat Dec 12 11:51:13 PST 2020
+//Generated: Sat Dec 12 17:03:10 PST 2020
 public enum Buttons {
 
 	BALL_RETURN(1),

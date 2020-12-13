@@ -9,15 +9,15 @@ import org.golde.pinball.constants.Solinoids;
 import org.golde.pinball.constants.Sounds;
 
 public class TestGame extends PinballGame {
-
-	int score = 0;
 	
 	@Override
 	public void onButtonHit(Buttons btn) {
 		System.out.println("Button hit: " + btn);
+		writeText(btn.name());
 		
-		score++;
-		writeScore(score);
+		setLight(Lights.TARGET_LEFT, btn == Buttons.LEFT_TARGET);
+		setLight(Lights.TARGET_CENTER, btn == Buttons.CENTER_TARGET);
+		setLight(Lights.TARGET_RIGHT, btn == Buttons.RIGHT_TARGET);
 	}
 
 	@Override
@@ -33,7 +33,6 @@ public class TestGame extends PinballGame {
 			setLight(light, false);
 		}
 		playSound(Sounds.STARTUP);
-		writeScore(score);
 	}
 
 }
