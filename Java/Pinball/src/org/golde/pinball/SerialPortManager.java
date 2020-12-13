@@ -6,7 +6,7 @@ import com.fazecast.jSerialComm.SerialPortEvent;
 
 public class SerialPortManager {
 
-	private final String COM_PORT = "COM5";
+	private final String COM_PORT = "COM5"; //COM5 ttyACM0
 
 	private static final int BAUD_RATE = 57600, DATA_BITS = 8, STOP_BITS = SerialPort.ONE_STOP_BIT, PARITY = SerialPort.NO_PARITY;
 

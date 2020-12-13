@@ -26,6 +26,8 @@ public class GameOriginal extends PinballGame {
 
 	@Override
 	public void onButtonHit(Buttons btn) {
+		
+		System.out.println("Button hit: " + btn.name());
 
 		if(state == EnumGameState.PLAYING) {
 			if(btn == Buttons.LEFT_THUMPER_BUMPER) {
@@ -108,14 +110,14 @@ public class GameOriginal extends PinballGame {
 				targetCenter = true;
 				advanceBonus();
 				advanceBonus();
-				setLight(Lights.TARGET_RIGHT, true);
+				setLight(Lights.TARGET_CENTER, true);
 			}
 
 			if(btn == Buttons.RIGHT_TARGET && !targetRight) {
 				targetRight = true;
 				advanceBonus();
 				advanceBonus();
-				setLight(Lights.TARGET_CENTER, true);
+				setLight(Lights.TARGET_RIGHT, true);
 				updatePlayerScore(500); //this one is 1000, and by default very one is 500.
 			}
 
@@ -131,11 +133,13 @@ public class GameOriginal extends PinballGame {
 			if(btn == Buttons.LEFT_EXTRA_BALL_LANE && extraBallLeft) {
 				extraBallLeft = false;
 				setLight(Lights.EXTRA_BALL_LEFT, false); //TODO: Make it blink
+				extraBalls++;
 			}
 
 			if(btn == Buttons.RIGHT_EXTRA_BALL_LANE && extraBallRight) {
 				extraBallRight = false;
 				setLight(Lights.EXTRA_BALL_RIGHT, false); //TODO: Make it blink
+				extraBalls++;
 			}
 
 			if(btn == Buttons.LEFT_ADVANCED_LANE || btn == Buttons.RIGHT_ADVANCED_LANE) {
@@ -146,12 +150,12 @@ public class GameOriginal extends PinballGame {
 			if(btn == Buttons.LEFT_EXTRA_BALL_LANE || btn == Buttons.RIGHT_EXTRA_BALL_LANE) {
 				updatePlayerScore(500);
 			}
+			
+			updateTargetLights();
 
 		}
 
-		if(btn == Buttons.BALL_RETURN && state != EnumGameState.GAME_OVER) {
-			endOfBall();
-		}
+		
 
 		if(btn == Buttons.START) {
 			startGame();
@@ -162,10 +166,31 @@ public class GameOriginal extends PinballGame {
 
 
 
-	@Override
-	public void onButtonStateChange(Buttons btn, boolean state) {
-		// TODO Auto-generated method stub
+	private void updateTargetLights() {
+		if (targetLeft && targetRight)
+		{
+			if (targetCenter)
+			{
+				doubleBonus = false;
+				trippleBonus = true;
+				setLight(Lights.DOUBLE_BONUS, false);
+				setLight(Lights.TRIPPLE_BONUS, true);
+			}
+			else
+			{
+				doubleBonus = true;
+				setLight(Lights.DOUBLE_BONUS, true);
+			}
+		}
+	}
 
+
+
+	@Override
+	public void onButtonStateChange(Buttons btn, boolean bs) {
+		if(btn == Buttons.BALL_RETURN && state != EnumGameState.GAME_OVER && bs) {
+			endOfBall();
+		}
 	}
 
 	@Override
@@ -192,6 +217,7 @@ public class GameOriginal extends PinballGame {
 			updateABCDLightsforCurrentPlayer();
 			playSound(Sounds.STARTUP);
 			fireSolinoid(Solinoids.BALL_RETURN);
+			setLight(Lights.PLAYER_1, true);
 		}
 
 		//if we finished a game, start button is the restart button
@@ -207,8 +233,7 @@ public class GameOriginal extends PinballGame {
 				amountOfPlayers = 1;
 			}
 			playSound(Sounds.POINT);
-			lightPlayerLights(amountOfPlayers);
-
+			writeText(amountOfPlayers + " PLAYER");
 		}
 	}
 
@@ -227,6 +252,9 @@ public class GameOriginal extends PinballGame {
 	}
 	
 	private void endOfBall() {
+		
+		System.out.println("End of ball called");
+		
 		if(!hasScoredThisRound) {
 			fireSolinoid(Solinoids.BALL_RETURN);  //Ball fireer has failed, so we should not count this as a new ball, we should keep trying to push the ball out of the shooter
 			return;
@@ -237,14 +265,13 @@ public class GameOriginal extends PinballGame {
 
 		//calculate the bonuses
 		if(doubleBonus) {
-			bonusAmount = bonus * 1000 * 2;
+			bonusAmount *= 2;
 		}
 		else if(trippleBonus) {
-			bonusAmount = bonusAmount * 1000 * 3;
+			bonusAmount *= 3;
 		}
 
-		bonus = 0;
-
+		
 		extraBallLeft = false;
 		extraBallRight = false;
 		setLight(Lights.EXTRA_BALL_LEFT, false);
@@ -266,47 +293,71 @@ public class GameOriginal extends PinballGame {
 		setLight(Lights.TARGET_CENTER, false);
 		setLight(Lights.TARGET_RIGHT, false);
 
-		setLight(Lights.BONUS_1000, false);
-		setLight(Lights.BONUS_2000, false);
-		setLight(Lights.BONUS_3000, false);
-		setLight(Lights.BONUS_4000, false);
-		setLight(Lights.BONUS_5000, false);
-		setLight(Lights.BONUS_6000, false);
-		setLight(Lights.BONUS_7000, false);
-		setLight(Lights.BONUS_8000, false);
-		setLight(Lights.BONUS_9000, false);
-		setLight(Lights.BONUS_10000, false);
+//		setLight(Lights.BONUS_1000, false);
+//		setLight(Lights.BONUS_2000, false);
+//		setLight(Lights.BONUS_3000, false);
+//		setLight(Lights.BONUS_4000, false);
+//		setLight(Lights.BONUS_5000, false);
+//		setLight(Lights.BONUS_6000, false);
+//		setLight(Lights.BONUS_7000, false);
+//		setLight(Lights.BONUS_8000, false);
+//		setLight(Lights.BONUS_9000, false);
+//		setLight(Lights.BONUS_10000, false);
 
 		//TODO: wait for music to play out
 		while(isSoundPlaying()) {
 			veryBadDelay(1);
 		}
 
-		while(bonusAmount < 0) {
+		bonus = 0;
+
+		
+		while(bonusAmount > 0) {
 			veryBadDelay(500);
 			bonusAmount -=1000;
-			updatePlayerScore(1000);
-		}
 
+			int bonusLightCalculation = (int) (bonusAmount / 1000);
+			if(doubleBonus) {
+				bonusLightCalculation = bonusLightCalculation / 2;
+			}
+			else if(trippleBonus) {
+				bonusLightCalculation = bonusLightCalculation / 3;
+			}
+			updateBonusLights(bonusLightCalculation);
+			
+			
+			
+			updatePlayerScore(1000);
+			System.out.println("Bonuses Left: " + bonusAmount);
+		}
+		
 		veryBadDelay(1000);
 
 		if(extraBalls > 0) {
+			System.out.println("Using extra ball!");
 			extraBalls--;
 			writeText("XtraBall");
 			System.out.println("Extra ball");
 		}
 		else {
+			System.out.println("Switch or advance ball");
 			switchPlayersOrAdvanceBall();
 		}
 
 		setBallLights();
-
+		
 		if (balls > MAX_BALLS)
 		{
 			endGame();
 			return;
 		}
 		hasScoredThisRound = false;
+		targetCenter = false;
+		targetLeft = false;
+		targetRight = false;
+		doubleBonus = false;
+		trippleBonus = false;
+		
 		fireSolinoid(Solinoids.BALL_RETURN);
 		writeScore(players[currentPlayer].score);
 		//tilted = false;
@@ -397,7 +448,6 @@ public class GameOriginal extends PinballGame {
 		if (currentPlayer >= amountOfPlayers)
 		{
 			balls++;
-			setBallLights();
 			currentPlayer = 0;
 		}
 
@@ -429,22 +479,7 @@ public class GameOriginal extends PinballGame {
 	}
 
 	private void advanceBonus() {
-		System.out.println("Targets: " + targetLeft + " " + targetRight + " " + targetCenter);
-		if (targetLeft && targetRight)
-		{
-			if (targetCenter)
-			{
-				doubleBonus = false;
-				trippleBonus = true;
-				setLight(Lights.DOUBLE_BONUS, false);
-				setLight(Lights.TRIPPLE_BONUS, true);
-			}
-			else
-			{
-				doubleBonus = true;
-				setLight(Lights.DOUBLE_BONUS, true);
-			}
-		}
+		
 
 		bonus++;
 		if (bonus > 10)
@@ -452,46 +487,21 @@ public class GameOriginal extends PinballGame {
 			bonus = 10;
 		}
 
-		if (bonus == 1)
-		{
-			setLight(Lights.BONUS_1000, true);
-		}
-		if (bonus == 2)
-		{
-			setLight(Lights.BONUS_2000, true);
-		}
-		if (bonus == 3)
-		{
-			setLight(Lights.BONUS_3000, true);
-		}
-		if (bonus == 4)
-		{
-			setLight(Lights.BONUS_4000, true);
-		}
-		if (bonus == 5)
-		{
-			setLight(Lights.BONUS_5000, true);
-		}
-		if (bonus == 6)
-		{
-			setLight(Lights.BONUS_6000, true);
-		}
-		if (bonus == 7)
-		{
-			setLight(Lights.BONUS_7000, true);
-		}
-		if (bonus == 8)
-		{
-			setLight(Lights.BONUS_8000, true);
-		}
-		if (bonus == 9)
-		{
-			setLight(Lights.BONUS_9000, true);
-		}
-		if (bonus == 10)
-		{
-			setLight(Lights.BONUS_10000, true);
-		}
+		updateBonusLights(bonus);
+
+	}
+	
+	private void updateBonusLights(int bonusLightCalculation) {
+		setLight(Lights.BONUS_1000, bonusLightCalculation >= 1);
+		setLight(Lights.BONUS_2000, bonusLightCalculation >= 2);
+		setLight(Lights.BONUS_3000, bonusLightCalculation >= 3);
+		setLight(Lights.BONUS_4000, bonusLightCalculation >= 4);
+		setLight(Lights.BONUS_5000, bonusLightCalculation >= 5);
+		setLight(Lights.BONUS_6000, bonusLightCalculation >= 6);
+		setLight(Lights.BONUS_7000, bonusLightCalculation >= 7);
+		setLight(Lights.BONUS_8000, bonusLightCalculation >= 8);
+		setLight(Lights.BONUS_9000, bonusLightCalculation >= 9);
+		setLight(Lights.BONUS_10000, bonusLightCalculation >= 10);
 
 	}
 
@@ -520,7 +530,7 @@ public class GameOriginal extends PinballGame {
 		doubleBonus = trippleBonus = false;
 		bonus = 0;
 		extraBalls = 0;
-
+		balls = 1;
 
 
 		state = EnumGameState.BEFORE;

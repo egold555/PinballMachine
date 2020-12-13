@@ -2,7 +2,7 @@ package org.golde.pinball.game.original;
 
 public enum EnumRankingTitle {
 
-	AMATURE(40000),
+	AMATEUR(40000),
 	SUPER(75000),
 	CHAMP(100000),
 	FANTASTIC(125000),
@@ -18,8 +18,8 @@ public enum EnumRankingTitle {
 	
 	public static EnumRankingTitle get(long score2) {
 		
-		if(score2 < AMATURE.score) {
-			return AMATURE;
+		if(score2 < AMATEUR.score) {
+			return AMATEUR;
 		}
 		else if(score2 < SUPER.score) {
 			return SUPER;
