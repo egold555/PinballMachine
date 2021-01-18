@@ -1,6 +1,6 @@
 package org.golde.pinball.constants;
 
-//Generated: Sat Dec 12 17:03:10 PST 2020
+//Generated: Mon Dec 14 16:23:05 PST 2020
 public enum Sounds {
 
 	STARTUP(10),

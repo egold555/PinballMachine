@@ -1,4 +1,4 @@
-package org.golde.pinball.game;
+package org.golde.pinball.game.debug;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -7,6 +7,7 @@ import org.golde.pinball.constants.Buttons;
 import org.golde.pinball.constants.Lights;
 import org.golde.pinball.constants.Solinoids;
 import org.golde.pinball.constants.Sounds;
+import org.golde.pinball.game.PinballGame;
 
 public class TestGame extends PinballGame {
 	

@@ -15,7 +15,6 @@
 #include "ProtocolSolinoids.h"
 #include "ProtocolSounds.h"
 #include "ProtocolSoundData.h"
-
 //Constants for delays ahs such.
 //TODO: DOcument more
 const int SOLENOID_DELAY = 50;     //60
