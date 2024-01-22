@@ -18,11 +18,9 @@
 
 // Constants for delays ahs such.
 // TODO: DOcument more
-const int SOLENOID_DELAY = 50;     // 60
-const int SWITCH_READ_DELAY = 800; // 680
-// const int ANALOG_THRESHOLD = 200;
+const int SOLENOID_DELAY = 50; // 60
+
 const int SPINNER_SCORE_DELAY = 75;
-// const unsigned int DEBOUNCE_DELAY = 20;
 
 // Constants for pins
 
@@ -54,34 +52,6 @@ typedef struct Player
   bool lightD;
   long score;
 } Player;
-
-// Every button on the pinball machine
-Button swBallReturn;
-Button swTilt;
-Button swRightSpinner;
-Button swRightExtraBallLane;
-Button swA;
-Button swStart;
-Button swLeftTarget;
-Button swLeftSlingShot;
-Button swB;
-Button swLeftThumperBumper;
-Button swLeftBumper;
-Button swLeftExtraBallLane;
-Button swC;
-Button swRightThumperBumper;
-Button swLeftSpinner;
-Button swLeftAdvanceLane;
-Button swD;
-// Button mx4_sw1;
-Button swRightTarget;
-Button swRightSlingShot;
-Button swCenterTarget;
-// Button mx5_sw1;
-Button swRightBumper;
-Button swRightAdvanceLane;
-Button swFlipperLeft;
-Button swFlipperRight;
 
 // Time (as returned by millis()) that solenoid should retract.
 unsigned long timeRetractLeftSlingshot = 0, timeRetractRightSlingshot = 0;
@@ -151,37 +121,6 @@ void setup()
   Serial.begin(57600);
   // Serial2.begin(115200); //Recieve ESP
 
-  // init al the matrix's and the misc outputs
-  // pinMode(OUT_SLINGSHOT_LEFT, OUTPUT);
-  // pinMode(OUT_SLINGSHOT_RIGHT, OUTPUT);
-  // pinMode(OUT_THUMPER_LEFT, OUTPUT);
-  // pinMode(OUT_THUMPER_RIGHT, OUTPUT);
-  // pinMode(OUT_BALL_RETURN, OUTPUT);
-
-  // pinMode(OUT_MX0, OUTPUT);
-  // pinMode(OUT_MX1, OUTPUT);
-  // pinMode(OUT_MX2, OUTPUT);
-  // pinMode(OUT_MX3, OUTPUT);
-  // pinMode(OUT_MX4, OUTPUT);
-  // pinMode(OUT_MX5, OUTPUT);
-  // pinMode(OUT_MX6, OUTPUT);
-  // pinMode(OUT_MX7, OUTPUT);
-  // pinMode(OUT_MX8, OUTPUT);
-
-  // pinMode(OUT_LT0, OUTPUT);
-  // pinMode(OUT_LT1, OUTPUT);
-  // pinMode(OUT_LT2, OUTPUT);
-  // pinMode(OUT_LT3, OUTPUT);
-
-  // // inputs
-  // pinMode(IN_FLIPPER_LEFT, INPUT_PULLUP);
-  // pinMode(IN_FLIPPER_RIGHT, INPUT_PULLUP);
-
-  // pinMode(IN_SW0, INPUT);
-  // pinMode(IN_SW1, INPUT);
-  // pinMode(IN_SW2, INPUT);
-  // pinMode(IN_SW3, INPUT);
-
   pinballMachine.setup();
 
   // init music generators voices's
@@ -241,7 +180,7 @@ void typingInYourName()
 
   if (!enteredName)
   {
-    if (swFlipperLeft.pr)
+    if (pinballMachine.swFlipperLeft.pr)
     {
       if (charsShouldRender < 7)
       {
@@ -254,7 +193,7 @@ void typingInYourName()
       }
     }
 
-    if (swFlipperRight.pr)
+    if (pinballMachine.swFlipperRight.pr)
     {
       nameChars[posToWriteAt]++;
       charIsOn = true;
@@ -262,7 +201,7 @@ void typingInYourName()
     }
   }
 
-  if (swStart.pr)
+  if (pinballMachine.swStart.pr)
   {
     playSFX(SOUND_NAME_ENTER);
     for (int i = 0; i < charsShouldRender; i++)
@@ -365,7 +304,7 @@ void solinoids()
 
   unsigned long currentTime = millis();
 
-  if (swBallReturn.sw && state != GS_GAMEOVER && state != GS_BEFORE)
+  if (pinballMachine.swBallReturn.sw && state != GS_GAMEOVER && state != GS_BEFORE)
   {
     digitalWrite(OUT_BALL_RETURN, HIGH);
     timeRetractBallReturn = currentTime + /*SOLENOID_DELAY*/ 100;
@@ -375,25 +314,25 @@ void solinoids()
   {
 
     // Fire solenoids that should be fired.
-    if (swLeftSlingShot.sw)
+    if (pinballMachine.swLeftSlingShot.sw)
     {
       digitalWrite(OUT_SLINGSHOT_LEFT, HIGH);
       timeRetractLeftSlingshot = currentTime + SOLENOID_DELAY;
     }
 
-    if (swRightSlingShot.sw)
+    if (pinballMachine.swRightSlingShot.sw)
     {
       digitalWrite(OUT_SLINGSHOT_RIGHT, HIGH);
       timeRetractRightSlingshot = currentTime + SOLENOID_DELAY;
     }
 
-    if (swLeftThumperBumper.sw)
+    if (pinballMachine.swLeftThumperBumper.sw)
     {
       digitalWrite(OUT_THUMPER_LEFT, HIGH);
       timeRetractLeftThumperBumper = currentTime + SOLENOID_DELAY;
     }
 
-    if (swRightThumperBumper.sw)
+    if (pinballMachine.swRightThumperBumper.sw)
     {
       digitalWrite(OUT_THUMPER_RIGHT, HIGH);
       timeRetractRightThumperBumper = currentTime + SOLENOID_DELAY;
@@ -442,10 +381,10 @@ void checkSwitchesAndLightLights()
 
   delayMicroseconds(SWITCH_READ_DELAY);
 
-  swBallReturn.debounce(IN_SW0);
-  swTilt.debounce(IN_SW1);
-  swRightSpinner.debounce(IN_SW2);
-  swRightExtraBallLane.debounce(IN_SW3);
+  pinballMachine.swBallReturn.debounce(IN_SW0);
+  pinballMachine.swTilt.debounce(IN_SW1);
+  pinballMachine.swRightSpinner.debounce(IN_SW2);
+  pinballMachine.swRightExtraBallLane.debounce(IN_SW3);
 
   digitalWrite(OUT_LT0, LOW);
   digitalWrite(OUT_LT1, LOW);
@@ -465,10 +404,10 @@ void checkSwitchesAndLightLights()
 
   delayMicroseconds(SWITCH_READ_DELAY);
 
-  swA.debounce(IN_SW0);
-  swStart.debounce(IN_SW1);
-  swLeftTarget.debounce(IN_SW2);
-  swLeftSlingShot.debounce(IN_SW3);
+  pinballMachine.swA.debounce(IN_SW0);
+  pinballMachine.swStart.debounce(IN_SW1);
+  pinballMachine.swLeftTarget.debounce(IN_SW2);
+  pinballMachine.swLeftSlingShot.debounce(IN_SW3);
 
   digitalWrite(OUT_LT0, LOW);
   digitalWrite(OUT_LT1, LOW);
@@ -488,10 +427,10 @@ void checkSwitchesAndLightLights()
 
   delayMicroseconds(SWITCH_READ_DELAY);
 
-  swB.debounce(IN_SW0);
-  swLeftThumperBumper.debounce(IN_SW1);
-  swLeftBumper.debounce(IN_SW2);
-  swLeftExtraBallLane.debounce(IN_SW3);
+  pinballMachine.swB.debounce(IN_SW0);
+  pinballMachine.swLeftThumperBumper.debounce(IN_SW1);
+  pinballMachine.swLeftBumper.debounce(IN_SW2);
+  pinballMachine.swLeftExtraBallLane.debounce(IN_SW3);
 
   digitalWrite(OUT_LT0, LOW);
   digitalWrite(OUT_LT1, LOW);
@@ -511,10 +450,10 @@ void checkSwitchesAndLightLights()
 
   delayMicroseconds(SWITCH_READ_DELAY);
 
-  swC.debounce(IN_SW0);
-  swRightThumperBumper.debounce(IN_SW1);
-  swLeftSpinner.debounce(IN_SW2);
-  swLeftAdvanceLane.debounce(IN_SW3);
+  pinballMachine.swC.debounce(IN_SW0);
+  pinballMachine.swRightThumperBumper.debounce(IN_SW1);
+  pinballMachine.swLeftSpinner.debounce(IN_SW2);
+  pinballMachine.swLeftAdvanceLane.debounce(IN_SW3);
 
   digitalWrite(OUT_LT0, LOW);
   digitalWrite(OUT_LT1, LOW);
@@ -534,10 +473,10 @@ void checkSwitchesAndLightLights()
 
   delayMicroseconds(SWITCH_READ_DELAY);
 
-  swD.debounce(IN_SW0);
+  pinballMachine.swD.debounce(IN_SW0);
   // mx4_sw1.debounce(IN_SW1);
-  swRightTarget.debounce(IN_SW2);
-  swRightSlingShot.debounce(IN_SW3);
+  pinballMachine.swRightTarget.debounce(IN_SW2);
+  pinballMachine.swRightSlingShot.debounce(IN_SW3);
 
   digitalWrite(OUT_LT0, LOW);
   digitalWrite(OUT_LT1, LOW);
@@ -557,10 +496,10 @@ void checkSwitchesAndLightLights()
 
   delayMicroseconds(SWITCH_READ_DELAY);
 
-  swCenterTarget.debounce(IN_SW0);
+  pinballMachine.swCenterTarget.debounce(IN_SW0);
   // mx5_sw1.debounce(IN_SW1);
-  swRightBumper.debounce(IN_SW2);
-  swRightAdvanceLane.debounce(IN_SW3);
+  pinballMachine.swRightBumper.debounce(IN_SW2);
+  pinballMachine.swRightAdvanceLane.debounce(IN_SW3);
 
   digitalWrite(OUT_LT0, LOW);
   digitalWrite(OUT_LT1, LOW);
@@ -623,10 +562,10 @@ void checkSwitchesAndLightLights()
 
   digitalWrite(OUT_MX8, LOW);
 
-  swFlipperLeft.debounceDigital(IN_FLIPPER_LEFT);
-  swFlipperRight.debounceDigital(IN_FLIPPER_RIGHT);
+  pinballMachine.swFlipperLeft.debounceDigital(IN_FLIPPER_LEFT);
+  pinballMachine.swFlipperRight.debounceDigital(IN_FLIPPER_RIGHT);
 
-  if (swTilt.sw && !tilted)
+  if (pinballMachine.swTilt.sw && !tilted)
   {
     tilted = true;
     tilt();
@@ -642,12 +581,12 @@ void updateScore()
 
   oldScore = players[currentPlayer].score;
 
-  if (swStart.pr)
+  if (pinballMachine.swStart.pr)
   {
     startGame();
   }
 
-  if (swBallReturn.pr && state != GS_GAMEOVER)
+  if (pinballMachine.swBallReturn.pr && state != GS_GAMEOVER)
   {
     endOfBall();
   }
@@ -658,13 +597,13 @@ void updateScore()
   }
 
   // ThumperBumpers +100
-  if (swLeftThumperBumper.pr || swRightThumperBumper.pr)
+  if (pinballMachine.swLeftThumperBumper.pr || pinballMachine.swRightThumperBumper.pr)
   {
     players[currentPlayer].score += 100;
   }
 
   // Spinners +100
-  if (swLeftSpinner.sw || swRightSpinner.sw)
+  if (pinballMachine.swLeftSpinner.sw || pinballMachine.swRightSpinner.sw)
   {
     unsigned long currTime = millis();
     if (currTime > timeNextSpinnerScore)
@@ -675,54 +614,54 @@ void updateScore()
   }
 
   // Extra ball lanes and advance lanes +500
-  if (swLeftExtraBallLane.pr || swRightExtraBallLane.pr)
+  if (pinballMachine.swLeftExtraBallLane.pr || pinballMachine.swRightExtraBallLane.pr)
   {
     players[currentPlayer].score += 500;
   }
 
-  if (swLeftExtraBallLane.pr && pinballMachine.ltExtraBallLeft)
+  if (pinballMachine.swLeftExtraBallLane.pr && pinballMachine.ltExtraBallLeft)
   {
     extraBall();
     pinballMachine.ltExtraBallLeft = false;
     runDelay(timerBlinkExtraBallLeft, 100, 20);
   }
 
-  if (swRightExtraBallLane.pr && pinballMachine.ltExtraBallRight)
+  if (pinballMachine.swRightExtraBallLane.pr && pinballMachine.ltExtraBallRight)
   {
     extraBall();
     pinballMachine.ltExtraBallRight = false;
     runDelay(timerBlinkExtraBallRight, 100, 20);
   }
 
-  if (swLeftAdvanceLane.pr || swRightAdvanceLane.pr)
+  if (pinballMachine.swLeftAdvanceLane.pr || pinballMachine.swRightAdvanceLane.pr)
   {
     advanceBonus();
     players[currentPlayer].score += 500;
   }
 
   // ABCD  +1000
-  if (swA.pr || swB.pr || swC.pr || swD.pr)
+  if (pinballMachine.swA.pr || pinballMachine.swB.pr || pinballMachine.swC.pr || pinballMachine.swD.pr)
   {
     players[currentPlayer].score += 1000;
   }
 
   // trigger lights for ABCD
-  if (swA.pr && pinballMachine.ltA)
+  if (pinballMachine.swA.pr && pinballMachine.ltA)
   {
     pinballMachine.ltA = false;
     advanceBonus();
   }
-  if (swB.pr && pinballMachine.ltB)
+  if (pinballMachine.swB.pr && pinballMachine.ltB)
   {
     pinballMachine.ltB = false;
     advanceBonus();
   }
-  if (swC.pr && pinballMachine.ltC)
+  if (pinballMachine.swC.pr && pinballMachine.ltC)
   {
     pinballMachine.ltC = false;
     advanceBonus();
   }
-  if (swD.pr && pinballMachine.ltD)
+  if (pinballMachine.swD.pr && pinballMachine.ltD)
   {
     pinballMachine.ltD = false;
     advanceBonus();
@@ -744,33 +683,33 @@ void updateScore()
   }
 
   // Left and Right Bumper +50
-  if (swLeftBumper.pr || swRightBumper.pr)
+  if (pinballMachine.swLeftBumper.pr || pinballMachine.swRightBumper.pr)
   {
     players[currentPlayer].score += 50;
   }
 
   // Targets
 
-  if (swLeftTarget.pr || swRightTarget.pr || swCenterTarget.pr)
+  if (pinballMachine.swLeftTarget.pr || pinballMachine.swRightTarget.pr || pinballMachine.swCenterTarget.pr)
   {
     players[currentPlayer].score += 500;
   }
 
-  if (swLeftTarget.pr && pinballMachine.lt1)
+  if (pinballMachine.swLeftTarget.pr && pinballMachine.lt1)
   {
     pinballMachine.lt1 = false;
     advanceBonus();
     advanceBonus();
   }
 
-  if (swRightTarget.pr && pinballMachine.lt2)
+  if (pinballMachine.swRightTarget.pr && pinballMachine.lt2)
   {
     pinballMachine.lt2 = false;
     advanceBonus();
     advanceBonus();
   }
 
-  if (swCenterTarget.pr && pinballMachine.lt3)
+  if (pinballMachine.swCenterTarget.pr && pinballMachine.lt3)
   {
     players[currentPlayer].score += 500; // Accounting fo 500 of above function
     pinballMachine.lt3 = false;
@@ -1147,7 +1086,7 @@ bool delayWithLights(int delayTime)
   while (millis() < (unsigned long)endTime)
   {
     checkSwitchesAndLightLights();
-    if (swStart.pr)
+    if (pinballMachine.swStart.pr)
     {
       return true;
     }

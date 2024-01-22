@@ -1,6 +1,7 @@
 #ifndef PINBALL_MACHINE__H_
 #define PINBALL_MACHINE__H_
 
+#include "Constants.h"
 #include "Pinouts.h"
 #include "Button.h"
 
@@ -44,6 +45,33 @@ public:
     bool mx8_lt1 = false;
     bool mx8_lt2 = false;
     bool ltBall1 = true; // b1
+
+    Button swBallReturn;
+    Button swTilt;
+    Button swRightSpinner;
+    Button swRightExtraBallLane;
+    Button swA;
+    Button swStart;
+    Button swLeftTarget;
+    Button swLeftSlingShot;
+    Button swB;
+    Button swLeftThumperBumper;
+    Button swLeftBumper;
+    Button swLeftExtraBallLane;
+    Button swC;
+    Button swRightThumperBumper;
+    Button swLeftSpinner;
+    Button swLeftAdvanceLane;
+    Button swD;
+    // Button mx4_sw1;
+    Button swRightTarget;
+    Button swRightSlingShot;
+    Button swCenterTarget;
+    // Button mx5_sw1;
+    Button swRightBumper;
+    Button swRightAdvanceLane;
+    Button swFlipperLeft;
+    Button swFlipperRight;
 
     void setup();
     void loop();

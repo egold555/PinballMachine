@@ -2,10 +2,7 @@
 #define BUTTON__H_
 
 #include <Arduino.h>
-
-// Configs
-#define ANALOG_THRESHOLD 200
-#define DEBOUNCE_DELAY 20
+#include "Config.h"
 
 // defines a button on the pinball machine
 typedef struct Button
