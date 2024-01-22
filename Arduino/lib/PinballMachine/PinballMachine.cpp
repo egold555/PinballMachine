@@ -307,3 +307,39 @@ void PinballMachine::clearDisplay()
     display2.clear();
     PinballMachine::updateDisplay();
 }
+
+void PinballMachine::scrollText(String msg)
+{
+    int len = msg.length();
+    if ((msgCount % MSG_DELAY) == 0)
+    {
+        PinballMachine::clearDisplay();
+        PinballMachine::writeDisplay(0, msg.charAt((msgPos) % len));
+        PinballMachine::writeDisplay(1, msg.charAt((msgPos + 1) % len));
+        PinballMachine::writeDisplay(2, msg.charAt((msgPos + 2) % len));
+        PinballMachine::writeDisplay(3, msg.charAt((msgPos + 3) % len));
+        PinballMachine::writeDisplay(4, msg.charAt((msgPos + 4) % len));
+        PinballMachine::writeDisplay(5, msg.charAt((msgPos + 5) % len));
+        PinballMachine::writeDisplay(6, msg.charAt((msgPos + 6) % len));
+        PinballMachine::writeDisplay(7, msg.charAt((msgPos + 7) % len));
+        PinballMachine::updateDisplay();
+
+        msgPos++;
+        if (msgPos == len)
+        {
+            msgPos = 0;
+        }
+    }
+
+    // Should we ever reset the msgCount?
+    // TODO: Reset the count in the if statement above??
+    msgCount++;
+}
+
+// If we switch to a different message, we need to reset the position
+// Would be handy to do this Automatically
+void PinballMachine::resetScrollTextPosition()
+{
+    msgPos = 0;
+    msgCount = 0;
+}

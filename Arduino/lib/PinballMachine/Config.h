@@ -5,4 +5,7 @@
 #define ANALOG_THRESHOLD 200
 #define DEBOUNCE_DELAY 20
 
+// Scrolling text
+#define MSG_DELAY 20
+
 #endif // PBM_CONFIG__H_

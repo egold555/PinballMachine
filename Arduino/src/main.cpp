@@ -61,7 +61,6 @@ boolean hasScoredThisRound = false;
 // Decare all functions
 void setup(void);
 void loop(void);
-void scrollText(String msg);
 void solinoids(void);
 void checkSwitchesAndLightLights(void);
 void updateMPXLeds(void);
@@ -113,11 +112,11 @@ void loop()
   updateScore();
   solinoids();
   typingInYourName();
-  // scrollTextTest();
+  // pinballMachine.scrollTextTest();
 
   if (state == GS_BEFORE)
   {
-    scrollText("PRESS START TO PLAY AGAIN           HIGH SCORE - (PLAYER) - (SCORE)            ");
+    pinballMachine.scrollText("PRESS START TO PLAY AGAIN           HIGH SCORE - (PLAYER) - (SCORE)            ");
   }
 
   // serial();
@@ -214,7 +213,7 @@ void typingInYourName()
   }
   else
   {
-    scrollText("Hello, " + winName + "   ");
+    pinballMachine.scrollText("Hello, " + winName + "   ");
   }
 }
 
@@ -225,40 +224,6 @@ void typingInYourName()
 //   }
 // }
 
-long MSG_DELAY = 20;
-long msgCount = 0;
-int msgPos = 0;
-
-/**
- * Scroll text accross the displadisplay
- *
- * @param msg Text to display
- */
-void scrollText(String msg)
-{
-  int len = msg.length();
-  if ((msgCount % MSG_DELAY) == 0)
-  {
-    pinballMachine.clearDisplay();
-    pinballMachine.writeDisplay(0, msg.charAt((msgPos) % len));
-    pinballMachine.writeDisplay(1, msg.charAt((msgPos + 1) % len));
-    pinballMachine.writeDisplay(2, msg.charAt((msgPos + 2) % len));
-    pinballMachine.writeDisplay(3, msg.charAt((msgPos + 3) % len));
-    pinballMachine.writeDisplay(4, msg.charAt((msgPos + 4) % len));
-    pinballMachine.writeDisplay(5, msg.charAt((msgPos + 5) % len));
-    pinballMachine.writeDisplay(6, msg.charAt((msgPos + 6) % len));
-    pinballMachine.writeDisplay(7, msg.charAt((msgPos + 7) % len));
-    pinballMachine.updateDisplay();
-
-    msgPos++;
-    if (msgPos == len)
-    {
-      msgPos = 0;
-    }
-  }
-
-  msgCount++;
-}
 /**
  * Updates the solinoids states
  *

@@ -94,11 +94,17 @@ public:
     void updateDisplay();
     void clearDisplay();
 
+    void scrollText(String msg);
+    void resetScrollTextPosition();
+
 private:
     Playtune pt;
     // The matrix display
     Adafruit_AlphaNum4 display1 = Adafruit_AlphaNum4();
     Adafruit_AlphaNum4 display2 = Adafruit_AlphaNum4();
+
+    long msgCount = 0;
+    int msgPos = 0;
 };
 
 #endif // PINBALL_MACHINE__H_
