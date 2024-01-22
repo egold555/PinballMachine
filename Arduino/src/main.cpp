@@ -13,6 +13,8 @@
 
 #include "SFXAndMusic.h"
 
+#include <PinballMachine.h>
+
 // Constants for delays ahs such.
 // TODO: DOcument more
 const int SOLENOID_DELAY = 50;     // 60
@@ -54,6 +56,8 @@ const int IN_FLIPPER_RIGHT = 3;
 const int NOTE_1 = 44;
 const int NOTE_2 = 45;
 const int NOTE_3 = 46;
+
+PinballMachine pinballMachine;
 
 // What state is the game in
 enum GameState
@@ -162,44 +166,6 @@ Button swRightBumper;
 Button swRightAdvanceLane;
 Button swFlipperLeft;
 Button swFlipperRight;
-
-// all the lights on the pinball machine
-bool mx0_lt0 = false; // NONE
-bool ltBonus8000 = false;
-bool ltBonus9000 = false;
-bool ltExtraBallRight = false;
-bool ltA = true;
-bool ltBonus6000 = false;
-bool lt1 = true;
-bool ltBonus1000 = false;
-bool ltB = true;
-bool ltBonus5000 = false;
-bool ltDoubleBonus = false;
-bool ltExtraBallLeft = false;
-bool ltC = true;
-bool ltBonus7000 = false;
-bool ltBonus10000 = false;
-bool ltBonus2000 = false;
-bool ltD = true;
-bool ltBonus3000 = false;
-bool lt2 = true;
-bool ltSamePlayerShoots = false;
-bool lt3 = true;
-bool ltBonus4000 = false;
-bool ltTrippleBonus = false;
-bool mx5_lt3 = false;   // NONE
-bool ltBall2 = false;   // b2
-bool ltBall3 = false;   // b3
-bool ltBall4 = false;   // b4
-bool ltBall5 = false;   // b5
-bool ltPlayer1 = false; // p1
-bool ltPlayer2 = false; // p2
-bool ltPlayer3 = false; // p3
-bool ltPlayer4 = false; // p4
-bool mx8_lt0 = false;
-bool mx8_lt1 = false;
-bool mx8_lt2 = false;
-bool ltBall1 = true; // b1
 
 // Time (as returned by millis()) that solenoid should retract.
 unsigned long timeRetractLeftSlingshot = 0, timeRetractRightSlingshot = 0;
@@ -551,10 +517,10 @@ void checkSwitchesAndLightLights()
 {
 
   digitalWrite(OUT_MX0, HIGH);
-  digitalWrite(OUT_LT0, mx0_lt0);
-  digitalWrite(OUT_LT1, ltBonus8000);
-  digitalWrite(OUT_LT2, ltBonus9000);
-  digitalWrite(OUT_LT3, ltExtraBallRight);
+  digitalWrite(OUT_LT0, pinballMachine.mx0_lt0);
+  digitalWrite(OUT_LT1, pinballMachine.ltBonus8000);
+  digitalWrite(OUT_LT2, pinballMachine.ltBonus9000);
+  digitalWrite(OUT_LT3, pinballMachine.ltExtraBallRight);
 
   delayMicroseconds(SWITCH_READ_DELAY);
 
@@ -574,10 +540,10 @@ void checkSwitchesAndLightLights()
 
   digitalWrite(OUT_MX1, HIGH);
 
-  digitalWrite(OUT_LT0, ltA);
-  digitalWrite(OUT_LT1, ltBonus6000);
-  digitalWrite(OUT_LT2, lt1);
-  digitalWrite(OUT_LT3, ltBonus1000);
+  digitalWrite(OUT_LT0, pinballMachine.ltA);
+  digitalWrite(OUT_LT1, pinballMachine.ltBonus6000);
+  digitalWrite(OUT_LT2, pinballMachine.lt1);
+  digitalWrite(OUT_LT3, pinballMachine.ltBonus1000);
 
   delayMicroseconds(SWITCH_READ_DELAY);
 
@@ -597,10 +563,10 @@ void checkSwitchesAndLightLights()
 
   digitalWrite(OUT_MX2, HIGH);
 
-  digitalWrite(OUT_LT0, ltB);
-  digitalWrite(OUT_LT1, ltBonus5000);
-  digitalWrite(OUT_LT2, ltDoubleBonus);
-  digitalWrite(OUT_LT3, ltExtraBallLeft);
+  digitalWrite(OUT_LT0, pinballMachine.ltB);
+  digitalWrite(OUT_LT1, pinballMachine.ltBonus5000);
+  digitalWrite(OUT_LT2, pinballMachine.ltDoubleBonus);
+  digitalWrite(OUT_LT3, pinballMachine.ltExtraBallLeft);
 
   delayMicroseconds(SWITCH_READ_DELAY);
 
@@ -620,10 +586,10 @@ void checkSwitchesAndLightLights()
 
   digitalWrite(OUT_MX3, HIGH);
 
-  digitalWrite(OUT_LT0, ltC);
-  digitalWrite(OUT_LT1, ltBonus7000);
-  digitalWrite(OUT_LT2, ltBonus10000);
-  digitalWrite(OUT_LT3, ltBonus2000);
+  digitalWrite(OUT_LT0, pinballMachine.ltC);
+  digitalWrite(OUT_LT1, pinballMachine.ltBonus7000);
+  digitalWrite(OUT_LT2, pinballMachine.ltBonus10000);
+  digitalWrite(OUT_LT3, pinballMachine.ltBonus2000);
 
   delayMicroseconds(SWITCH_READ_DELAY);
 
@@ -643,10 +609,10 @@ void checkSwitchesAndLightLights()
 
   digitalWrite(OUT_MX4, HIGH);
 
-  digitalWrite(OUT_LT0, ltD);
-  digitalWrite(OUT_LT1, ltBonus3000);
-  digitalWrite(OUT_LT2, lt2);
-  digitalWrite(OUT_LT3, ltSamePlayerShoots);
+  digitalWrite(OUT_LT0, pinballMachine.ltD);
+  digitalWrite(OUT_LT1, pinballMachine.ltBonus3000);
+  digitalWrite(OUT_LT2, pinballMachine.lt2);
+  digitalWrite(OUT_LT3, pinballMachine.ltSamePlayerShoots);
 
   delayMicroseconds(SWITCH_READ_DELAY);
 
@@ -666,10 +632,10 @@ void checkSwitchesAndLightLights()
 
   digitalWrite(OUT_MX5, HIGH);
 
-  digitalWrite(OUT_LT0, lt3);
-  digitalWrite(OUT_LT1, ltBonus4000);
-  digitalWrite(OUT_LT2, ltTrippleBonus);
-  digitalWrite(OUT_LT3, mx5_lt3);
+  digitalWrite(OUT_LT0, pinballMachine.lt3);
+  digitalWrite(OUT_LT1, pinballMachine.ltBonus4000);
+  digitalWrite(OUT_LT2, pinballMachine.ltTrippleBonus);
+  digitalWrite(OUT_LT3, pinballMachine.mx5_lt3);
 
   delayMicroseconds(SWITCH_READ_DELAY);
 
@@ -689,10 +655,10 @@ void checkSwitchesAndLightLights()
 
   digitalWrite(OUT_MX6, HIGH);
 
-  digitalWrite(OUT_LT0, ltBall2);
-  digitalWrite(OUT_LT1, ltBall3);
-  digitalWrite(OUT_LT2, ltBall4);
-  digitalWrite(OUT_LT3, ltBall5);
+  digitalWrite(OUT_LT0, pinballMachine.ltBall2);
+  digitalWrite(OUT_LT1, pinballMachine.ltBall3);
+  digitalWrite(OUT_LT2, pinballMachine.ltBall4);
+  digitalWrite(OUT_LT3, pinballMachine.ltBall5);
 
   delayMicroseconds(SWITCH_READ_DELAY);
 
@@ -707,10 +673,10 @@ void checkSwitchesAndLightLights()
 
   digitalWrite(OUT_MX7, HIGH);
 
-  digitalWrite(OUT_LT0, ltPlayer1);
-  digitalWrite(OUT_LT1, ltPlayer2);
-  digitalWrite(OUT_LT2, ltPlayer3);
-  digitalWrite(OUT_LT3, ltPlayer4);
+  digitalWrite(OUT_LT0, pinballMachine.ltPlayer1);
+  digitalWrite(OUT_LT1, pinballMachine.ltPlayer2);
+  digitalWrite(OUT_LT2, pinballMachine.ltPlayer3);
+  digitalWrite(OUT_LT3, pinballMachine.ltPlayer4);
 
   delayMicroseconds(SWITCH_READ_DELAY);
 
@@ -725,10 +691,10 @@ void checkSwitchesAndLightLights()
 
   digitalWrite(OUT_MX8, HIGH);
 
-  digitalWrite(OUT_LT0, mx8_lt0);
-  digitalWrite(OUT_LT1, mx8_lt1);
-  digitalWrite(OUT_LT2, mx8_lt2);
-  digitalWrite(OUT_LT3, ltBall1);
+  digitalWrite(OUT_LT0, pinballMachine.mx8_lt0);
+  digitalWrite(OUT_LT1, pinballMachine.mx8_lt1);
+  digitalWrite(OUT_LT2, pinballMachine.mx8_lt2);
+  digitalWrite(OUT_LT3, pinballMachine.ltBall1);
 
   delayMicroseconds(SWITCH_READ_DELAY);
 
@@ -796,17 +762,17 @@ void updateScore()
     players[currentPlayer].score += 500;
   }
 
-  if (swLeftExtraBallLane.pr && ltExtraBallLeft)
+  if (swLeftExtraBallLane.pr && pinballMachine.ltExtraBallLeft)
   {
     extraBall();
-    ltExtraBallLeft = false;
+    pinballMachine.ltExtraBallLeft = false;
     runDelay(timerBlinkExtraBallLeft, 100, 20);
   }
 
-  if (swRightExtraBallLane.pr && ltExtraBallRight)
+  if (swRightExtraBallLane.pr && pinballMachine.ltExtraBallRight)
   {
     extraBall();
-    ltExtraBallRight = false;
+    pinballMachine.ltExtraBallRight = false;
     runDelay(timerBlinkExtraBallRight, 100, 20);
   }
 
@@ -823,39 +789,39 @@ void updateScore()
   }
 
   // trigger lights for ABCD
-  if (swA.pr && ltA)
+  if (swA.pr && pinballMachine.ltA)
   {
-    ltA = false;
+    pinballMachine.ltA = false;
     advanceBonus();
   }
-  if (swB.pr && ltB)
+  if (swB.pr && pinballMachine.ltB)
   {
-    ltB = false;
+    pinballMachine.ltB = false;
     advanceBonus();
   }
-  if (swC.pr && ltC)
+  if (swC.pr && pinballMachine.ltC)
   {
-    ltC = false;
+    pinballMachine.ltC = false;
     advanceBonus();
   }
-  if (swD.pr && ltD)
+  if (swD.pr && pinballMachine.ltD)
   {
-    ltD = false;
+    pinballMachine.ltD = false;
     advanceBonus();
   }
 
   // Advance bonus if ABCD is all off
-  if (!ltA && !ltB && !ltC && !ltD)
+  if (!pinballMachine.ltA && !pinballMachine.ltB && !pinballMachine.ltC && !pinballMachine.ltD)
   {
     // TODO
-    ltA = true;
-    ltB = true;
-    ltC = true;
-    ltD = true;
+    pinballMachine.ltA = true;
+    pinballMachine.ltB = true;
+    pinballMachine.ltC = true;
+    pinballMachine.ltD = true;
     // runDelay(timerBlinkABCD, 100, 10);
     players[currentPlayer].score += 25000;
-    ltExtraBallLeft = true;
-    ltExtraBallRight = true;
+    pinballMachine.ltExtraBallLeft = true;
+    pinballMachine.ltExtraBallRight = true;
     playSFX(SOUND_STARTUP);
   }
 
@@ -872,80 +838,80 @@ void updateScore()
     players[currentPlayer].score += 500;
   }
 
-  if (swLeftTarget.pr && lt1)
+  if (swLeftTarget.pr && pinballMachine.lt1)
   {
-    lt1 = false;
+    pinballMachine.lt1 = false;
     advanceBonus();
     advanceBonus();
   }
 
-  if (swRightTarget.pr && lt2)
+  if (swRightTarget.pr && pinballMachine.lt2)
   {
-    lt2 = false;
+    pinballMachine.lt2 = false;
     advanceBonus();
     advanceBonus();
   }
 
-  if (swCenterTarget.pr && lt3)
+  if (swCenterTarget.pr && pinballMachine.lt3)
   {
     players[currentPlayer].score += 500; // Accounting fo 500 of above function
-    lt3 = false;
+    pinballMachine.lt3 = false;
     advanceBonus();
     advanceBonus();
   }
 
-  if (!lt1 && !lt2)
+  if (!pinballMachine.lt1 && !pinballMachine.lt2)
   {
-    if (!lt3)
+    if (!pinballMachine.lt3)
     {
-      ltDoubleBonus = false;
-      ltTrippleBonus = true;
+      pinballMachine.ltDoubleBonus = false;
+      pinballMachine.ltTrippleBonus = true;
     }
     else
     {
-      ltDoubleBonus = true;
+      pinballMachine.ltDoubleBonus = true;
     }
   }
 
   if (bonus >= 1)
   {
-    ltBonus1000 = true;
+    pinballMachine.ltBonus1000 = true;
   }
   if (bonus >= 2)
   {
-    ltBonus2000 = true;
+    pinballMachine.ltBonus2000 = true;
   }
   if (bonus >= 3)
   {
-    ltBonus3000 = true;
+    pinballMachine.ltBonus3000 = true;
   }
   if (bonus >= 4)
   {
-    ltBonus4000 = true;
+    pinballMachine.ltBonus4000 = true;
   }
   if (bonus >= 5)
   {
-    ltBonus5000 = true;
+    pinballMachine.ltBonus5000 = true;
   }
   if (bonus >= 6)
   {
-    ltBonus6000 = true;
+    pinballMachine.ltBonus6000 = true;
   }
   if (bonus >= 7)
   {
-    ltBonus7000 = true;
+    pinballMachine.ltBonus7000 = true;
   }
   if (bonus >= 8)
   {
-    ltBonus8000 = true;
+    pinballMachine.ltBonus8000 = true;
   }
   if (bonus >= 9)
   {
-    ltBonus9000 = true;
+    pinballMachine.ltBonus9000 = true;
   }
   if (bonus >= 10)
   {
-    ltBonus10000 = true;
+    pinballMachine.ltBonus10000 = true;
   }
 
   //////////////////////////////////
@@ -1005,7 +971,7 @@ void advanceBonus()
  */
 void extraBall()
 {
-  ltSamePlayerShoots = true;
+  pinballMachine.ltSamePlayerShoots = true;
   extraBalls++;
   playSFX(SOUND_EXTRABALL);
 }
@@ -1037,15 +1003,15 @@ void reset()
 
   hasScoredThisRound = false;
 
-  ltA = ltB = ltC = ltD = true;
-  lt1 = lt2 = lt3 = true;
-  ltBonus1000 = ltBonus2000 = ltBonus3000 = ltBonus4000 = ltBonus5000 = false;
-  ltBonus6000 = ltBonus7000 = ltBonus8000 = ltBonus9000 = ltBonus10000 = false;
-  ltExtraBallRight = ltDoubleBonus = ltExtraBallLeft = ltSamePlayerShoots = ltTrippleBonus = false;
-  ltBall1 = false;
-  ltBall2 = ltBall3 = ltBall4 = ltBall5 = false;
-  ltPlayer1 = false;
-  ltPlayer2 = ltPlayer3 = ltPlayer4 = false;
+  pinballMachine.ltA = pinballMachine.ltB = pinballMachine.ltC = pinballMachine.ltD = true;
+  pinballMachine.lt1 = pinballMachine.lt2 = pinballMachine.lt3 = true;
+  pinballMachine.ltBonus1000 = pinballMachine.ltBonus2000 = pinballMachine.ltBonus3000 = pinballMachine.ltBonus4000 = pinballMachine.ltBonus5000 = false;
+  pinballMachine.ltBonus6000 = pinballMachine.ltBonus7000 = pinballMachine.ltBonus8000 = pinballMachine.ltBonus9000 = pinballMachine.ltBonus10000 = false;
+  pinballMachine.ltExtraBallRight = pinballMachine.ltDoubleBonus = pinballMachine.ltExtraBallLeft = pinballMachine.ltSamePlayerShoots = pinballMachine.ltTrippleBonus = false;
+  pinballMachine.ltBall1 = false;
+  pinballMachine.ltBall2 = pinballMachine.ltBall3 = pinballMachine.ltBall4 = pinballMachine.ltBall5 = false;
+  pinballMachine.ltPlayer1 = false;
+  pinballMachine.ltPlayer2 = pinballMachine.ltPlayer3 = pinballMachine.ltPlayer4 = false;
 
   state = GS_BEFORE;
 
@@ -1062,7 +1028,7 @@ void startGame()
   if (state == GS_BEFORE)
   {
     state = GS_PLAYING;
-    ltBall1 = true;
+    pinballMachine.ltBall1 = true;
     writeDisplay(0);
   }
 
@@ -1094,10 +1060,10 @@ void startGame()
  */
 void lightPlayerLights(int num)
 {
-  ltPlayer1 = (num == 1);
-  ltPlayer2 = (num == 2);
-  ltPlayer3 = (num == 3);
-  ltPlayer4 = (num == 4);
+  pinballMachine.ltPlayer1 = (num == 1);
+  pinballMachine.ltPlayer2 = (num == 2);
+  pinballMachine.ltPlayer3 = (num == 3);
+  pinballMachine.ltPlayer4 = (num == 4);
 }
 
 /**
@@ -1115,10 +1081,10 @@ void setPlayerLight()
  */
 void switchPlayersOrAdvanceBall()
 {
-  players[currentPlayer].lightA = ltA;
-  players[currentPlayer].lightB = ltB;
-  players[currentPlayer].lightC = ltC;
-  players[currentPlayer].lightD = ltD;
+  players[currentPlayer].lightA = pinballMachine.ltA;
+  players[currentPlayer].lightB = pinballMachine.ltB;
+  players[currentPlayer].lightC = pinballMachine.ltC;
+  players[currentPlayer].lightD = pinballMachine.ltD;
 
   ++currentPlayer;
   if (currentPlayer >= amountOfPlayers)
@@ -1127,10 +1093,10 @@ void switchPlayersOrAdvanceBall()
     currentPlayer = 0;
   }
 
-  ltA = players[currentPlayer].lightA;
-  ltB = players[currentPlayer].lightB;
-  ltC = players[currentPlayer].lightC;
-  ltD = players[currentPlayer].lightD;
+  pinballMachine.ltA = players[currentPlayer].lightA;
+  pinballMachine.ltB = players[currentPlayer].lightB;
+  pinballMachine.ltC = players[currentPlayer].lightC;
+  pinballMachine.ltD = players[currentPlayer].lightD;
   oldScore = players[currentPlayer].score;
 
   setPlayerLight();
@@ -1155,11 +1121,11 @@ void endOfBall()
   if (!tilted)
   {
 
-    if (ltDoubleBonus)
+    if (pinballMachine.ltDoubleBonus)
     {
       bonusAmount = bonus * 1000 * 2;
     }
-    else if (ltTrippleBonus)
+    else if (pinballMachine.ltTrippleBonus)
     {
       bonusAmount = bonus * 1000 * 3;
     }
@@ -1169,35 +1135,35 @@ void endOfBall()
     }
   }
 
-  lt1 = true;
-  lt2 = true;
-  lt3 = true;
+  pinballMachine.lt1 = true;
+  pinballMachine.lt2 = true;
+  pinballMachine.lt3 = true;
 
   bonus = 0;
 
-  ltBonus1000 = false;
-  ltBonus2000 = false;
-  ltBonus3000 = false;
-  ltBonus4000 = false;
-  ltBonus5000 = false;
-  ltBonus6000 = false;
-  ltBonus7000 = false;
-  ltBonus8000 = false;
-  ltBonus9000 = false;
-  ltBonus10000 = false;
+  pinballMachine.ltBonus1000 = false;
+  pinballMachine.ltBonus2000 = false;
+  pinballMachine.ltBonus3000 = false;
+  pinballMachine.ltBonus4000 = false;
+  pinballMachine.ltBonus5000 = false;
+  pinballMachine.ltBonus6000 = false;
+  pinballMachine.ltBonus7000 = false;
+  pinballMachine.ltBonus8000 = false;
+  pinballMachine.ltBonus9000 = false;
+  pinballMachine.ltBonus10000 = false;
 
-  ltExtraBallLeft = false;
-  ltExtraBallRight = false;
+  pinballMachine.ltExtraBallLeft = false;
+  pinballMachine.ltExtraBallRight = false;
 
-  ltDoubleBonus = false;
-  ltTrippleBonus = false;
-  ltSamePlayerShoots = false;
+  pinballMachine.ltDoubleBonus = false;
+  pinballMachine.ltTrippleBonus = false;
+  pinballMachine.ltSamePlayerShoots = false;
 
-  ltBall1 = false;
-  ltBall2 = false;
-  ltBall3 = false;
-  ltBall4 = false;
-  ltBall5 = false;
+  pinballMachine.ltBall1 = false;
+  pinballMachine.ltBall2 = false;
+  pinballMachine.ltBall3 = false;
+  pinballMachine.ltBall4 = false;
+  pinballMachine.ltBall5 = false;
 
   // Wait until the music finishes playing
   while (pt.tune_playing)
@@ -1228,19 +1194,19 @@ void endOfBall()
   switch (balls)
   {
   case 1:
-    ltBall1 = true;
+    pinballMachine.ltBall1 = true;
     break;
   case 2:
-    ltBall2 = true;
+    pinballMachine.ltBall2 = true;
     break;
   case 3:
-    ltBall3 = true;
+    pinballMachine.ltBall3 = true;
     break;
   case 4:
-    ltBall4 = true;
+    pinballMachine.ltBall4 = true;
     break;
   case 5:
-    ltBall5 = true;
+    pinballMachine.ltBall5 = true;
     break;
   }
 
@@ -1283,9 +1249,9 @@ void endGame()
   state = GS_GAMEOVER;
   playSFX(SOUND_ENDING_SONG);
 
-  ltBall1 = ltBall2 = ltBall3 = ltBall4 = ltBall5 = false;
-  ltA = ltB = ltC = ltD = true;
-  lt1 = lt2 = lt3 = true;
+  pinballMachine.ltBall1 = pinballMachine.ltBall2 = pinballMachine.ltBall3 = pinballMachine.ltBall4 = pinballMachine.ltBall5 = false;
+  pinballMachine.ltA = pinballMachine.ltB = pinballMachine.ltC = pinballMachine.ltD = true;
+  pinballMachine.lt1 = pinballMachine.lt2 = pinballMachine.lt3 = true;
 
   while (pt.tune_playing && !endNow)
   {
@@ -1365,7 +1331,7 @@ void tilt()
  */
 void timerBlinkExtraBallLeft(void)
 {
-  ltExtraBallLeft = !ltExtraBallLeft;
+  pinballMachine.ltExtraBallLeft = !pinballMachine.ltExtraBallLeft;
 }
 
 /**
@@ -1374,7 +1340,7 @@ void timerBlinkExtraBallLeft(void)
  */
 void timerBlinkExtraBallRight(void)
 {
-  ltExtraBallRight = !ltExtraBallRight;
+  pinballMachine.ltExtraBallRight = !pinballMachine.ltExtraBallRight;
 }
 
 /**
