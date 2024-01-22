@@ -1,10 +1,13 @@
 #ifndef PINBALL_MACHINE__H_
 #define PINBALL_MACHINE__H_
 
+#include "Pinouts.h"
+#include "Button.h"
+
 class PinballMachine
 {
 public:
-    PinballMachine() {}
+    PinballMachine();     // constructor
     bool mx0_lt0 = false; // NONE
     bool ltBonus8000 = false;
     bool ltBonus9000 = false;
@@ -41,6 +44,9 @@ public:
     bool mx8_lt1 = false;
     bool mx8_lt2 = false;
     bool ltBall1 = true; // b1
+
+    void setup();
+    void loop();
 };
 
 #endif // PINBALL_MACHINE__H_

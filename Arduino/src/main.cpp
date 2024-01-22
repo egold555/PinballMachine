@@ -13,45 +13,18 @@
 
 #include "SFXAndMusic.h"
 
+// #include <Button.h>
 #include <PinballMachine.h>
 
 // Constants for delays ahs such.
 // TODO: DOcument more
 const int SOLENOID_DELAY = 50;     // 60
 const int SWITCH_READ_DELAY = 800; // 680
-const int ANALOG_THRESHOLD = 200;
+// const int ANALOG_THRESHOLD = 200;
 const int SPINNER_SCORE_DELAY = 75;
-const unsigned int DEBOUNCE_DELAY = 20;
+// const unsigned int DEBOUNCE_DELAY = 20;
 
 // Constants for pins
-const int OUT_SLINGSHOT_LEFT = 22;
-const int OUT_BALL_RETURN = 23;
-const int OUT_SLINGSHOT_RIGHT = 24;
-const int OUT_THUMPER_LEFT = 25;
-const int OUT_THUMPER_RIGHT = 26;
-
-const int OUT_MX0 = 28;
-const int OUT_MX1 = 29;
-const int OUT_MX2 = 30;
-const int OUT_MX3 = 31;
-const int OUT_MX4 = 32;
-const int OUT_MX5 = 33;
-const int OUT_MX6 = 48;
-const int OUT_MX7 = 50;
-const int OUT_MX8 = 52;
-
-const int OUT_LT0 = 36;
-const int OUT_LT1 = 37;
-const int OUT_LT2 = 38;
-const int OUT_LT3 = 39;
-
-const int IN_SW0 = A12;
-const int IN_SW1 = A13;
-const int IN_SW2 = A14;
-const int IN_SW3 = A15;
-
-const int IN_FLIPPER_LEFT = 2;
-const int IN_FLIPPER_RIGHT = 3;
 
 const int NOTE_1 = 44;
 const int NOTE_2 = 45;
@@ -71,63 +44,6 @@ enum GameState
 
 // Current game state we are in
 GameState state = GS_BEFORE;
-
-// defines a button on the pinball machine
-typedef struct Button
-{
-  boolean sw = false; // Switch
-  boolean pr = false; // Pressed
-  long tm = 0;        // Time
-
-  /**
-   * magical debouncing code that works and should never be touched
-   *
-   * @param pin pin to debounce
-   */
-  void debounce(int pin)
-  {
-    bool oldSw = sw;
-    bool newSw;
-    newSw = analogRead(pin) > ANALOG_THRESHOLD;
-    sw = newSw;
-
-    pr = false;
-    if (newSw && !oldSw)
-    {
-      unsigned long currtm = millis();
-      if (currtm - tm > DEBOUNCE_DELAY)
-      {
-        pr = true;
-      }
-      tm = currtm;
-    }
-  }
-
-  /**
-   * magical debouncing code that works and should never be touched
-   *
-   * @param pin pin to debounce
-   */
-  void debounceDigital(int pin)
-  {
-    bool oldSw = sw;
-    bool newSw;
-    newSw = digitalRead(pin) == LOW;
-    sw = newSw;
-
-    pr = false;
-    if (newSw && !oldSw)
-    {
-      unsigned long currtm = millis();
-      if (currtm - tm > DEBOUNCE_DELAY)
-      {
-        pr = true;
-      }
-      tm = currtm;
-    }
-  }
-
-} Button;
 
 // Defines a player. 1,2,3,4
 typedef struct Player
@@ -236,35 +152,37 @@ void setup()
   // Serial2.begin(115200); //Recieve ESP
 
   // init al the matrix's and the misc outputs
-  pinMode(OUT_SLINGSHOT_LEFT, OUTPUT);
-  pinMode(OUT_SLINGSHOT_RIGHT, OUTPUT);
-  pinMode(OUT_THUMPER_LEFT, OUTPUT);
-  pinMode(OUT_THUMPER_RIGHT, OUTPUT);
-  pinMode(OUT_BALL_RETURN, OUTPUT);
+  // pinMode(OUT_SLINGSHOT_LEFT, OUTPUT);
+  // pinMode(OUT_SLINGSHOT_RIGHT, OUTPUT);
+  // pinMode(OUT_THUMPER_LEFT, OUTPUT);
+  // pinMode(OUT_THUMPER_RIGHT, OUTPUT);
+  // pinMode(OUT_BALL_RETURN, OUTPUT);
 
-  pinMode(OUT_MX0, OUTPUT);
-  pinMode(OUT_MX1, OUTPUT);
-  pinMode(OUT_MX2, OUTPUT);
-  pinMode(OUT_MX3, OUTPUT);
-  pinMode(OUT_MX4, OUTPUT);
-  pinMode(OUT_MX5, OUTPUT);
-  pinMode(OUT_MX6, OUTPUT);
-  pinMode(OUT_MX7, OUTPUT);
-  pinMode(OUT_MX8, OUTPUT);
+  // pinMode(OUT_MX0, OUTPUT);
+  // pinMode(OUT_MX1, OUTPUT);
+  // pinMode(OUT_MX2, OUTPUT);
+  // pinMode(OUT_MX3, OUTPUT);
+  // pinMode(OUT_MX4, OUTPUT);
+  // pinMode(OUT_MX5, OUTPUT);
+  // pinMode(OUT_MX6, OUTPUT);
+  // pinMode(OUT_MX7, OUTPUT);
+  // pinMode(OUT_MX8, OUTPUT);
 
-  pinMode(OUT_LT0, OUTPUT);
-  pinMode(OUT_LT1, OUTPUT);
-  pinMode(OUT_LT2, OUTPUT);
-  pinMode(OUT_LT3, OUTPUT);
+  // pinMode(OUT_LT0, OUTPUT);
+  // pinMode(OUT_LT1, OUTPUT);
+  // pinMode(OUT_LT2, OUTPUT);
+  // pinMode(OUT_LT3, OUTPUT);
 
-  // inputs
-  pinMode(IN_FLIPPER_LEFT, INPUT_PULLUP);
-  pinMode(IN_FLIPPER_RIGHT, INPUT_PULLUP);
+  // // inputs
+  // pinMode(IN_FLIPPER_LEFT, INPUT_PULLUP);
+  // pinMode(IN_FLIPPER_RIGHT, INPUT_PULLUP);
 
-  pinMode(IN_SW0, INPUT);
-  pinMode(IN_SW1, INPUT);
-  pinMode(IN_SW2, INPUT);
-  pinMode(IN_SW3, INPUT);
+  // pinMode(IN_SW0, INPUT);
+  // pinMode(IN_SW1, INPUT);
+  // pinMode(IN_SW2, INPUT);
+  // pinMode(IN_SW3, INPUT);
+
+  pinballMachine.setup();
 
   // init music generators voices's
   pt.tune_initchan(NOTE_1);
