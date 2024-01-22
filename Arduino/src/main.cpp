@@ -1,12 +1,14 @@
 /**@file PinballMachine.ino */
-// in VS CODE, set '"C_Cpp.intelliSenseEngine": "Tag Parser",' in the settings json file in appdata
-// https://github.com/microsoft/vscode-arduino/issues/438#issuecomment-343820369
 
 // imports
-#include "Playtune.h"             //Music http://blog.bentgeorge.com/?p=119
-#include "Adafruit_LEDBackpack.h" //Display
-#include "long2text.h"            //Peter
-#include "run.h"                  //Modified version of https://github.com/billroy/run
+#include <Arduino.h>
+#include <Playtune.h>             //Music http://blog.bentgeorge.com/?p=119
+#include <SPI.h>                  //Display
+#include <Wire.h>                 //Display
+#include <Adafruit_GFX.h>         //Display
+#include <Adafruit_LEDBackpack.h> //Display
+#include <long2text.h>            //Peter
+#include <run.h>                  //Modified version of https://github.com/billroy/run
 // #include <EEPROM.h> //not used currently
 
 #include "SFXAndMusic.h"
