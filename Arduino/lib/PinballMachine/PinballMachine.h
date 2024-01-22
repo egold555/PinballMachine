@@ -2,8 +2,8 @@
 #define PINBALL_MACHINE__H_
 
 #include "Constants.h"
-#include "Pinouts.h"
 #include "Button.h"
+#include <Playtune.h>
 
 class PinballMachine
 {
@@ -75,6 +75,12 @@ public:
 
     void setup();
     void loop();
+    void playSFX(const byte *sfx);
+    void stopSFX();
+    bool isSFXPlaying();
+
+private:
+    Playtune pt;
 };
 
 #endif // PINBALL_MACHINE__H_

@@ -30,4 +30,8 @@
 #define IN_FLIPPER_LEFT 2
 #define IN_FLIPPER_RIGHT 3
 
+#define NOTE_1 44
+#define NOTE_2 45
+#define NOTE_3 46
+
 #endif // PINOUTS__H_

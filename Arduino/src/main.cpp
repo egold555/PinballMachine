@@ -22,12 +22,6 @@ const int SOLENOID_DELAY = 50; // 60
 
 const int SPINNER_SCORE_DELAY = 75;
 
-// Constants for pins
-
-const int NOTE_1 = 44;
-const int NOTE_2 = 45;
-const int NOTE_3 = 46;
-
 PinballMachine pinballMachine;
 
 // What state is the game in
@@ -62,9 +56,6 @@ unsigned long timeNextSpinnerScore = 0;
 // The matrix display
 Adafruit_AlphaNum4 display1 = Adafruit_AlphaNum4();
 Adafruit_AlphaNum4 display2 = Adafruit_AlphaNum4();
-
-// Music player
-Playtune pt;
 
 // player variables
 Player players[4];
@@ -103,7 +94,7 @@ String getRankingTitle(long score);
 void tilt(void);
 void timerBlinkExtraBallLeft(void);
 void timerBlinkExtraBallRight(void);
-void playSFX(const byte *sfx);
+// void pinballMachine.playSFX(const byte *sfx);
 void writeDisplay(long num);
 void writeDisplay(String msg);
 void writeDisplay(int place, char in);
@@ -123,17 +114,12 @@ void setup()
 
   pinballMachine.setup();
 
-  // init music generators voices's
-  pt.tune_initchan(NOTE_1);
-  pt.tune_initchan(NOTE_2);
-  pt.tune_initchan(NOTE_3);
-
   // init the two displays
   display1.begin(0x70);
   display2.begin(0x71);
 
   reset();
-  // playSFX(SOUND_WIZARD);
+  // pinballMachine.playSFX(SOUND_WIZARD);
   // state = GS_TEST_NAME; //JUST FOR TESTING
   // clearDisplay(); //debug
 }
@@ -203,7 +189,7 @@ void typingInYourName()
 
   if (pinballMachine.swStart.pr)
   {
-    playSFX(SOUND_NAME_ENTER);
+    pinballMachine.playSFX(SOUND_NAME_ENTER);
     for (int i = 0; i < charsShouldRender; i++)
     {
       winName += nameChars[i];
@@ -373,197 +359,7 @@ void solinoids()
 void checkSwitchesAndLightLights()
 {
 
-  digitalWrite(OUT_MX0, HIGH);
-  digitalWrite(OUT_LT0, pinballMachine.mx0_lt0);
-  digitalWrite(OUT_LT1, pinballMachine.ltBonus8000);
-  digitalWrite(OUT_LT2, pinballMachine.ltBonus9000);
-  digitalWrite(OUT_LT3, pinballMachine.ltExtraBallRight);
-
-  delayMicroseconds(SWITCH_READ_DELAY);
-
-  pinballMachine.swBallReturn.debounce(IN_SW0);
-  pinballMachine.swTilt.debounce(IN_SW1);
-  pinballMachine.swRightSpinner.debounce(IN_SW2);
-  pinballMachine.swRightExtraBallLane.debounce(IN_SW3);
-
-  digitalWrite(OUT_LT0, LOW);
-  digitalWrite(OUT_LT1, LOW);
-  digitalWrite(OUT_LT2, LOW);
-  digitalWrite(OUT_LT3, LOW);
-
-  digitalWrite(OUT_MX0, LOW);
-
-  ///////////////////////////////
-
-  digitalWrite(OUT_MX1, HIGH);
-
-  digitalWrite(OUT_LT0, pinballMachine.ltA);
-  digitalWrite(OUT_LT1, pinballMachine.ltBonus6000);
-  digitalWrite(OUT_LT2, pinballMachine.lt1);
-  digitalWrite(OUT_LT3, pinballMachine.ltBonus1000);
-
-  delayMicroseconds(SWITCH_READ_DELAY);
-
-  pinballMachine.swA.debounce(IN_SW0);
-  pinballMachine.swStart.debounce(IN_SW1);
-  pinballMachine.swLeftTarget.debounce(IN_SW2);
-  pinballMachine.swLeftSlingShot.debounce(IN_SW3);
-
-  digitalWrite(OUT_LT0, LOW);
-  digitalWrite(OUT_LT1, LOW);
-  digitalWrite(OUT_LT2, LOW);
-  digitalWrite(OUT_LT3, LOW);
-
-  digitalWrite(OUT_MX1, LOW);
-
-  //////////////////
-
-  digitalWrite(OUT_MX2, HIGH);
-
-  digitalWrite(OUT_LT0, pinballMachine.ltB);
-  digitalWrite(OUT_LT1, pinballMachine.ltBonus5000);
-  digitalWrite(OUT_LT2, pinballMachine.ltDoubleBonus);
-  digitalWrite(OUT_LT3, pinballMachine.ltExtraBallLeft);
-
-  delayMicroseconds(SWITCH_READ_DELAY);
-
-  pinballMachine.swB.debounce(IN_SW0);
-  pinballMachine.swLeftThumperBumper.debounce(IN_SW1);
-  pinballMachine.swLeftBumper.debounce(IN_SW2);
-  pinballMachine.swLeftExtraBallLane.debounce(IN_SW3);
-
-  digitalWrite(OUT_LT0, LOW);
-  digitalWrite(OUT_LT1, LOW);
-  digitalWrite(OUT_LT2, LOW);
-  digitalWrite(OUT_LT3, LOW);
-
-  digitalWrite(OUT_MX2, LOW);
-
-  /////////////////////
-
-  digitalWrite(OUT_MX3, HIGH);
-
-  digitalWrite(OUT_LT0, pinballMachine.ltC);
-  digitalWrite(OUT_LT1, pinballMachine.ltBonus7000);
-  digitalWrite(OUT_LT2, pinballMachine.ltBonus10000);
-  digitalWrite(OUT_LT3, pinballMachine.ltBonus2000);
-
-  delayMicroseconds(SWITCH_READ_DELAY);
-
-  pinballMachine.swC.debounce(IN_SW0);
-  pinballMachine.swRightThumperBumper.debounce(IN_SW1);
-  pinballMachine.swLeftSpinner.debounce(IN_SW2);
-  pinballMachine.swLeftAdvanceLane.debounce(IN_SW3);
-
-  digitalWrite(OUT_LT0, LOW);
-  digitalWrite(OUT_LT1, LOW);
-  digitalWrite(OUT_LT2, LOW);
-  digitalWrite(OUT_LT3, LOW);
-
-  digitalWrite(OUT_MX3, LOW);
-
-  /////////////////////////////
-
-  digitalWrite(OUT_MX4, HIGH);
-
-  digitalWrite(OUT_LT0, pinballMachine.ltD);
-  digitalWrite(OUT_LT1, pinballMachine.ltBonus3000);
-  digitalWrite(OUT_LT2, pinballMachine.lt2);
-  digitalWrite(OUT_LT3, pinballMachine.ltSamePlayerShoots);
-
-  delayMicroseconds(SWITCH_READ_DELAY);
-
-  pinballMachine.swD.debounce(IN_SW0);
-  // mx4_sw1.debounce(IN_SW1);
-  pinballMachine.swRightTarget.debounce(IN_SW2);
-  pinballMachine.swRightSlingShot.debounce(IN_SW3);
-
-  digitalWrite(OUT_LT0, LOW);
-  digitalWrite(OUT_LT1, LOW);
-  digitalWrite(OUT_LT2, LOW);
-  digitalWrite(OUT_LT3, LOW);
-
-  digitalWrite(OUT_MX4, LOW);
-
-  ///////////////////////////////
-
-  digitalWrite(OUT_MX5, HIGH);
-
-  digitalWrite(OUT_LT0, pinballMachine.lt3);
-  digitalWrite(OUT_LT1, pinballMachine.ltBonus4000);
-  digitalWrite(OUT_LT2, pinballMachine.ltTrippleBonus);
-  digitalWrite(OUT_LT3, pinballMachine.mx5_lt3);
-
-  delayMicroseconds(SWITCH_READ_DELAY);
-
-  pinballMachine.swCenterTarget.debounce(IN_SW0);
-  // mx5_sw1.debounce(IN_SW1);
-  pinballMachine.swRightBumper.debounce(IN_SW2);
-  pinballMachine.swRightAdvanceLane.debounce(IN_SW3);
-
-  digitalWrite(OUT_LT0, LOW);
-  digitalWrite(OUT_LT1, LOW);
-  digitalWrite(OUT_LT2, LOW);
-  digitalWrite(OUT_LT3, LOW);
-
-  digitalWrite(OUT_MX5, LOW);
-
-  ///////////////////////////////
-
-  digitalWrite(OUT_MX6, HIGH);
-
-  digitalWrite(OUT_LT0, pinballMachine.ltBall2);
-  digitalWrite(OUT_LT1, pinballMachine.ltBall3);
-  digitalWrite(OUT_LT2, pinballMachine.ltBall4);
-  digitalWrite(OUT_LT3, pinballMachine.ltBall5);
-
-  delayMicroseconds(SWITCH_READ_DELAY);
-
-  digitalWrite(OUT_LT0, LOW);
-  digitalWrite(OUT_LT1, LOW);
-  digitalWrite(OUT_LT2, LOW);
-  digitalWrite(OUT_LT3, LOW);
-
-  digitalWrite(OUT_MX6, LOW);
-
-  ///////////////////////////////
-
-  digitalWrite(OUT_MX7, HIGH);
-
-  digitalWrite(OUT_LT0, pinballMachine.ltPlayer1);
-  digitalWrite(OUT_LT1, pinballMachine.ltPlayer2);
-  digitalWrite(OUT_LT2, pinballMachine.ltPlayer3);
-  digitalWrite(OUT_LT3, pinballMachine.ltPlayer4);
-
-  delayMicroseconds(SWITCH_READ_DELAY);
-
-  digitalWrite(OUT_LT0, LOW);
-  digitalWrite(OUT_LT1, LOW);
-  digitalWrite(OUT_LT2, LOW);
-  digitalWrite(OUT_LT3, LOW);
-
-  digitalWrite(OUT_MX7, LOW);
-
-  ///////////////////////////////
-
-  digitalWrite(OUT_MX8, HIGH);
-
-  digitalWrite(OUT_LT0, pinballMachine.mx8_lt0);
-  digitalWrite(OUT_LT1, pinballMachine.mx8_lt1);
-  digitalWrite(OUT_LT2, pinballMachine.mx8_lt2);
-  digitalWrite(OUT_LT3, pinballMachine.ltBall1);
-
-  delayMicroseconds(SWITCH_READ_DELAY);
-
-  digitalWrite(OUT_LT0, LOW);
-  digitalWrite(OUT_LT1, LOW);
-  digitalWrite(OUT_LT2, LOW);
-  digitalWrite(OUT_LT3, LOW);
-
-  digitalWrite(OUT_MX8, LOW);
-
-  pinballMachine.swFlipperLeft.debounceDigital(IN_FLIPPER_LEFT);
-  pinballMachine.swFlipperRight.debounceDigital(IN_FLIPPER_RIGHT);
+  pinballMachine.loop();
 
   if (pinballMachine.swTilt.sw && !tilted)
   {
@@ -679,7 +475,7 @@ void updateScore()
     players[currentPlayer].score += 25000;
     pinballMachine.ltExtraBallLeft = true;
     pinballMachine.ltExtraBallRight = true;
-    playSFX(SOUND_STARTUP);
+    pinballMachine.playSFX(SOUND_STARTUP);
   }
 
   // Left and Right Bumper +50
@@ -801,11 +597,11 @@ void writeScore(long score, bool sound)
   writeDisplay(score);
   if (sound)
   {
-    if (pt.tune_playing)
+    if (pinballMachine.isSFXPlaying())
     {
-      pt.tune_stopscore();
+      pinballMachine.stopSFX();
     }
-    playSFX(SOUND_POINT);
+    pinballMachine.playSFX(SOUND_POINT);
   }
 }
 
@@ -830,7 +626,7 @@ void extraBall()
 {
   pinballMachine.ltSamePlayerShoots = true;
   extraBalls++;
-  playSFX(SOUND_EXTRABALL);
+  pinballMachine.playSFX(SOUND_EXTRABALL);
 }
 
 /**
@@ -872,7 +668,7 @@ void reset()
 
   state = GS_BEFORE;
 
-  playSFX(SOUND_STARTUP);
+  pinballMachine.playSFX(SOUND_STARTUP);
 }
 
 /**
@@ -900,7 +696,7 @@ void startGame()
     {
       amountOfPlayers = 1;
     }
-    playSFX(SOUND_POINT);
+    pinballMachine.playSFX(SOUND_POINT);
     lightPlayerLights(amountOfPlayers);
   }
 }
@@ -973,7 +769,7 @@ void endOfBall()
 
   long bonusAmount = 0;
 
-  playSFX(SOUND_NEWBALL);
+  pinballMachine.playSFX(SOUND_NEWBALL);
 
   if (!tilted)
   {
@@ -1023,7 +819,7 @@ void endOfBall()
   pinballMachine.ltBall5 = false;
 
   // Wait until the music finishes playing
-  while (pt.tune_playing)
+  while (pinballMachine.isSFXPlaying())
   {
     /*do nothing*/
   }
@@ -1104,13 +900,13 @@ void endGame()
 {
   bool endNow = false;
   state = GS_GAMEOVER;
-  playSFX(SOUND_ENDING_SONG);
+  pinballMachine.playSFX(SOUND_ENDING_SONG);
 
   pinballMachine.ltBall1 = pinballMachine.ltBall2 = pinballMachine.ltBall3 = pinballMachine.ltBall4 = pinballMachine.ltBall5 = false;
   pinballMachine.ltA = pinballMachine.ltB = pinballMachine.ltC = pinballMachine.ltD = true;
   pinballMachine.lt1 = pinballMachine.lt2 = pinballMachine.lt3 = true;
 
-  while (pt.tune_playing && !endNow)
+  while (pinballMachine.isSFXPlaying() && !endNow)
   {
     // Do display animation
     int animationDelay = 2000;
@@ -1129,7 +925,7 @@ void endGame()
     }
   }
 
-  pt.tune_stopscore();
+  pinballMachine.stopSFX();
   lightPlayerLights(0);
   reset();
 }
@@ -1178,7 +974,7 @@ String getRankingTitle(long score)
  */
 void tilt()
 {
-  playSFX(SOUND_TILT);
+  pinballMachine.playSFX(SOUND_TILT);
   writeDisplay("TILTED");
 }
 
@@ -1198,19 +994,6 @@ void timerBlinkExtraBallLeft(void)
 void timerBlinkExtraBallRight(void)
 {
   pinballMachine.ltExtraBallRight = !pinballMachine.ltExtraBallRight;
-}
-
-/**
- * Play the music / SFX music. Defined in the arrays above
- *
- * @param sfx Array of music to play
- */
-void playSFX(const byte *sfx)
-{
-  if (!pt.tune_playing)
-  {
-    pt.tune_playscore((byte *)sfx);
-  }
 }
 
 /**
