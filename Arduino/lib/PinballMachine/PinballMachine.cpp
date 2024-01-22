@@ -41,6 +41,10 @@ void PinballMachine::setup()
     pt.tune_initchan(NOTE_1);
     pt.tune_initchan(NOTE_2);
     pt.tune_initchan(NOTE_3);
+
+    // init the two displays
+    display1.begin(0x70);
+    display2.begin(0x71);
 }
 
 void PinballMachine::loop()
@@ -254,4 +258,52 @@ void PinballMachine::stopSFX()
 bool PinballMachine::isSFXPlaying()
 {
     return pt.tune_playing;
+}
+
+void PinballMachine::writeDisplay(long num)
+{
+    char buffer[9];
+    long2text(num, buffer);
+    PinballMachine::writeDisplay(buffer);
+}
+
+void PinballMachine::writeDisplay(String msg)
+{
+    PinballMachine::clearDisplay(); // Not sure if I need to clear every time, Long run?
+    for (unsigned int i = 0; i < 8; i++)
+    {
+        if (i < msg.length())
+        {
+            PinballMachine::writeDisplay(i, msg.charAt(i));
+        }
+    }
+    PinballMachine::updateDisplay(); // Just like clear, should we auto update in long run?
+}
+
+void PinballMachine::writeDisplay(int place, char in)
+{
+    if (isprint(in))
+    {
+        if (place > 3)
+        {
+            display2.writeDigitAscii(place - 4, in);
+        }
+        else
+        {
+            display1.writeDigitAscii(place, in);
+        }
+    }
+}
+
+void PinballMachine::updateDisplay()
+{
+    display1.writeDisplay();
+    display2.writeDisplay();
+}
+
+void PinballMachine::clearDisplay()
+{
+    display1.clear();
+    display2.clear();
+    PinballMachine::updateDisplay();
 }

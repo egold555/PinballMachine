@@ -2,19 +2,11 @@
 
 // imports
 #include <Arduino.h>
-#include <Playtune.h>             //Music http://blog.bentgeorge.com/?p=119
-#include <SPI.h>                  //Display
-#include <Wire.h>                 //Display
-#include <Adafruit_GFX.h>         //Display
-#include <Adafruit_LEDBackpack.h> //Display
-#include <long2text.h>            //Peter
-#include <run.h>                  //Modified version of https://github.com/billroy/run
-// #include <EEPROM.h> //not used currently
+#include <PinballMachine.h>
+
+#include <run.h> //Modified version of https://github.com/billroy/run
 
 #include "SFXAndMusic.h"
-
-// #include <Button.h>
-#include <PinballMachine.h>
 
 // Constants for delays ahs such.
 // TODO: DOcument more
@@ -53,10 +45,6 @@ unsigned long timeRetractLeftThumperBumper = 0, timeRetractRightThumperBumper = 
 unsigned long timeRetractBallReturn = 0;
 unsigned long timeNextSpinnerScore = 0;
 
-// The matrix display
-Adafruit_AlphaNum4 display1 = Adafruit_AlphaNum4();
-Adafruit_AlphaNum4 display2 = Adafruit_AlphaNum4();
-
 // player variables
 Player players[4];
 int amountOfPlayers = 0;
@@ -94,12 +82,6 @@ String getRankingTitle(long score);
 void tilt(void);
 void timerBlinkExtraBallLeft(void);
 void timerBlinkExtraBallRight(void);
-// void pinballMachine.playSFX(const byte *sfx);
-void writeDisplay(long num);
-void writeDisplay(String msg);
-void writeDisplay(int place, char in);
-void updateDisplay(void);
-void clearDisplay(void);
 void typingInYourName(void);
 
 /**
@@ -114,14 +96,10 @@ void setup()
 
   pinballMachine.setup();
 
-  // init the two displays
-  display1.begin(0x70);
-  display2.begin(0x71);
-
   reset();
   // pinballMachine.playSFX(SOUND_WIZARD);
   // state = GS_TEST_NAME; //JUST FOR TESTING
-  // clearDisplay(); //debug
+  // pinballMachine.clearDisplay(); //debug
 }
 
 /**
@@ -217,20 +195,20 @@ void typingInYourName()
     {
       if (theCharLast != nameChars[posToWriteAt])
       {
-        writeDisplay(posToWriteAt, nameChars[posToWriteAt]);
-        updateDisplay();
+        pinballMachine.writeDisplay(posToWriteAt, nameChars[posToWriteAt]);
+        pinballMachine.updateDisplay();
         theCharLast = nameChars[posToWriteAt];
 
         for (int i = 0; i < charsShouldRender; i++)
         {
-          writeDisplay(i, nameChars[i]);
+          pinballMachine.writeDisplay(i, nameChars[i]);
         }
       }
     }
     else
     {
-      writeDisplay(posToWriteAt, ' ');
-      updateDisplay();
+      pinballMachine.writeDisplay(posToWriteAt, ' ');
+      pinballMachine.updateDisplay();
       theCharLast = ' ';
     }
   }
@@ -261,16 +239,16 @@ void scrollText(String msg)
   int len = msg.length();
   if ((msgCount % MSG_DELAY) == 0)
   {
-    clearDisplay();
-    writeDisplay(0, msg.charAt((msgPos) % len));
-    writeDisplay(1, msg.charAt((msgPos + 1) % len));
-    writeDisplay(2, msg.charAt((msgPos + 2) % len));
-    writeDisplay(3, msg.charAt((msgPos + 3) % len));
-    writeDisplay(4, msg.charAt((msgPos + 4) % len));
-    writeDisplay(5, msg.charAt((msgPos + 5) % len));
-    writeDisplay(6, msg.charAt((msgPos + 6) % len));
-    writeDisplay(7, msg.charAt((msgPos + 7) % len));
-    updateDisplay();
+    pinballMachine.clearDisplay();
+    pinballMachine.writeDisplay(0, msg.charAt((msgPos) % len));
+    pinballMachine.writeDisplay(1, msg.charAt((msgPos + 1) % len));
+    pinballMachine.writeDisplay(2, msg.charAt((msgPos + 2) % len));
+    pinballMachine.writeDisplay(3, msg.charAt((msgPos + 3) % len));
+    pinballMachine.writeDisplay(4, msg.charAt((msgPos + 4) % len));
+    pinballMachine.writeDisplay(5, msg.charAt((msgPos + 5) % len));
+    pinballMachine.writeDisplay(6, msg.charAt((msgPos + 6) % len));
+    pinballMachine.writeDisplay(7, msg.charAt((msgPos + 7) % len));
+    pinballMachine.updateDisplay();
 
     msgPos++;
     if (msgPos == len)
@@ -594,7 +572,7 @@ void writeScore(long score)
  */
 void writeScore(long score, bool sound)
 {
-  writeDisplay(score);
+  pinballMachine.writeDisplay(score);
   if (sound)
   {
     if (pinballMachine.isSFXPlaying())
@@ -682,7 +660,7 @@ void startGame()
   {
     state = GS_PLAYING;
     pinballMachine.ltBall1 = true;
-    writeDisplay(0);
+    pinballMachine.writeDisplay(0);
   }
 
   if (state == GS_GAMEOVER)
@@ -918,7 +896,7 @@ void endGame()
       endNow = delayWithLights(animationDelay);
       if (endNow)
         break;
-      writeDisplay(getRankingTitle(p.score));
+      pinballMachine.writeDisplay(getRankingTitle(p.score));
       endNow = delayWithLights(animationDelay);
       if (endNow)
         break;
@@ -975,7 +953,7 @@ String getRankingTitle(long score)
 void tilt()
 {
   pinballMachine.playSFX(SOUND_TILT);
-  writeDisplay("TILTED");
+  pinballMachine.writeDisplay("TILTED");
 }
 
 /**
@@ -994,76 +972,4 @@ void timerBlinkExtraBallLeft(void)
 void timerBlinkExtraBallRight(void)
 {
   pinballMachine.ltExtraBallRight = !pinballMachine.ltExtraBallRight;
-}
-
-/**
- * Write a long to the display
- *
- * @param num number to display on screen
- */
-void writeDisplay(long num)
-{
-  char buffer[9];
-  long2text(num, buffer);
-  writeDisplay(buffer);
-}
-
-/**
- * Writes a string to the display(s)
- *
- * @param msg String to write
- */
-void writeDisplay(String msg)
-{
-  clearDisplay(); // Not sure if I need to clear every time, Long run?
-  for (unsigned int i = 0; i < 8; i++)
-  {
-    if (i < msg.length())
-    {
-      writeDisplay(i, msg.charAt(i));
-    }
-  }
-  updateDisplay(); // Just like clear, should we auto update in long run?
-}
-
-/**
- * Writes a character to a certian place on the display(s)
- *
- * @param place Where to write it 0-7. Each display has 4 characters
- * @param in Character to display. Displays all ASCII and some unicode characters
- */
-void writeDisplay(int place, char in)
-{
-  if (isprint(in))
-  {
-    if (place > 3)
-    {
-      display2.writeDigitAscii(place - 4, in);
-    }
-    else
-    {
-      display1.writeDigitAscii(place, in);
-    }
-  }
-}
-
-/**
- * Updates both display units as one display
- *
- */
-void updateDisplay()
-{
-  display1.writeDisplay();
-  display2.writeDisplay();
-}
-
-/**
- * Clears both display units as one display
- *
- */
-void clearDisplay()
-{
-  display1.clear();
-  display2.clear();
-  updateDisplay();
 }

@@ -3,7 +3,16 @@
 
 #include "Constants.h"
 #include "Button.h"
+
+// Music
 #include <Playtune.h>
+
+// Display
+#include <SPI.h>                  //Display
+#include <Wire.h>                 //Display
+#include <Adafruit_GFX.h>         //Display
+#include <Adafruit_LEDBackpack.h> //Display
+#include <long2text.h>            //Peter
 
 class PinballMachine
 {
@@ -79,8 +88,17 @@ public:
     void stopSFX();
     bool isSFXPlaying();
 
+    void writeDisplay(long num);
+    void writeDisplay(String msg);
+    void writeDisplay(int place, char in);
+    void updateDisplay();
+    void clearDisplay();
+
 private:
     Playtune pt;
+    // The matrix display
+    Adafruit_AlphaNum4 display1 = Adafruit_AlphaNum4();
+    Adafruit_AlphaNum4 display2 = Adafruit_AlphaNum4();
 };
 
 #endif // PINBALL_MACHINE__H_
