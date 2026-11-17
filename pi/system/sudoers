@@ -1,0 +1,2 @@
+# Lets the reprogram watcher and deploy.sh stop and start the game without a password.
+pi ALL=(root) NOPASSWD: /usr/bin/systemctl stop pinball-gameplay, /usr/bin/systemctl start pinball-gameplay, /usr/bin/systemctl restart pinball-gameplay

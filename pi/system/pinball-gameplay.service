@@ -1,0 +1,14 @@
+[Unit]
+Description=Pinball: the game (TypeScript brain, drives the Mega over USB)
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+User=pi
+WorkingDirectory=/home/pi/PinballMachine/Gameplay
+ExecStart=/usr/bin/node dist/main.js
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

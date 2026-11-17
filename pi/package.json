@@ -1,0 +1,29 @@
+{
+  "name": "pinball-pi",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Pinball machine brain for a Raspberry Pi. Drives the Mega I/O board over USB.",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "gen": "node scripts/gen-protocol.mjs",
+    "build": "node scripts/gen-protocol.mjs && tsc",
+    "start": "node dist/main.js",
+    "dev": "node scripts/gen-protocol.mjs && tsx src/main.ts",
+    "console": "tsx src/console.ts",
+    "lint": "eslint .",
+    "test": "node scripts/gen-protocol.mjs --check && tsc --noEmit && eslint . && tsx --test --test-force-exit test/*.test.ts"
+  },
+  "dependencies": {
+    "serialport": "^13.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "eslint": "^9.39.5",
+    "tsx": "^4.23.15",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.73.0"
+  }
+}

@@ -5,10 +5,12 @@ The code for my pinball machine.
 | Folder | What it is |
 |---|---|
 | [`esp/`](esp/) | **The brain.** Seeed XIAO ESP32-C6. All game rules, sound, WiFi and over-the-air updates. |
+| [`pi/`](pi/) | **The brain, Raspberry Pi version.** The same game in TypeScript, talking to the Mega over its USB cable. No wiring needed. |
 | [`mega/`](mega/) | **The I/O board.** Arduino Mega 2560, wired as it always was. Scans switches and lamps, fires coils, drives the display and speaker. No game logic. |
 | [`protocol/`](protocol/) | The serial protocol and hardware map (switch, lamp and coil IDs) shared by both. |
 | [`Arduino/`](Arduino/) | The original all-in-one Mega firmware. Still works. Flash it to go back to how things were. |
 | [`Midis/`](Midis/) | Source MIDI files for the music. |
+| [`FUTURE.md`](FUTURE.md) | Ideas that are possible but not built yet. |
 
 ## Wiring the ESP to the Mega
 
