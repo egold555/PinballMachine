@@ -6,6 +6,7 @@
 // link keeps trying to reopen it.
 
 import { SerialPort } from 'serialport';
+import { waitForMegaPort } from './findPort.js';
 import {
     BAUD_RATE,
     encodeFrame,
@@ -36,11 +37,12 @@ export class MegaLink {
     private lastRx = -Infinity;
     private closing = false;
 
-    constructor(private readonly path: string) {}
+    // With no path, it looks for the Mega every time it (re)opens the port.
+    constructor(private readonly fixedPath: string | null = null) {}
 
     start(listener: LinkListener): void {
         this.listener = listener;
-        this.open();
+        void this.open();
     }
 
     send(type: number, payload: ArrayLike<number> = []): void {
@@ -62,10 +64,11 @@ export class MegaLink {
         await new Promise<void>((resolve) => port.close(() => resolve()));
     }
 
-    private open(): void {
+    private async open(): Promise<void> {
         this.canSend = false;
         this.decoder = new FrameDecoder();
-        const port = new SerialPort({ path: this.path, baudRate: BAUD_RATE, autoOpen: false });
+        const path = this.fixedPath ?? (await waitForMegaPort());
+        const port = new SerialPort({ path, baudRate: BAUD_RATE, autoOpen: false });
 
         port.on('data', (data: Buffer) => {
             for (const b of data) {
@@ -77,17 +80,17 @@ export class MegaLink {
             if (this.bootTimer) clearTimeout(this.bootTimer);
             if (this.closing) return;
             console.log('[link] port closed, retrying');
-            setTimeout(() => this.open(), REOPEN_MS);
+            setTimeout(() => void this.open(), REOPEN_MS);
         });
         port.on('error', (err) => console.log(`[link] ${err.message}`));
 
         port.open((err) => {
             if (err) {
-                console.log(`[link] can't open ${this.path}: ${err.message}`);
-                setTimeout(() => this.open(), REOPEN_MS);
+                console.log(`[link] can't open ${path}: ${err.message}`);
+                setTimeout(() => void this.open(), REOPEN_MS);
                 return;
             }
-            console.log(`[link] opened ${this.path}, waiting for the Mega to boot`);
+            console.log(`[link] opened ${path}, waiting for the Mega to boot`);
             this.port = port;
             // The Mega says hello on its own once it boots. If the port didn't
             // reset it (it was already running), ask instead.

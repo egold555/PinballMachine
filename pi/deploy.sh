@@ -12,6 +12,6 @@ HOST=${1:-pinballmachine}
 DEST=/home/pi/PinballMachine/Gameplay
 
 npm run build
-rsync -a --delete dist package.json package-lock.json "$HOST:$DEST/"
+rsync -a --delete dist public package.json package-lock.json "$HOST:$DEST/"
 ssh "$HOST" "cd $DEST && npm ci --omit=dev --no-audit --no-fund && sudo -n systemctl restart pinball-gameplay"
 echo "Deployed. Logs: ssh $HOST journalctl -fu pinball-gameplay"

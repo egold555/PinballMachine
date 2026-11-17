@@ -23,7 +23,7 @@ export async function waitForMegaPort(): Promise<string> {
         try {
             return await findMegaPort();
         } catch (err) {
-            if (first) console.log(`[boot] ${(err as Error).message}\n[boot] waiting for the Mega...`);
+            if (first) console.log(`[link] ${(err as Error).message}\n[link] waiting for the Mega...`);
             await delay(2000);
         }
     }

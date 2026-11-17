@@ -12,7 +12,7 @@ import {
     SOUND_STARTUP,
     SOUND_TILT,
 } from '../sounds/scores.js';
-import { load, save } from '../storage.js';
+import { bestScore, recordScores } from '../highScores.js';
 import type { GameMode } from './GameMode.js';
 
 const BALL_RETURN_PULSE = 100;
@@ -21,8 +21,6 @@ const SPINNER_SCORE_DELAY = 75;
 
 const MAX_PLAYERS = 4;
 const MAX_BALLS = 6; // starts at 1, so 5 balls
-
-const HIGH_SCORE_KEY = 'original.highScore';
 
 const ABCD_SWITCHES: SwitchId[] = [Switch.A, Switch.B, Switch.C, Switch.D];
 const ABCD_LAMPS: LampId[] = [Lamp.A, Lamp.B, Lamp.C, Lamp.D];
@@ -43,7 +41,10 @@ interface Player {
 }
 
 export class OriginalGame implements GameMode {
+    readonly id = 'original';
     readonly name = 'Original';
+    readonly description = 'The rules the machine has always had. Up to 4 players, 5 balls.';
+    readonly keepsHighScores = true;
 
     private players: Player[] = [];
     private amountOfPlayers = 0;
@@ -93,7 +94,7 @@ export class OriginalGame implements GameMode {
     // scored them (and could tilt) before the game had started.
     private async attract(m: Machine): Promise<void> {
         let msg = 'PRESS START TO PLAY AGAIN           ';
-        const high = load(HIGH_SCORE_KEY, 0);
+        const high = bestScore(this.id);
         if (high > 0) msg += `HIGH SCORE - ${high}            `;
         m.scrollText(msg);
 
@@ -381,12 +382,11 @@ export class OriginalGame implements GameMode {
         this.lightPlayerLights(m, 0);
     }
 
+    // Change from the original: every player's score goes on the high score
+    // list, not just the best one.
     private saveHighScore(): void {
-        const best = Math.max(0, ...this.players.slice(0, this.amountOfPlayers).map((p) => p.score));
-        if (best > load(HIGH_SCORE_KEY, 0)) {
-            save(HIGH_SCORE_KEY, best);
-            console.log(`[game] new high score ${best}`);
-        }
+        const scores = this.players.slice(0, this.amountOfPlayers).map((p) => p.score);
+        if (recordScores(this.id, scores)) console.log(`[game] new high score ${Math.max(...scores)}`);
     }
 }
 

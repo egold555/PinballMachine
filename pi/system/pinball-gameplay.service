@@ -7,6 +7,9 @@ StartLimitIntervalSec=0
 User=pi
 WorkingDirectory=/home/pi/PinballMachine/Gameplay
 ExecStart=/usr/bin/node dist/main.js
+# The web page on port 80. Without this it uses 8080.
+Environment=PINBALL_HTTP_PORT=80
+AmbientCapabilities=CAP_NET_BIND_SERVICE
 Restart=always
 RestartSec=3
 

@@ -18,9 +18,9 @@ import {
     Msg,
     Switch,
     SOUND_CHANNELS,
+    switchName,
 } from './protocol/index.js';
 
-const SWITCH_NAMES = new Map<number, string>(Object.entries(Switch).map(([name, id]) => [id, name]));
 const COIL_IDS = new Map<string, number>(Object.entries(Coil));
 
 // Same rules as Machine.ts: (switch, coil)
@@ -46,7 +46,7 @@ const link = new MegaLink(await findMegaPort());
 link.start({
     onHello: (v) => console.log(`\n  Mega says hello (protocol v${v})`),
     onSwitch: (id, closed) =>
-        console.log(`\n  switch ${String(id).padStart(2)} ${(SWITCH_NAMES.get(id) ?? '?').padEnd(22)} ${closed ? 'CLOSED' : 'open'}`),
+        console.log(`\n  switch ${String(id).padStart(2)} ${switchName(id).padEnd(22)} ${closed ? 'CLOSED' : 'open'}`),
     onSwitchState: () => {},
 });
 setInterval(() => link.send(Msg.LAMPS, lamps), HEARTBEAT_MS);

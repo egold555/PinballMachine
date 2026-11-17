@@ -5,19 +5,23 @@
 //
 //   npm run dev [port]     run from source (port is found automatically)
 //   npm run build && npm start
+//
+// The web page is on port 8080, or PINBALL_HTTP_PORT.
 
-import { setTimeout as delay } from 'node:timers/promises';
-import { waitForMegaPort } from './findPort.js';
-import type { GameMode } from './games/GameMode.js';
-import { OriginalGame } from './games/OriginalGame.js';
+import { GameRunner } from './GameRunner.js';
+import { GAME_MODES } from './games/index.js';
 import { Machine } from './Machine.js';
 import { MegaLink } from './MegaLink.js';
+import { startWeb } from './web.js';
 
 console.log('[boot] pinball brain starting');
 
-const link = new MegaLink(await waitForMegaPort());
+const link = new MegaLink(process.argv[2] ?? process.env.PINBALL_PORT ?? null);
 const machine = new Machine(link);
 link.start(machine);
+
+const runner = new GameRunner(machine, GAME_MODES);
+startWeb({ runner, machine, megaConnected: () => link.connected }, Number(process.env.PINBALL_HTTP_PORT ?? 8080));
 
 // Stopping the program (systemctl stop, Ctrl+C) turns everything off first.
 // The text stays on the display through a Mega firmware upload, which is
@@ -31,13 +35,4 @@ async function shutdown(): Promise<void> {
 process.once('SIGTERM', () => void shutdown());
 process.once('SIGINT', () => void shutdown());
 
-const mode: GameMode = new OriginalGame();
-for (;;) {
-    console.log(`[game] ${mode.name}`);
-    try {
-        await mode.run(machine);
-    } catch (err) {
-        console.error('[game] crashed, starting over:', err);
-        await delay(1000);
-    }
-}
+await runner.run();

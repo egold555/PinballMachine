@@ -23,6 +23,12 @@ export function switchIsUnused(id: number): boolean {
     return !NAMED_SWITCHES.has(id);
 }
 
+const SWITCH_NAMES = new Map<number, string>(Object.entries(Switch).map(([name, id]) => [id, name]));
+// "LEFT_SLINGSHOT" for 7, "?" for an ID with no switch.
+export function switchName(id: number): string {
+    return SWITCH_NAMES.get(id) ?? '?';
+}
+
 // ------------------------------------------------------------------- Bitmaps
 
 export function bitGet(bits: Uint8Array, i: number): boolean {

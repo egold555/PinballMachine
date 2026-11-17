@@ -48,6 +48,14 @@ const AUTOFIRE_RULES: { sw: SwitchId; coil: CoilId; ms: number }[] = [
     { sw: Switch.RIGHT_THUMPER_BUMPER, coil: Coil.THUMPER_RIGHT, ms: 50 },
 ];
 
+// Thrown out of nextEvent()/sleep() when stopGame() is called, so the running
+// game unwinds. GameRunner catches it; game code normally doesn't need to.
+export class GameStopped extends Error {
+    constructor() {
+        super('game stopped');
+    }
+}
+
 const SERVICE_PERIOD_MS = 10;
 const DEBOUNCE_MS = 20;
 const MAX_QUEUED_EVENTS = 64;
@@ -65,7 +73,8 @@ export class Machine implements LinkListener {
     private readonly sound: SoundPlayer;
 
     private events: SwitchEvent[] = [];
-    private waiter: ((ev: SwitchEvent | null) => void) | null = null;
+    private waiter: { resolve: (ev: SwitchEvent | null) => void; reject: (err: Error) => void } | null = null;
+    private stopping = false;
 
     private switches = new Uint8Array(SWITCH_BYTES);
     private lastClose = new Array<number>(SWITCH_COUNT).fill(-Infinity);
@@ -95,17 +104,21 @@ export class Machine implements LinkListener {
 
     // Waits up to timeoutMs for the next switch event. Returns null on timeout.
     nextEvent(timeoutMs: number): Promise<SwitchEvent | null> {
+        if (this.stopping) return Promise.reject(new GameStopped());
         const queued = this.events.shift();
         if (queued) return Promise.resolve(queued);
-        return new Promise((resolve) => {
+        return new Promise((resolve, reject) => {
             const timer = setTimeout(() => {
                 this.waiter = null;
                 resolve(null);
             }, Math.max(0, timeoutMs));
-            this.waiter = (ev) => {
+            const done = () => {
                 clearTimeout(timer);
                 this.waiter = null;
-                resolve(ev);
+            };
+            this.waiter = {
+                resolve: (ev) => (done(), resolve(ev)),
+                reject: (err) => (done(), reject(err)),
             };
         });
     }
@@ -143,7 +156,7 @@ export class Machine implements LinkListener {
         }
         console.log(`[switch] ${String(id).padStart(2)} ${closed ? 'closed' : 'open'}`);
 
-        if (this.waiter) this.waiter(ev);
+        if (this.waiter) this.waiter.resolve(ev);
         else if (this.events.length < MAX_QUEUED_EVENTS) this.events.push(ev);
     }
 
@@ -154,6 +167,22 @@ export class Machine implements LinkListener {
     onHello(): void {
         console.log('[link] Mega connected');
         this.resync();
+    }
+
+    // Ends the running game: its next (or current) wait throws GameStopped.
+    // Sound and autofire go off right away.
+    stopGame(): void {
+        this.stopping = true;
+        this.stopSound();
+        this.setAutofire(0);
+        this.clearEvents();
+        this.waiter?.reject(new GameStopped());
+    }
+
+    // Lets game code wait again after stopGame(). GameRunner calls it.
+    resumeGame(): void {
+        this.stopping = false;
+        this.clearEvents();
     }
 
     // ---------------------------------------------------------------- Lamps
@@ -202,6 +231,11 @@ export class Machine implements LinkListener {
         this.scrollPos = 0;
         this.scrollNext = now();
         this.scrolling = true;
+    }
+
+    // What the display shows right now.
+    get displayText(): string {
+        return this.text;
     }
 
     private setText(text: string): void {
