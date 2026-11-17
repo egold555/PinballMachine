@@ -5,6 +5,9 @@
 // a square wave can't play. When more than three notes sound at once, the
 // highest and lowest are kept (melody and bass) and the oldest note in the
 // middle gives up its voice. Velocity, instruments and pedals are ignored.
+//
+// A marker named "end" (written by tools/arrange.ts for endAt) sets where the
+// score ends, so a loop can include the rest after its last note.
 
 import { SOUND_CHANNELS } from '../protocol/index.js';
 
@@ -13,7 +16,10 @@ export interface ConvertedMidi {
     notes: number; // notes played
     dropped: number; // notes cut short or skipped for lack of a voice
     ms: number; // length
+    bpm: number; // tempo at the start
 }
+
+export const END_MARKER = 'end';
 
 const DRUM_CHANNEL = 9;
 const DEFAULT_TEMPO = 500_000; // µs per quarter note, i.e. 120 bpm
@@ -72,8 +78,10 @@ export function readMidi(data: Uint8Array): MidiFile {
 }
 
 export function midiToScore(data: Uint8Array, voices = SOUND_CHANNELS): ConvertedMidi {
-    const { ticksPerBeat, events, tempos } = parse(data);
+    const { ticksPerBeat, events, tempos, endTick } = parse(data);
     const toMs = tempoMap(ticksPerBeat, tempos);
+    // Like playback: of several tempos at the very start, the last one counts.
+    const startTempo = tempos.filter((t) => t.tick === 0).at(-1)?.usPerBeat ?? DEFAULT_TEMPO;
 
     // Same time: notes stop before new ones start, so a voice frees up.
     events.sort((a, b) => a.tick - b.tick || Number(a.on) - Number(b.on) || a.order - b.order);
@@ -125,8 +133,9 @@ export function midiToScore(data: Uint8Array, voices = SOUND_CHANNELS): Converte
         notes++;
     }
 
+    if (endTick !== null) waitUntil(toMs(endTick));
     out.push(0xf0);
-    return { score: Uint8Array.from(out), notes, dropped, ms: at };
+    return { score: Uint8Array.from(out), notes, dropped, ms: at, bpm: 60_000_000 / startTempo };
 }
 
 // --------------------------------------------------------------- Parsing
@@ -157,6 +166,7 @@ function parse(d: Uint8Array, withDrums = false) {
     const tempos: { tick: number; usPerBeat: number }[] = [];
     const programs = new Map<string, number>();
     const trackNames: string[] = [];
+    let endTick: number | null = null;
     let order = 0;
 
     for (let t = 0; t < trackCount && p < d.length; t++) {
@@ -176,6 +186,7 @@ function parse(d: Uint8Array, withDrums = false) {
                 const len = varLen();
                 if (type === 0x51 && len === 3) tempos.push({ tick, usPerBeat: (d[p] << 16) | (d[p + 1] << 8) | d[p + 2] });
                 if (type === 0x03) trackNames[t] = String.fromCharCode(...d.subarray(p, p + len));
+                if (type === 0x06 && String.fromCharCode(...d.subarray(p, p + len)) === END_MARKER) endTick = tick;
                 p += len;
             } else if (status === 0xf0 || status === 0xf7) {
                 const len = varLen(); // not `p += varLen()`: that adds to p from before the length was read
@@ -192,7 +203,7 @@ function parse(d: Uint8Array, withDrums = false) {
         }
         p = end;
     }
-    return { ticksPerBeat, events, tempos, programs, trackNames };
+    return { ticksPerBeat, events, tempos, programs, trackNames, endTick };
 }
 
 // Ticks to milliseconds, following tempo changes.

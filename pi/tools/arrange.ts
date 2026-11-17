@@ -1,9 +1,9 @@
 // Turns the source MIDI files listed in Midis/arrangements.yaml into
-// sounds/<name>.mid, fitted to the machine's three square-wave voices.
+// sounds/<mode>/<name>.mid, fitted to the machine's three square-wave voices.
 // See Midis/README.md for the config.
 //
 //   make songs                                every sound in the config
-//   npx tsx tools/arrange.ts ending-champ     just one
+//   npx tsx tools/arrange.ts original/ending-champ     just one
 //   npx tsx tools/arrange.ts --list <file>    show a file's tracks, to write a recipe
 //
 // "lines" style: each line follows a list of parts in order of preference:
@@ -14,9 +14,9 @@
 // break, say) is shortened to one beat. Output goes to sounds/, then
 // `make deploy`.
 
-import { readFileSync, writeFileSync } from 'node:fs';
-import { basename, join } from 'node:path';
-import { type MidiFile, type MidiNote, readMidi } from '../src/sounds/midi.js';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { basename, dirname, join } from 'node:path';
+import { END_MARKER, type MidiFile, type MidiNote, midiToScore, readMidi } from '../src/sounds/midi.js';
 import {
     type Arrangement,
     type LinesArrangement,
@@ -140,9 +140,10 @@ function octaveShift(segments: Segment[], bass: boolean): number {
 
 // Where the song is silent for too long (and at the start), returns cuts
 // that remove that time. Every tick is then moved by `shift`.
-function silenceCuts(midi: MidiFile, segments: Segment[]) {
+// Starts at startTick if given (silence after it is kept), else at the first note.
+function silenceCuts(midi: MidiFile, segments: Segment[], startTick: number | null) {
     const spans = [...segments].sort((a, b) => a.start - b.start);
-    const cuts: { from: number; to: number }[] = [{ from: 0, to: spans[0].start }];
+    const cuts: { from: number; to: number }[] = [{ from: 0, to: startTick ?? spans[0].start }];
     let end = spans[0].end;
     for (const s of spans) {
         if (s.start > end && midi.toMs(s.start) - midi.toMs(end) > MAX_SILENCE_MS)
@@ -190,15 +191,20 @@ function writeMidi(
     midi: MidiFile,
     lines: { name: string; segments: Segment[] }[],
     shift: (tick: number) => number,
+    endTick: number | null,
 ): Uint8Array {
     // Tempo changes inside cut silence land where the cut is, so the last
     // one still applies afterwards.
-    const tempos = [{ tick: 0, usPerBeat: 500_000 }, ...midi.tempos].sort((a, b) => a.tick - b.tick);
+    // MIDI's default is 120 bpm; only written when the source sets nothing at its start.
+    const defaultTempo = midi.tempos.some((t) => t.tick === 0) ? [] : [{ tick: 0, usPerBeat: 500_000 }];
+    const tempos = [...defaultTempo, ...midi.tempos].sort((a, b) => a.tick - b.tick);
     const tempoEvents = tempos.map((t) => ({
         tick: shift(t.tick),
         bytes: [0xff, 0x51, 3, (t.usPerBeat >> 16) & 0xff, (t.usPerBeat >> 8) & 0xff, t.usPerBeat & 0xff],
     }));
 
+    // Marks where the song ends, so the game's converter keeps the rest after the last note.
+    if (endTick !== null) tempoEvents.push({ tick: shift(endTick), bytes: text(0x06, END_MARKER) });
     const tracks = [track(tempoEvents)];
     lines.forEach((line, ch) => {
         const events = [
@@ -227,7 +233,8 @@ function writeMidi(
 // The first tick at or after this many milliseconds.
 function tickAt(midi: MidiFile, ms: number): number {
     let lo = 0;
-    let hi = Math.max(...midi.notes.map((n) => n.end));
+    let hi = Math.max(1, ...midi.notes.map((n) => n.end));
+    while (midi.toMs(hi) < ms) hi *= 2;
     while (lo < hi) {
         const mid = (lo + hi) >> 1;
         if (midi.toMs(mid) < ms) lo = mid + 1;
@@ -251,22 +258,33 @@ function arrangeLines(midi: MidiFile, a: LinesArrangement, fromTick: number) {
 function arrange(name: string, a: Arrangement): void {
     const midi = readMidi(readFileSync(join(MIDIS_DIR, a.source)));
     const fromTick = tickAt(midi, (a.startAt ?? 0) * 1000);
-    const lines =
+    const endTick = a.endAt === undefined ? null : tickAt(midi, a.endAt * 1000);
+    let lines =
         a.style === 'pluck'
             ? pluckVoices(midi, a, fromTick).map((segments, i) => ({ name: `voice ${i + 1}`, segments, shift: 0 }))
             : arrangeLines(midi, a, fromTick);
+    if (endTick !== null)
+        lines = lines.map((l) => ({
+            ...l,
+            segments: l.segments.filter((s) => s.start < endTick).map((s) => ({ ...s, end: Math.min(s.end, endTick) })),
+        }));
 
     const all = lines.flatMap((l) => l.segments);
-    const { cuts, shift } = silenceCuts(midi, all);
-    const data = writeMidi(midi, lines, shift);
-    writeFileSync(join(OUT_DIR, `${name}.mid`), data);
+    // A loop (endAt) starts exactly at startAt, to stay on the bar lines.
+    // Anything else starts at its first note, with no silence before it.
+    const exactStart = a.startAt !== undefined && a.endAt !== undefined;
+    const { cuts, shift } = silenceCuts(midi, all, exactStart ? fromTick : null);
+    const data = writeMidi(midi, lines, shift, endTick);
+    const out = join(OUT_DIR, `${name}.mid`);
+    mkdirSync(dirname(out), { recursive: true });
+    writeFileSync(out, data);
 
     const secs = (ms: number) => (ms / 1000).toFixed(1);
     const cutText = cuts
         .filter((c) => c.to > c.from)
         .map((c, i) => `${secs(midi.toMs(c.to) - midi.toMs(c.from))} s ${i === 0 && c.from === 0 ? 'at the start' : `at ${secs(midi.toMs(c.from))} s`}`);
     console.log(`${name}.mid  from ${a.source} (${a.style})`);
-    console.log(`  cut silence: ${cutText.join(', ') || 'none'}. Now ${secs(readMidi(data).toMs(Math.max(...readMidi(data).notes.map((n) => n.end))))} s long`);
+    console.log(`  cut: ${cutText.join(', ') || 'nothing'}. Now ${secs(midiToScore(data).ms)} s long`);
     for (const l of lines) {
         const notes = l.segments.map((s) => s.note);
         const range = notes.length ? `${noteName(Math.min(...notes))}-${noteName(Math.max(...notes))}` : 'empty';

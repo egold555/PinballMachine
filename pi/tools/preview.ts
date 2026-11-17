@@ -3,10 +3,11 @@
 // computer before putting them on the machine.
 //
 //   npx tsx tools/preview.ts sounds/ending-champ.mid ...   writes a .wav next to each
-//   npx tsx tools/preview.ts --out <folder> <files...>     writes them there instead
+//   npx tsx tools/preview.ts --out <folder> <files...>     writes them there instead,
+//                                     named <mode>-<sound>.wav for sounds/<mode>/<sound>.mid
 
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { basename, join } from 'node:path';
+import { basename, dirname, join } from 'node:path';
 import { midiToScore } from '../src/sounds/midi.js';
 import { SOUND_CHANNELS } from '../src/protocol/index.js';
 
@@ -75,7 +76,7 @@ if (files[0] === '--out') {
 for (const file of files) {
     const midi = midiToScore(readFileSync(file));
     const name = file.replace(/\.mid$/i, '') + '.wav';
-    const out = outDir ? join(outDir, basename(name)) : name;
+    const out = outDir ? join(outDir, `${basename(dirname(name))}-${basename(name)}`) : name;
     writeFileSync(out, wav(render(midi.score)));
     console.log(`${out}  ${(midi.ms / 1000).toFixed(1)} s, ${midi.notes} notes, ${midi.dropped} cut for lack of a voice`);
 }

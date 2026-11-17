@@ -245,9 +245,11 @@ export class Machine implements LinkListener {
 
     // ---------------------------------------------------------------- Sound
 
-    // A looping sound repeats until stopSound() (or another sound replaces it).
-    playSound(score: Uint8Array, priority: SoundPriority = 'normal', loop = false): void {
-        if (!this.lockedOut) this.sound.play(score, priority, loop);
+    // A looping sound repeats, after loopGapMs of silence, until stopSound()
+    // (or another sound replaces it). null (a sound the mode has no file
+    // for) plays nothing.
+    playSound(score: Uint8Array | null, priority: SoundPriority = 'normal', loop = false, loopGapMs = 1000): void {
+        if (score && !this.lockedOut) this.sound.play(score, priority, loop, loopGapMs);
     }
 
     stopSound(): void {

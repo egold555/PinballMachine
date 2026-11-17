@@ -5,10 +5,15 @@
 #   make preview   listen to them (Midis/pi-ending-songs/preview/*.wav)
 #   make deploy    put them on the machine
 #
-# Each entry is named after the sound it makes (see the list in README.md).
+# Each entry is named <mode>/<sound>, the sound it makes (see README.md),
+# and is written to pi/sounds/<mode>/<sound>.mid.
 #   source:   the MIDI file, relative to this folder
 #   style:    lines or pluck (see README.md)
 #   startAt:  seconds of the source to skip (an intro that doesn't work)
+#   endAt:    seconds into the source where it ends, exactly. For loops: set
+#             it (and startAt) to bar lines so the repeat stays on the beat.
+#             With endAt, the song starts exactly at startAt; without it, at
+#             the first note after startAt.
 # lines style:
 #   melody / middle / bass: lists of parts, first choice first. When the first
 #     part is silent, the next one that is playing fills in.
@@ -18,21 +23,21 @@
 #   channels: which channels to use, e.g. [1, 2, 5]. Default: all but drums.
 #   pluckMs:  how long each note rings, default 250.
 
-ending-amateur:
+original/ending-amateur:
   source: pi-ending-songs/Queen_-_Another_One_Bites_the_Dust.mid
   style: lines
   melody: [{ channel: 1 }, { channel: 6 }] # vocal line (organ), then synth brass
   middle: [{ channel: 2 }, { channel: 4 }] # guitars
   bass: [{ channel: 3 }] # the riff
 
-ending-super:
+original/ending-super:
   source: pi-ending-songs/Rick_James_-_Super_Freak.mid
   style: lines
   melody: [{ channel: 3 }, { channel: 4 }, { channel: 5 }] # lead synth hook, synth, muted guitar
   middle: [{ channel: 2 }] # keyboard stabs
   bass: [{ channel: 1 }]
 
-ending-champ:
+original/ending-champ:
   source: pi-ending-songs/Queen_-_We_Are_The_Champions.mid
   style: lines
   # No vocal part in this file, so the melody is a guess.
@@ -40,7 +45,7 @@ ending-champ:
   middle: [{ channel: 1 }] # piano
   bass: [{ channel: 2 }]
 
-ending-fantastic:
+original/ending-fantastic:
   source: pi-ending-songs/Coolio_-_Fantastic_Voyage.mid
   style: lines
   # It's rap, so there's no sung melody in the file.
@@ -48,7 +53,7 @@ ending-fantastic:
   middle: [{ channel: 2 }, { channel: 4 }] # piano, guitar
   bass: [{ channel: 7 }, { channel: 9 }, { channel: 8 }]
 
-ending-wizard:
+original/ending-wizard:
   source: pi-ending-songs/The_Who_-_Pinball_Wizard.mid
   style: lines
   # The strummed guitar intro (channel 4) is 20 notes a second of chord
@@ -58,9 +63,24 @@ ending-wizard:
   middle: [{ channel: 2 }] # strings
   bass: [{ channel: 5 }, { channel: 7 }]
 
-ending-fireball:
+original/ending-fireball:
   source: pi-ending-songs/Fireball MIDI.mid
   # As lines it sounded rough: the piano is all chords. Pluck handles chords.
   style: pluck
   # The first 23 s are piano chords alone, which didn't sound like the song.
   startAt: 23.5
+
+frenzy/music:
+  # "Quick 8-bit song", onlinesequencer.net/1905502
+  # (make import-sequence ID=1905502 OUT="Midis/frenzy/Quick 8-bit song.mid")
+  # 135 bpm, 20 bars. Bars 1-4 are drums only, which the machine can't play,
+  # so this is bars 5-20: it starts on the drop and loops back to it. A bar is
+  # 16 sixteenths at 135 bpm = 1.7778 s, so bar 5 starts at 7.1111 s and bar
+  # 21 (the end) at 35.5556 s.
+  source: frenzy/Quick 8-bit song.mid
+  style: lines
+  startAt: 7.1111
+  endAt: 35.5556
+  melody: [{ channel: 3 }] # 8-bit sawtooth: the lead
+  middle: [{ channel: 2 }] # 8-bit square: the arpeggio
+  bass: [{ channel: 1 }] # 8-bit triangle

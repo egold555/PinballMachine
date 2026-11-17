@@ -1,6 +1,6 @@
 # Music for the machine
 
-The machine plays music on **three square-wave voices**: at most three notes at a time, all of them beeps. A MIDI file from the internet usually has 5 to 15 parts with drums and chords, so it has to be cut down before it sounds good. This folder holds the raw MIDI files and the recipes that cut them down.
+The machine plays music on **three square-wave voices**: at most three notes at a time, all of them beeps. Every game mode has its own sounds, in a folder named after the mode (`original/`, `switch-test/`, …). A MIDI file from the internet usually has 5 to 15 parts with drums and chords, so it has to be cut down before it sounds good. This folder holds the raw MIDI files and the recipes that cut them down.
 
 ```
 Midis/pi-ending-songs/*.mid      raw downloads (keep them as they came)
@@ -8,11 +8,11 @@ Midis/arrangements.yaml          recipe for each sound: which file, which parts,
         │
         │  make songs
         ▼
-pi/sounds/<name>.mid             finished files, exactly what the machine plays
+pi/sounds/<mode>/<name>.mid      finished files, exactly what the machine plays
         │
         │  make deploy
         ▼
-the Pi, Gameplay/data/sounds/    read by the game when it starts
+the Pi, Gameplay/data/sounds/<mode>/   read by the game when it starts
 ```
 
 All `make` commands are run from the top of the repo.
@@ -26,7 +26,13 @@ All `make` commands are run from the top of the repo.
 
    Prefer files where the melody (the part you'd sing) is its own instrument.
 
-2. **Put it in `Midis/pi-ending-songs/`.** Keep the original file name.
+2. **Put it in `Midis/pi-ending-songs/`** (or a folder for its mode, like `Midis/frenzy/`). Keep the original file name.
+
+   **From onlinesequencer.net:** the site's MIDI download needs a browser, so use the song's number from its link instead:
+
+   ```sh
+   make import-sequence ID=1905502 OUT="Midis/frenzy/Quick 8-bit song.mid"
+   ```
 
 3. **Look inside it:**
 
@@ -40,15 +46,16 @@ All `make` commands are run from the top of the repo.
    - **Parts to avoid:** "busy" over about 10 (strumming, fast chords). Drums are always left out.
    - **A long intro** with only drums or strumming: note when the melody starts (the "plays" column).
 
-4. **Add a recipe to `arrangements.yaml`.** The entry's name is the sound it replaces (see [the list](#sound-names)). Two styles:
+4. **Add a recipe to `arrangements.yaml`.** The entry's name is `<mode>/<sound>`, the sound it replaces (see [the list](#sound-names)). Two styles:
 
    **`lines`** works when there's a clear melody part. It makes three clean parts: melody, middle and bass. Each lists channels, first choice first. When the first is silent, the next one that is playing fills in.
 
    ```yaml
-   ending-champ:
+   original/ending-champ:
      source: pi-ending-songs/Some Song.mid
      style: lines
      startAt: 12              # optional: skip the first 12 seconds
+     endAt: 40                # optional: end exactly here (for loops)
      melody: [{ channel: 4 }, { channel: 1 }]
      middle: [{ channel: 2 }]
      bass: [{ channel: 3 }]
@@ -58,7 +65,7 @@ All `make` commands are run from the top of the repo.
    **`pluck`** works for busy, chord-heavy songs. It's the same method as [Musicotron](https://8bitworkshop.com/musicotron/). Every note of the chosen channels competes for the three voices, newest note wins, and each note rings briefly like a plucked string.
 
    ```yaml
-   ending-fireball:
+   original/ending-fireball:
      source: pi-ending-songs/Some Song.mid
      style: pluck
      startAt: 23.5            # optional
@@ -71,11 +78,11 @@ All `make` commands are run from the top of the repo.
 5. **Build it and listen:**
 
    ```sh
-   make songs      # writes pi/sounds/*.mid
-   make preview    # writes Midis/pi-ending-songs/preview/*.wav
+   make songs      # writes pi/sounds/<mode>/*.mid
+   make preview    # writes Midis/pi-ending-songs/preview/<mode>-<sound>.wav
    ```
 
-   The `.wav` files are exactly what the machine will play. Open them on your computer.
+   The `.wav` files are exactly what the machine will play. Open them on your computer. Or, after `make deploy`, use **Sound Test** mode to play any sound on the machine itself.
 
 6. **Fix what sounds wrong** (see below), and repeat step 5.
 
@@ -104,6 +111,10 @@ If it still won't sound right, a different MIDI file of the same song (an 8-bit 
 
 ## Sound names
 
+Each game mode lists the sounds it plays, in its code (`pi/src/games/`). A mode only has the sounds it needs. A file whose name isn't on its mode's list is ignored, and `make songs` refuses a recipe for a sound no mode has.
+
+**`original/`**, the Original game:
+
 | Name | When it plays |
 |---|---|
 | `start-game` | a game starts, and all of A B C D are collected |
@@ -118,13 +129,33 @@ If it still won't sound right, a different MIDI file of the same song (an 8-bit 
 | `ending-wizard` | 125,000 to 149,999 |
 | `ending-fireball` | 150,000 and up |
 
-Ending songs repeat until someone presses start, so any length works.
+Ending songs repeat until someone presses start, so any length works. Without a file, the Original game plays its old built-in sound instead, and a missing ending song plays `ending-wizard`.
 
-A short sound that's already simple (one or two notes at a time) doesn't need a recipe. Name it correctly and put it straight in `pi/sounds/`, then `make deploy`. Run `make preview` first if you want to hear it.
+**`frenzy/`**, Frenzy:
+
+| Name | When it plays |
+|---|---|
+| `countdown` | each of 5 4 3 2 1 before the ball comes out (keep it short) |
+| `music` | starts on GO and repeats with no gap until the 90 seconds are up. Make it intense |
+| `time-up` | time is up |
+
+The countdown runs on the beat of `music.mid` (its tempo), so GO, where the ball comes out and the music starts, lands on the downbeat. For a seamless loop, set `startAt` and `endAt` in the recipe to bar lines. See `frenzy/music` in `arrangements.yaml`, which also shows how the bar times are worked out.
+
+**`switch-test/`**, Switch Test:
+
+| Name | When it plays |
+|---|---|
+| `hit` | a switch was hit |
+
+In any mode other than Original, a sound without a file is silent.
+
+**A new game mode** declares its own list with a `SoundBank` (see `OriginalGame.ts`) and gets its own folder: `pi/sounds/<its id>/`.
+
+A short sound that's already simple (one or two notes at a time) doesn't need a recipe. Name it correctly and put it straight in `pi/sounds/<mode>/`, then `make deploy`.
 
 ## Trying something quickly
 
-You can also drop a `.mid` with the right name into the Pi's share (`smb://10.0.0.11/PinballMachine`, folder `Gameplay/data/sounds/`) and press **Restart program** on the web page. That's handy for a quick test, but the next `make deploy` overwrites it with whatever is in `pi/sounds/`. Keep the real version in the repo.
+You can also drop a `.mid` with the right name into the Pi's share (`smb://10.0.0.11/PinballMachine`, folder `Gameplay/data/sounds/<mode>/`) and press **Restart program** on the web page. That's handy for a quick test, but the next `make deploy` overwrites it with whatever is in `pi/sounds/`. Keep the real version in the repo.
 
 ## Other files here
 

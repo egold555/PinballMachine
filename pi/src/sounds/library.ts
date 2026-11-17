@@ -1,47 +1,21 @@
-// Every sound the game plays, loaded from .mid files in data/sounds/ when the
-// program starts. To change a sound, replace its file and restart (there is
-// a button on the web page).
+// Every game mode has its own sounds: .mid files in data/sounds/<mode id>/,
+// named after the sounds the mode declares. They are loaded when the program
+// starts; to change one, replace its file and restart (there is a button on
+// the web page).
 //
-// A sound with no file falls back to the built-in version from the old
-// firmware, and a missing ending song falls back to the Wizard one, so an
-// empty folder still gives a working game.
+// A sound with no file is silent, unless the mode gives a built-in fallback
+// (the Original game has the sounds from the old firmware).
 
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { DATA_DIR } from '../storage.js';
 import { midiToScore } from './midi.js';
-import * as builtIn from './scores.js';
 
 export const SOUNDS_DIR = join(DATA_DIR, 'sounds');
 
-// The file for each sound is <name>.mid
-export const SOUND_NAMES = [
-    'start-game',
-    'point',
-    'new-ball',
-    'extra-ball',
-    'tilt',
-    'ending-amateur',
-    'ending-super',
-    'ending-champ',
-    'ending-fantastic',
-    'ending-wizard',
-    'ending-fireball',
-] as const;
-export type SoundName = (typeof SOUND_NAMES)[number];
-
-const BUILT_IN: Partial<Record<SoundName, Uint8Array>> = {
-    'start-game': builtIn.SOUND_STARTUP,
-    point: builtIn.SOUND_POINT,
-    'new-ball': builtIn.SOUND_NEWBALL,
-    'extra-ball': builtIn.SOUND_EXTRABALL,
-    tilt: builtIn.SOUND_TILT,
-    'ending-wizard': builtIn.SOUND_ENDING_SONG,
-};
-const ENDING_FALLBACK: SoundName = 'ending-wizard';
-
 export interface SoundInfo {
-    name: SoundName;
+    mode: string; // mode id, also the folder name
+    name: string;
     source: 'file' | 'built-in' | 'missing';
     seconds: number;
     notes: number;
@@ -49,60 +23,88 @@ export interface SoundInfo {
     error?: string; // the file is there but couldn't be read
 }
 
-const loaded = new Map<SoundName, Uint8Array>();
-let info: SoundInfo[] = [];
+const banks: SoundBank<string>[] = [];
 
-export function loadSounds(dir = SOUNDS_DIR): void {
-    loaded.clear();
-    let files: string[] = [];
-    try {
-        files = readdirSync(dir);
-    } catch {
-        console.log(`[sound] no ${dir}, using the built-in sounds`);
+// One mode's sounds. Create it once per mode, with every sound the mode plays.
+export class SoundBank<N extends string> {
+    private loaded = new Map<N, Uint8Array>();
+    private bpms = new Map<N, number>();
+    private status: SoundInfo[] = [];
+
+    constructor(
+        readonly modeId: string,
+        readonly names: readonly N[],
+        private readonly builtIn: Partial<Record<N, Uint8Array>> = {},
+    ) {
+        banks.push(this as SoundBank<string>);
     }
 
-    info = SOUND_NAMES.map((name): SoundInfo => {
-        const file = files.find((f) => f.toLowerCase() === `${name}.mid`);
-        let error: string | undefined;
-        if (file) {
-            try {
-                const midi = midiToScore(readFileSync(join(dir, file)));
-                loaded.set(name, midi.score);
-                return { name, source: 'file', seconds: midi.ms / 1000, notes: midi.notes, dropped: midi.dropped };
-            } catch (err) {
-                error = `${file}: ${(err as Error).message}`;
-                console.log(`[sound] can't read ${error}`);
-            }
-        }
-        const fallback = BUILT_IN[name];
-        return fallback
-            ? { name, source: 'built-in', ...scoreStats(fallback), dropped: 0, error }
-            : { name, source: 'missing', seconds: 0, notes: 0, dropped: 0, error };
-    });
+    // The sound, or null if it has no file and no built-in version.
+    get(name: N): Uint8Array | null {
+        return this.loaded.get(name) ?? this.builtIn[name] ?? null;
+    }
 
-    const fromFiles = info.filter((s) => s.source === 'file').length;
-    console.log(`[sound] ${fromFiles} of ${SOUND_NAMES.length} sounds loaded from ${dir}`);
-    for (const f of files)
-        if (f.toLowerCase().endsWith('.mid') && !SOUND_NAMES.some((n) => f.toLowerCase() === `${n}.mid`))
-            console.log(`[sound] ignoring ${f}: not one of the sound names`);
+    // The tempo a sound's file starts at, or null if it has no file.
+    bpm(name: N): number | null {
+        return this.bpms.get(name) ?? null;
+    }
+
+    info(): SoundInfo[] {
+        return this.status;
+    }
+
+    load(root: string): void {
+        this.loaded.clear();
+        this.bpms.clear();
+        const dir = join(root, this.modeId);
+        let files: string[] = [];
+        try {
+            files = readdirSync(dir);
+        } catch {
+            // no folder for this mode yet: every sound falls back
+        }
+
+        this.status = this.names.map((name): SoundInfo => {
+            const file = files.find((f) => f.toLowerCase() === `${name}.mid`);
+            let error: string | undefined;
+            if (file) {
+                try {
+                    const midi = midiToScore(readFileSync(join(dir, file)));
+                    this.loaded.set(name, midi.score);
+                    this.bpms.set(name, midi.bpm);
+                    const seconds = midi.ms / 1000;
+                    return { mode: this.modeId, name, source: 'file', seconds, notes: midi.notes, dropped: midi.dropped };
+                } catch (err) {
+                    error = `${this.modeId}/${file}: ${(err as Error).message}`;
+                    console.log(`[sound] can't read ${error}`);
+                }
+            }
+            const fallback = this.builtIn[name];
+            return fallback
+                ? { mode: this.modeId, name, source: 'built-in', ...scoreStats(fallback), dropped: 0, error }
+                : { mode: this.modeId, name, source: 'missing', seconds: 0, notes: 0, dropped: 0, error };
+        });
+
+        for (const f of files)
+            if (f.toLowerCase().endsWith('.mid') && !this.names.some((n) => f.toLowerCase() === `${n}.mid`))
+                console.log(`[sound] ignoring ${this.modeId}/${f}: ${this.modeId} has no sound by that name`);
+    }
+}
+
+// Every mode's sound bank, in the order the modes were created.
+export function soundBanks(): SoundBank<string>[] {
+    return banks;
+}
+
+// (Re)reads every mode's sound files.
+export function loadSounds(root = SOUNDS_DIR): void {
+    for (const bank of banks) bank.load(root);
+    const all = banks.flatMap((b) => b.info());
+    console.log(`[sound] ${all.filter((s) => s.source === 'file').length} of ${all.length} sounds loaded from ${root}`);
 }
 
 export function soundInfo(): SoundInfo[] {
-    return info;
-}
-
-export function sound(name: SoundName): Uint8Array {
-    return (
-        loaded.get(name) ??
-        BUILT_IN[name] ??
-        (name.startsWith('ending-') ? sound(ENDING_FALLBACK) : builtIn.SOUND_POINT)
-    );
-}
-
-// The ending song for a rank such as "FIREBALL".
-export function endingSong(rank: string): Uint8Array {
-    const name = `ending-${rank.toLowerCase()}`;
-    return sound((SOUND_NAMES as readonly string[]).includes(name) ? (name as SoundName) : ENDING_FALLBACK);
+    return banks.flatMap((b) => b.info());
 }
 
 // Length and note count of a built-in score.

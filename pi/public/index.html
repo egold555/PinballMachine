@@ -111,9 +111,9 @@
     <div id="scores"></div>
 
     <h2>Sounds</h2>
-    <div class="scores sounds"><table id="sounds"></table></div>
-    <p class="note">Sounds are the .mid files in <b>Gameplay/data/sounds</b> on the share, read when the
-        program starts. After changing one, restart.</p>
+    <div id="sounds"></div>
+    <p class="note">Each mode's sounds are the .mid files in <b>Gameplay/data/sounds/&lt;mode&gt;</b> on the
+        share, read when the program starts. After changing one, restart.</p>
     <button class="restart" id="restart">Restart program</button>
 </main>
 
@@ -157,14 +157,18 @@
     const SOURCE = {
         file: 'from file',
         'built-in': 'built-in',
-        missing: 'no file, uses ending-wizard',
+        missing: 'no file',
     };
 
     function renderSounds(state) {
-        $('sounds').replaceChildren(...state.sounds.map((s) => el('tr', { title: s.error ?? '' },
-            el('td', { textContent: s.name + '.mid' }),
-            el('td', { className: 'src ' + s.source, textContent: (s.error ? 'unreadable, ' : '') + SOURCE[s.source] }),
-            el('td', { className: 'num', textContent: s.notes ? s.seconds.toFixed(1) + ' s' : '' }))));
+        const modeName = Object.fromEntries(state.modes.map((m) => [m.id, m.name]));
+        const modes = [...new Set(state.sounds.map((s) => s.mode))];
+        $('sounds').replaceChildren(...modes.map((mode) => el('div', { className: 'scores sounds' },
+            el('h3', { textContent: `${modeName[mode] ?? mode}  ·  sounds/${mode}/` }),
+            el('table', {}, ...state.sounds.filter((s) => s.mode === mode).map((s) => el('tr', { title: s.error ?? '' },
+                el('td', { textContent: s.name + '.mid' }),
+                el('td', { className: 'src ' + s.source, textContent: (s.error ? 'unreadable, ' : '') + SOURCE[s.source] }),
+                el('td', { className: 'num', textContent: s.notes ? s.seconds.toFixed(1) + ' s' : '' })))))));
     }
 
     $('restart').onclick = async () => {

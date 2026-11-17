@@ -4,7 +4,8 @@
 
 import { Autofire, type Machine, now, type SwitchEvent } from '../Machine.js';
 import { Coil, Lamp, type LampId, Switch, type SwitchId } from '../protocol/index.js';
-import { endingSong, sound } from '../sounds/library.js';
+import { SoundBank } from '../sounds/library.js';
+import * as builtIn from '../sounds/scores.js';
 import { bestScore, recordScores } from '../highScores.js';
 import type { GameMode } from './GameMode.js';
 
@@ -25,6 +26,22 @@ const BONUS_LAMPS: LampId[] = [
 const BALL_LAMPS: LampId[] = [Lamp.BALL_1, Lamp.BALL_2, Lamp.BALL_3, Lamp.BALL_4, Lamp.BALL_5];
 const PLAYER_LAMPS: LampId[] = [Lamp.PLAYER_1, Lamp.PLAYER_2, Lamp.PLAYER_3, Lamp.PLAYER_4];
 
+const SOUND_NAMES = [
+    'start-game', // a game starts, and all of A B C D are collected
+    'point', // anything scores
+    'new-ball', // the ball drained, before the bonus is counted
+    'extra-ball',
+    'tilt',
+    // End of game, by the best player's rank (see rankingTitle)
+    'ending-amateur',
+    'ending-super',
+    'ending-champ',
+    'ending-fantastic',
+    'ending-wizard',
+    'ending-fireball',
+] as const;
+type SoundName = (typeof SOUND_NAMES)[number];
+
 interface Player {
     lightA: boolean;
     lightB: boolean;
@@ -38,6 +55,15 @@ export class OriginalGame implements GameMode {
     readonly name = 'Original';
     readonly description = 'The rules the machine has always had. Up to 4 players, 5 balls.';
     readonly keepsHighScores = true;
+    // Without files, the sounds from the old firmware play.
+    readonly sounds = new SoundBank<SoundName>('original', SOUND_NAMES, {
+        'start-game': builtIn.SOUND_STARTUP,
+        point: builtIn.SOUND_POINT,
+        'new-ball': builtIn.SOUND_NEWBALL,
+        'extra-ball': builtIn.SOUND_EXTRABALL,
+        tilt: builtIn.SOUND_TILT,
+        'ending-wizard': builtIn.SOUND_ENDING_SONG,
+    });
 
     private players: Player[] = [];
     private amountOfPlayers = 0;
@@ -80,7 +106,7 @@ export class OriginalGame implements GameMode {
             m.setLamp(l, false);
 
         m.setAutofire(0);
-        m.playSound(sound('start-game'));
+        m.playSound(this.sounds.get('start-game'));
     }
 
     // Scroll the attract message until start is pressed.
@@ -203,7 +229,7 @@ export class OriginalGame implements GameMode {
             player.score += 25000;
             m.setLamp(Lamp.EXTRA_BALL_LEFT, true);
             m.setLamp(Lamp.EXTRA_BALL_RIGHT, true);
-            m.playSound(sound('start-game'));
+            m.playSound(this.sounds.get('start-game'));
         }
 
         // Bumpers +50
@@ -257,14 +283,14 @@ export class OriginalGame implements GameMode {
 
         this.amountOfPlayers++;
         if (this.amountOfPlayers > MAX_PLAYERS) this.amountOfPlayers = 1;
-        m.playSound(sound('point'), 'low');
+        m.playSound(this.sounds.get('point'), 'low');
         this.lightPlayerLights(m, this.amountOfPlayers);
     }
 
     private tilt(m: Machine): void {
         this.tilted = true;
         m.setAutofire(0);
-        m.playSound(sound('tilt'));
+        m.playSound(this.sounds.get('tilt'));
         m.showText('TILTED');
     }
 
@@ -275,14 +301,14 @@ export class OriginalGame implements GameMode {
     private extraBall(m: Machine): void {
         m.setLamp(Lamp.SAME_PLAYER_SHOOTS, true);
         this.extraBalls++;
-        m.playSound(sound('extra-ball'));
+        m.playSound(this.sounds.get('extra-ball'));
     }
 
     // Change from the original: the scoring blip is low priority, so it no longer
     // cuts off the extra ball and ABCD sounds that are triggered by the same hit.
     private writeScore(m: Machine, score: number, withSound = true): void {
         m.showNumber(score);
-        if (withSound) m.playSound(sound('point'), 'low');
+        if (withSound) m.playSound(this.sounds.get('point'), 'low');
     }
 
     // Light player lamp 1-4, or none for any other number.
@@ -314,7 +340,7 @@ export class OriginalGame implements GameMode {
     // The ball drained: count the bonus, then the next ball or game over.
     private async endOfBall(m: Machine): Promise<void> {
         let bonusAmount = 0;
-        m.playSound(sound('new-ball'));
+        m.playSound(this.sounds.get('new-ball'));
 
         if (!this.tilted) {
             const multiplier = m.lamp(Lamp.DOUBLE_BONUS) ? 2 : m.lamp(Lamp.TRIPLE_BONUS) ? 3 : 1;
@@ -368,7 +394,9 @@ export class OriginalGame implements GameMode {
         this.gameOver = true;
         m.setAutofire(0);
         const best = Math.max(0, ...this.players.slice(0, this.amountOfPlayers).map((p) => p.score));
-        m.playSound(endingSong(rankingTitle(best)), 'normal', true);
+        // A rank with no song of its own plays the Wizard one.
+        const rankSong = `ending-${rankingTitle(best).toLowerCase()}` as SoundName;
+        m.playSound(this.sounds.get(rankSong) ?? this.sounds.get('ending-wizard'), 'normal', true);
         this.saveHighScore();
 
         for (const l of BALL_LAMPS) m.setLamp(l, false);

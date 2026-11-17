@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { copyFileSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
@@ -7,10 +7,10 @@ import { test } from 'node:test';
 process.env.PINBALL_DATA_DIR = mkdtempSync(join(tmpdir(), 'pinball-test-'));
 
 const { midiToScore } = await import('../src/sounds/midi.js');
-const { endingSong, loadSounds, sound, soundInfo } = await import('../src/sounds/library.js');
+const { SoundBank, loadSounds, soundInfo } = await import('../src/sounds/library.js');
 const builtIn = await import('../src/sounds/scores.js');
 
-const SOUNDS = join(import.meta.dirname, '..', 'sounds');
+const SOUNDS = join(import.meta.dirname, '..', 'sounds', 'original');
 
 // A one-track MIDI file at 120 bpm, 480 ticks per beat (1 tick = 1.0417 ms).
 // Events: [delta ticks, status, data...]
@@ -64,6 +64,15 @@ test('a SysEx message before the notes does not shift the timing', () => {
     assert.deepEqual([...r.score], [0x90, 60, 0x01, 0xf4, 0x80, 0xf0]);
 });
 
+test('an "end" marker sets the length and the tempo is read', () => {
+    // note for 480 ticks, then a marker 480 ticks later: 1 s long at 120 bpm
+    const marker = [0xff, 0x06, 3, ...Buffer.from('end')];
+    const r = midiToScore(makeMidi([[0, 0x90, 60, 100], [480, 0x80, 60, 0], [480, ...marker]]));
+    assert.equal(r.ms, 1000);
+    assert.equal(r.bpm, 120);
+    assert.equal(midiToScore(makeMidi([[0, 0x90, 60, 100], [480, 0x80, 60, 0]], 400_000)).bpm, 150);
+});
+
 test('drums are left out', () => {
     const r = midiToScore(makeMidi([[0, 0x99, 36, 100], [0, 0x90, 60, 100], [100, 0x89, 36, 0], [0, 0x80, 60, 0]]));
     assert.equal(r.notes, 1);
@@ -78,16 +87,20 @@ test('the real sound files match the old built-in sounds', () => {
     assert.equal(notes('point.mid'), 1);
 });
 
-test('missing files fall back, ending songs fall back to wizard', () => {
-    const dir = mkdtempSync(join(tmpdir(), 'pinball-sounds-'));
-    copyFileSync(join(SOUNDS, 'ending-fireball.mid'), join(dir, 'Ending-Fireball.MID'));
-    writeFileSync(join(dir, 'tilt.mid'), 'not really midi');
-    loadSounds(dir);
+test('each mode reads its own folder, with built-in or silent fallbacks', () => {
+    const root = mkdtempSync(join(tmpdir(), 'pinball-sounds-'));
+    const a = new SoundBank('mode-a', ['song', 'tilt', 'gone'] as const, { tilt: builtIn.SOUND_TILT });
+    const b = new SoundBank('mode-b', ['song'] as const);
+    mkdirSync(join(root, 'mode-a'));
+    copyFileSync(join(SOUNDS, 'ending-fireball.mid'), join(root, 'mode-a', 'Song.MID'));
+    writeFileSync(join(root, 'mode-a', 'tilt.mid'), 'not really midi');
+    loadSounds(root);
 
-    assert.notEqual(endingSong('FIREBALL'), builtIn.SOUND_ENDING_SONG, 'fireball loaded, case ignored');
-    assert.equal(endingSong('AMATEUR'), builtIn.SOUND_ENDING_SONG, 'no amateur, no wizard file: built-in');
-    assert.equal(sound('tilt'), builtIn.SOUND_TILT, 'unreadable file: built-in');
-    const tilt = soundInfo().find((s) => s.name === 'tilt')!;
+    assert.ok(a.get('song'), 'loaded, case ignored');
+    assert.equal(b.get('song'), null, "mode-b has no folder: another mode's file is not used");
+    assert.equal(a.get('tilt'), builtIn.SOUND_TILT, 'unreadable file: built-in');
+    assert.equal(a.get('gone'), null, 'no file, no built-in: silent');
+    const tilt = soundInfo().find((s) => s.mode === 'mode-a' && s.name === 'tilt')!;
     assert.equal(tilt.source, 'built-in');
     assert.match(tilt.error ?? '', /not a MIDI file/);
 });
@@ -112,4 +125,20 @@ test('a looping sound repeats until stopped', async () => {
     player.play(Uint8Array.from([0xf0]), 'normal', true); // empty: must not hang
     await delay(20);
     player.stop();
+});
+
+test('a gapless loop comes straight back, and an empty one can\'t hang', async () => {
+    const { SoundPlayer } = await import('../src/SoundPlayer.js');
+    const { setTimeout: delay } = await import('node:timers/promises');
+    let noteOns = 0;
+    const player = new SoundPlayer({ send: (type: number) => void (type === 0x17 && noteOns++) } as never);
+
+    player.play(Uint8Array.from([0x90, 60, 0, 100, 0xf0]), 'normal', true, 0); // 100 ms
+    await delay(350);
+    player.stop();
+    assert.ok(noteOns >= 3, `no pause between repeats (${noteOns} in 350 ms)`);
+
+    player.play(Uint8Array.from([0xf0]), 'normal', true, 0); // would spin forever
+    await delay(20);
+    assert.ok(!player.playing, 'stops instead');
 });
