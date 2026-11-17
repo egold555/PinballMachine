@@ -1,0 +1,66 @@
+# How each source MIDI becomes a sound the machine can play.
+# Instructions are in README.md (same folder). After changing this file:
+#
+#   make songs     rebuild pi/sounds/ from these recipes
+#   make preview   listen to them (Midis/pi-ending-songs/preview/*.wav)
+#   make deploy    put them on the machine
+#
+# Each entry is named after the sound it makes (see the list in README.md).
+#   source:   the MIDI file, relative to this folder
+#   style:    lines or pluck (see README.md)
+#   startAt:  seconds of the source to skip (an intro that doesn't work)
+# lines style:
+#   melody / middle / bass: lists of parts, first choice first. When the first
+#     part is silent, the next one that is playing fills in.
+#     A part is { channel: N } with N = 1-16, as shown by `make midi-info`.
+#   transpose: { melody: 12 } moves a line up an octave (-12 down).
+# pluck style:
+#   channels: which channels to use, e.g. [1, 2, 5]. Default: all but drums.
+#   pluckMs:  how long each note rings, default 250.
+
+ending-amateur:
+  source: pi-ending-songs/Queen_-_Another_One_Bites_the_Dust.mid
+  style: lines
+  melody: [{ channel: 1 }, { channel: 6 }] # vocal line (organ), then synth brass
+  middle: [{ channel: 2 }, { channel: 4 }] # guitars
+  bass: [{ channel: 3 }] # the riff
+
+ending-super:
+  source: pi-ending-songs/Rick_James_-_Super_Freak.mid
+  style: lines
+  melody: [{ channel: 3 }, { channel: 4 }, { channel: 5 }] # lead synth hook, synth, muted guitar
+  middle: [{ channel: 2 }] # keyboard stabs
+  bass: [{ channel: 1 }]
+
+ending-champ:
+  source: pi-ending-songs/Queen_-_We_Are_The_Champions.mid
+  style: lines
+  # No vocal part in this file, so the melody is a guess.
+  melody: [{ channel: 4 }, { channel: 3 }, { channel: 6 }] # strings, acoustic guitar, choir
+  middle: [{ channel: 1 }] # piano
+  bass: [{ channel: 2 }]
+
+ending-fantastic:
+  source: pi-ending-songs/Coolio_-_Fantastic_Voyage.mid
+  style: lines
+  # It's rap, so there's no sung melody in the file.
+  melody: [{ channel: 6 }, { channel: 3 }, { channel: 5 }] # synth hook, organ, celesta
+  middle: [{ channel: 2 }, { channel: 4 }] # piano, guitar
+  bass: [{ channel: 7 }, { channel: 9 }, { channel: 8 }]
+
+ending-wizard:
+  source: pi-ending-songs/The_Who_-_Pinball_Wizard.mid
+  style: lines
+  # The strummed guitar intro (channel 4) is 20 notes a second of chord
+  # tones, which sounds like noise on one voice. Start at the vocals.
+  startAt: 36
+  melody: [{ channel: 1 }] # vocal line (piano)
+  middle: [{ channel: 2 }] # strings
+  bass: [{ channel: 5 }, { channel: 7 }]
+
+ending-fireball:
+  source: pi-ending-songs/Fireball MIDI.mid
+  # As lines it sounded rough: the piano is all chords. Pluck handles chords.
+  style: pluck
+  # The first 23 s are piano chords alone, which didn't sound like the song.
+  startAt: 23.5

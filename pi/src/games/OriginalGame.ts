@@ -4,14 +4,7 @@
 
 import { Autofire, type Machine, now, type SwitchEvent } from '../Machine.js';
 import { Coil, Lamp, type LampId, Switch, type SwitchId } from '../protocol/index.js';
-import {
-    SOUND_ENDING_SONG,
-    SOUND_EXTRABALL,
-    SOUND_NEWBALL,
-    SOUND_POINT,
-    SOUND_STARTUP,
-    SOUND_TILT,
-} from '../sounds/scores.js';
+import { endingSong, sound } from '../sounds/library.js';
 import { bestScore, recordScores } from '../highScores.js';
 import type { GameMode } from './GameMode.js';
 
@@ -57,6 +50,7 @@ export class OriginalGame implements GameMode {
     private gameOver = false;
     private nextSpinnerScore = 0;
     private nextBallKick = 0;
+    private startPressedAtEnd = false; // start ended the last game's score screen
 
     async run(m: Machine): Promise<void> {
         this.reset(m);
@@ -86,13 +80,21 @@ export class OriginalGame implements GameMode {
             m.setLamp(l, false);
 
         m.setAutofire(0);
-        m.playSound(SOUND_STARTUP);
+        m.playSound(sound('start-game'));
     }
 
     // Scroll the attract message until start is pressed.
     // Change from the original: other switches are ignored here. The original
     // scored them (and could tilt) before the game had started.
+    // Change from the original: if start ended the last game's score screen,
+    // the new game begins at once instead of waiting for a second press.
     private async attract(m: Machine): Promise<void> {
+        if (this.startPressedAtEnd) {
+            this.startPressedAtEnd = false;
+            this.startGame(m);
+            return;
+        }
+
         let msg = 'PRESS START TO PLAY AGAIN           ';
         const high = bestScore(this.id);
         if (high > 0) msg += `HIGH SCORE - ${high}            `;
@@ -102,8 +104,11 @@ export class OriginalGame implements GameMode {
             const ev = await m.nextEvent(1000);
             if (ev?.pressed && ev.id === Switch.START) break;
         }
+        this.startGame(m);
+    }
 
-        // startGame() from the original, state GS_BEFORE
+    // startGame() from the original, state GS_BEFORE
+    private startGame(m: Machine): void {
         m.setLamp(Lamp.BALL_1, true);
         this.writeScore(m, 0, false);
         m.setAutofire(Autofire.ALL);
@@ -198,7 +203,7 @@ export class OriginalGame implements GameMode {
             player.score += 25000;
             m.setLamp(Lamp.EXTRA_BALL_LEFT, true);
             m.setLamp(Lamp.EXTRA_BALL_RIGHT, true);
-            m.playSound(SOUND_STARTUP);
+            m.playSound(sound('start-game'));
         }
 
         // Bumpers +50
@@ -252,14 +257,14 @@ export class OriginalGame implements GameMode {
 
         this.amountOfPlayers++;
         if (this.amountOfPlayers > MAX_PLAYERS) this.amountOfPlayers = 1;
-        m.playSound(SOUND_POINT, 'low');
+        m.playSound(sound('point'), 'low');
         this.lightPlayerLights(m, this.amountOfPlayers);
     }
 
     private tilt(m: Machine): void {
         this.tilted = true;
         m.setAutofire(0);
-        m.playSound(SOUND_TILT);
+        m.playSound(sound('tilt'));
         m.showText('TILTED');
     }
 
@@ -270,14 +275,14 @@ export class OriginalGame implements GameMode {
     private extraBall(m: Machine): void {
         m.setLamp(Lamp.SAME_PLAYER_SHOOTS, true);
         this.extraBalls++;
-        m.playSound(SOUND_EXTRABALL);
+        m.playSound(sound('extra-ball'));
     }
 
     // Change from the original: the scoring blip is low priority, so it no longer
     // cuts off the extra ball and ABCD sounds that are triggered by the same hit.
-    private writeScore(m: Machine, score: number, sound = true): void {
+    private writeScore(m: Machine, score: number, withSound = true): void {
         m.showNumber(score);
-        if (sound) m.playSound(SOUND_POINT, 'low');
+        if (withSound) m.playSound(sound('point'), 'low');
     }
 
     // Light player lamp 1-4, or none for any other number.
@@ -309,7 +314,7 @@ export class OriginalGame implements GameMode {
     // The ball drained: count the bonus, then the next ball or game over.
     private async endOfBall(m: Machine): Promise<void> {
         let bonusAmount = 0;
-        m.playSound(SOUND_NEWBALL);
+        m.playSound(sound('new-ball'));
 
         if (!this.tilted) {
             const multiplier = m.lamp(Lamp.DOUBLE_BONUS) ? 2 : m.lamp(Lamp.TRIPLE_BONUS) ? 3 : 1;
@@ -354,19 +359,23 @@ export class OriginalGame implements GameMode {
         m.setAutofire(Autofire.ALL);
     }
 
-    // Plays the ending song while showing each player's score and rank.
-    // Pressing start skips it.
+    // Plays the ending song while showing each player's score and rank, until
+    // start is pressed, which also starts the next game.
+    // Change from the original: the song depends on the best player's rank,
+    // and it repeats (with the scores) until start instead of ending the
+    // screen when it ends.
     private async endGame(m: Machine): Promise<void> {
         this.gameOver = true;
         m.setAutofire(0);
-        m.playSound(SOUND_ENDING_SONG);
+        const best = Math.max(0, ...this.players.slice(0, this.amountOfPlayers).map((p) => p.score));
+        m.playSound(endingSong(rankingTitle(best)), 'normal', true);
         this.saveHighScore();
 
         for (const l of BALL_LAMPS) m.setLamp(l, false);
         for (const l of [...ABCD_LAMPS, ...TARGET_LAMPS]) m.setLamp(l, true);
 
         let endNow = false;
-        while (m.soundPlaying && !endNow) {
+        while (!endNow) {
             for (let i = 0; i < this.amountOfPlayers && !endNow; i++) {
                 this.lightPlayerLights(m, i + 1);
                 this.writeScore(m, this.players[i].score, false);
@@ -375,11 +384,12 @@ export class OriginalGame implements GameMode {
                 m.showText(rankingTitle(this.players[i].score));
                 endNow = await m.sleepUntilPressed(2000, Switch.START);
             }
-            if (this.amountOfPlayers === 0) await m.sleep(10);
+            if (this.amountOfPlayers === 0) endNow = await m.sleepUntilPressed(1000, Switch.START);
         }
 
         m.stopSound();
         this.lightPlayerLights(m, 0);
+        this.startPressedAtEnd = true;
     }
 
     // Change from the original: every player's score goes on the high score

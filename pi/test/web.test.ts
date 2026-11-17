@@ -25,7 +25,7 @@ const fakeLink = { send() {} } as unknown as MegaLink;
 const machine = new Machine(fakeLink);
 const runner = new GameRunner(machine, GAME_MODES);
 void runner.run();
-const server = startWeb({ runner, machine, megaConnected: () => true }, 0);
+const server = startWeb({ runner, machine, megaConnected: () => true, restart: () => {} }, 0);
 await new Promise((r) => server.once('listening', r));
 const base = `http://localhost:${(server.address() as AddressInfo).port}`;
 
@@ -40,7 +40,7 @@ const selectMode = (id: string) =>
 test('state lists the modes and carries over the old high score', async () => {
     const s = await state();
     assert.equal(s.currentMode, 'original');
-    assert.deepEqual(s.modes.map((m: { id: string }) => m.id), ['original', 'switch-test']);
+    assert.deepEqual(s.modes.map((m: { id: string }) => m.id), ['original', 'switch-test', 'sound-test', 'light-test']);
     assert.deepEqual(s.modes[0].highScores, [{ score: 18950, date: '' }]);
     assert.equal(s.modes[1].highScores, null, 'switch test keeps no scores');
 });

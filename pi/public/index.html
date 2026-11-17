@@ -75,6 +75,24 @@
     tr:first-child td.score { color: var(--accent); }
     .empty { padding: 12px 16px; color: var(--dim); }
     .scores + .scores { margin-top: 12px; }
+
+    .sounds td { padding: 6px 16px; font-size: 14px; }
+    .sounds td.src { color: var(--dim); }
+    .sounds td.src.file { color: var(--good); }
+    .sounds td.src.missing { color: var(--bad); }
+    .sounds td.num { text-align: right; color: var(--dim); font-variant-numeric: tabular-nums; }
+    .note { margin: 12px 0 0; color: var(--dim); font-size: 14px; }
+    .restart {
+        margin-top: 12px;
+        padding: 10px 16px;
+        background: var(--panel);
+        border: 2px solid var(--line);
+        border-radius: 8px;
+        color: inherit;
+        font: inherit;
+        cursor: pointer;
+    }
+    .restart:hover { border-color: var(--dim); }
 </style>
 </head>
 <body>
@@ -91,6 +109,12 @@
 
     <h2>High scores</h2>
     <div id="scores"></div>
+
+    <h2>Sounds</h2>
+    <div class="scores sounds"><table id="sounds"></table></div>
+    <p class="note">Sounds are the .mid files in <b>Gameplay/data/sounds</b> on the share, read when the
+        program starts. After changing one, restart.</p>
+    <button class="restart" id="restart">Restart program</button>
 </main>
 
 <script>
@@ -130,6 +154,24 @@
         }));
     }
 
+    const SOURCE = {
+        file: 'from file',
+        'built-in': 'built-in',
+        missing: 'no file, uses ending-wizard',
+    };
+
+    function renderSounds(state) {
+        $('sounds').replaceChildren(...state.sounds.map((s) => el('tr', { title: s.error ?? '' },
+            el('td', { textContent: s.name + '.mid' }),
+            el('td', { className: 'src ' + s.source, textContent: (s.error ? 'unreadable, ' : '') + SOURCE[s.source] }),
+            el('td', { className: 'num', textContent: s.notes ? s.seconds.toFixed(1) + ' s' : '' }))));
+    }
+
+    $('restart').onclick = async () => {
+        if (!confirm('Restart the program? Any game in progress ends. Takes a few seconds.')) return;
+        await fetch('/api/restart', { method: 'POST' });
+    };
+
     async function selectMode(mode, current) {
         const question = current
             ? `Restart ${mode.name}? Any game in progress ends.`
@@ -151,6 +193,7 @@
             $('status').textContent = state.megaConnected ? 'machine connected' : 'machine not connected';
             renderModes(state);
             renderScores(state);
+            renderSounds(state);
         } catch {
             $('dot').className = 'dot';
             $('status').textContent = 'Pi not responding';

@@ -18,23 +18,27 @@ import { Msg, SOUND_CHANNELS } from './protocol/index.js';
 export type SoundPriority = 'low' | 'normal';
 
 const ALL_CHANNELS = 0xff;
+const LOOP_PAUSE_MS = 1000; // silence between repeats of a looping sound
 
 export class SoundPlayer {
     private score: Uint8Array | null = null;
     private cursor = 0;
     private priority: SoundPriority = 'low';
+    private loop = false;
     private nextStep = 0;
     private timer: NodeJS.Timeout | null = null;
 
     constructor(private readonly link: MegaLink) {}
 
-    // Starts a score unless a normal sound is already playing.
-    play(score: Uint8Array, priority: SoundPriority = 'normal'): void {
+    // Starts a score unless a normal sound is already playing. A looping
+    // sound starts over each time it ends, until stop() or another play().
+    play(score: Uint8Array, priority: SoundPriority = 'normal', loop = false): void {
         if (this.playing && this.priority === 'normal') return;
         this.cancelTimer();
         this.link.send(Msg.NOTE_OFF, [ALL_CHANNELS]);
         this.score = score;
         this.priority = priority;
+        this.loop = loop;
         this.cursor = 0;
         this.nextStep = performance.now();
         this.run();
@@ -96,6 +100,12 @@ export class SoundPlayer {
 
     private end(): void {
         this.link.send(Msg.NOTE_OFF, [ALL_CHANNELS]);
-        this.score = null;
+        if (this.loop) {
+            // The pause also means a score with no waits can't spin forever.
+            this.cursor = 0;
+            this.nextStep += LOOP_PAUSE_MS;
+        } else {
+            this.score = null;
+        }
     }
 }

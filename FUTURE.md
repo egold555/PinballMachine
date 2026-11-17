@@ -36,3 +36,21 @@ The Mega's bootloader only listens on **Serial0** (pins 0/1, the same lines as U
 ### Risk
 
 Low. A WiFi upload never touches the bootloader, so a failed upload is fixed by plugging in USB and flashing normally. The fiddly part is reset timing, which has to land inside the bootloader's short window. If it misses, the upload fails and can be retried.
+
+## Public scores page, password-protected settings
+
+Right now the web page (`pi/src/web.ts`, `pi/public/`) is internal only and has no login, so anyone who can reach it can switch game modes. To put it on the internet, split it in two:
+
+- **Public, read only:** the high scores, and maybe the live display. Nothing on it changes the machine.
+- **Settings, behind a password:** the game mode buttons, restarting a game, and whatever gets added later (resetting scores, volume, ball count, and so on).
+
+### How
+
+- **Routes:** public pages and `GET` APIs stay at `/`. Everything that changes something moves under `/admin` (pages) and `/api/admin/*` (actions such as `POST /api/admin/mode`).
+- **Login,** one of:
+  - **At the reverse proxy** (10.0.0.34): require a login only for `/admin` and `/api/admin`. This needs no code in the game.
+  - **In the game:** a password set in `data/settings.json` (stored hashed, never in git), a login page, and a session cookie. Every `/api/admin/*` route checks it.
+
+  Either way, the `/api/admin/*` routes must refuse anything without a login, not just hide the buttons.
+- **HTTPS:** the proxy already provides it. The password must never travel over plain HTTP.
+- **Rate limiting:** add it on the login, so the password can't be guessed by brute force.

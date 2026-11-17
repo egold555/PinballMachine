@@ -3,7 +3,7 @@
 
 import { Autofire, type Machine } from '../Machine.js';
 import { Coil, LAMP_COUNT, type LampId, Switch, switchName } from '../protocol/index.js';
-import { SOUND_POINT } from '../sounds/scores.js';
+import { sound } from '../sounds/library.js';
 import type { GameMode } from './GameMode.js';
 
 export class SwitchTest implements GameMode {
@@ -21,7 +21,7 @@ export class SwitchTest implements GameMode {
             const ev = await m.nextEvent(60_000);
             if (!ev?.pressed) continue;
             m.scrollText(`${ev.id} ${switchName(ev.id).replaceAll('_', ' ')}     `, 180);
-            m.playSound(SOUND_POINT, 'low');
+            m.playSound(sound('point'), 'low');
             if (ev.id === Switch.BALL_RETURN) m.pulseCoil(Coil.BALL_RETURN, 100);
         }
     }

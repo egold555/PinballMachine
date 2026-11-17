@@ -7,8 +7,8 @@
 import { mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-const DIR = process.env.PINBALL_DATA_DIR ?? join(import.meta.dirname, '..', 'data');
-const FILE = join(DIR, 'settings.json');
+export const DATA_DIR = process.env.PINBALL_DATA_DIR ?? join(import.meta.dirname, '..', 'data');
+const FILE = join(DATA_DIR, 'settings.json');
 
 let values: Record<string, unknown> = {};
 try {
@@ -23,7 +23,7 @@ export function load<T>(key: string, fallback: T): T {
 
 export function save(key: string, value: unknown): void {
     values[key] = value;
-    mkdirSync(DIR, { recursive: true });
+    mkdirSync(DATA_DIR, { recursive: true });
     const tmp = `${FILE}.tmp`;
     writeFileSync(tmp, JSON.stringify(values, null, 2));
     renameSync(tmp, FILE);
