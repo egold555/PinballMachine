@@ -10,7 +10,7 @@ MEGA_HEX = mega/.pio/build/megaatmega2560/firmware.hex
 PREVIEW_DIR = Midis/pi-ending-songs/preview
 ORIGINAL_HEX = Arduino/.pio/build/megaatmega2560/firmware.hex
 
-.PHONY: help mega flash flash-original deploy test logs console setup-pi songs preview midi-info import-sequence
+.PHONY: help mega flash flash-original deploy test logs console setup-pi songs preview midi-info import-sequence compose
 
 help:
 	@echo "make mega            build the Mega I/O firmware ($(MEGA_HEX))"
@@ -23,6 +23,7 @@ help:
 	@echo "make setup-pi        rerun the Pi setup after changing pi/system/ (asks for the sudo password)"
 	@echo "make midi-info FILE=x.mid   show what's in a MIDI file, to write its recipe"
 	@echo "make import-sequence ID=123 OUT=x.mid   download an onlinesequencer.net song as MIDI"
+	@echo "make compose         rewrite the original songs from pi/tools/compose.ts"
 	@echo "make songs           rebuild pi/sounds/ from Midis/arrangements.yaml"
 	@echo "make preview         render pi/sounds/*/*.mid to .wav as the machine plays them ($(PREVIEW_DIR))"
 
@@ -65,3 +66,6 @@ midi-info:
 import-sequence:
 	@test -n "$(ID)" -a -n "$(OUT)" || { echo 'usage: make import-sequence ID=1905502 OUT="Midis/frenzy/Song.mid"'; exit 1; }
 	@cd pi && npx tsx tools/import-sequence.ts $(ID) "$(CURDIR)/$(OUT)"
+
+compose:
+	cd pi && npx tsx tools/compose.ts

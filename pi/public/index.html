@@ -5,95 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Pinball</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='7' fill='%23c9ccd6'/%3E%3Ccircle cx='5.5' cy='5.5' r='2' fill='white'/%3E%3C/svg%3E">
-<style>
-    :root {
-        --bg: #0e0f13;
-        --panel: #181a21;
-        --line: #2a2d38;
-        --text: #e9e9ee;
-        --dim: #8a8d9a;
-        --accent: #ff9a1f;
-        --good: #3ccf6e;
-        --bad: #ef4b4b;
-    }
-    * { box-sizing: border-box; }
-    body {
-        margin: 0;
-        background: var(--bg);
-        color: var(--text);
-        font: 16px/1.4 system-ui, sans-serif;
-    }
-    main { max-width: 760px; margin: 0 auto; padding: 24px 16px 48px; }
-    header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-    h1 { margin: 0; font-size: 28px; letter-spacing: .04em; }
-    h2 { margin: 32px 0 12px; font-size: 14px; text-transform: uppercase; letter-spacing: .12em; color: var(--dim); }
-    .status { display: flex; align-items: center; gap: 8px; color: var(--dim); font-size: 14px; }
-    .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--bad); }
-    .dot.on { background: var(--good); box-shadow: 0 0 8px var(--good); }
-
-    .display {
-        margin-top: 20px;
-        padding: 18px 12px;
-        background: #070707;
-        border: 1px solid var(--line);
-        border-radius: 10px;
-        text-align: center;
-        font: 700 clamp(28px, 9vw, 56px)/1 ui-monospace, "Courier New", monospace;
-        letter-spacing: .18em;
-        color: var(--accent);
-        text-shadow: 0 0 12px rgba(255, 154, 31, .6);
-        white-space: pre;
-        overflow: hidden;
-    }
-
-    .modes { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
-    .mode {
-        text-align: left;
-        padding: 16px;
-        background: var(--panel);
-        border: 2px solid var(--line);
-        border-radius: 10px;
-        color: inherit;
-        font: inherit;
-        cursor: pointer;
-    }
-    .mode:hover { border-color: var(--dim); }
-    .mode.current { border-color: var(--accent); }
-    .mode b { display: block; font-size: 18px; margin-bottom: 4px; }
-    .mode span { display: block; color: var(--dim); font-size: 14px; }
-    .mode .tag { margin-top: 10px; color: var(--accent); font-size: 13px; font-weight: 600; }
-    .mode .tag:empty { display: none; }
-
-    .scores { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
-    .scores h3 { margin: 0; padding: 12px 16px; font-size: 16px; border-bottom: 1px solid var(--line); }
-    table { width: 100%; border-collapse: collapse; }
-    td { padding: 8px 16px; border-bottom: 1px solid var(--line); }
-    tr:last-child td { border-bottom: 0; }
-    td.rank { width: 3em; color: var(--dim); }
-    td.score { font-variant-numeric: tabular-nums; font-weight: 600; }
-    td.date { text-align: right; color: var(--dim); font-size: 14px; }
-    tr:first-child td.score { color: var(--accent); }
-    .empty { padding: 12px 16px; color: var(--dim); }
-    .scores + .scores { margin-top: 12px; }
-
-    .sounds td { padding: 6px 16px; font-size: 14px; }
-    .sounds td.src { color: var(--dim); }
-    .sounds td.src.file { color: var(--good); }
-    .sounds td.src.missing { color: var(--bad); }
-    .sounds td.num { text-align: right; color: var(--dim); font-variant-numeric: tabular-nums; }
-    .note { margin: 12px 0 0; color: var(--dim); font-size: 14px; }
-    .restart {
-        margin-top: 12px;
-        padding: 10px 16px;
-        background: var(--panel);
-        border: 2px solid var(--line);
-        border-radius: 8px;
-        color: inherit;
-        font: inherit;
-        cursor: pointer;
-    }
-    .restart:hover { border-color: var(--dim); }
-</style>
+<link rel="stylesheet" href="style.css">
+<script src="common.js"></script>
 </head>
 <body>
 <main>
@@ -107,24 +20,28 @@
     <h2>Game mode</h2>
     <div class="modes" id="modes"></div>
 
-    <h2>High scores</h2>
+    <div class="heading">
+        <h2>Scores</h2>
+        <div class="sort">
+            <button id="sortBest" class="on">Highest</button>
+            <button id="sortRecent">Newest</button>
+        </div>
+    </div>
     <div id="scores"></div>
 
-    <h2>Sounds</h2>
-    <div id="sounds"></div>
-    <p class="note">Each mode's sounds are the .mid files in <b>Gameplay/data/sounds/&lt;mode&gt;</b> on the
-        share, read when the program starts. After changing one, restart.</p>
-    <button class="restart" id="restart">Restart program</button>
+    <nav><a href="settings.html">Machine settings →</a></nav>
 </main>
 
 <script>
-    const $ = (id) => document.getElementById(id);
     let lastModes = '';
+    let lastDisplay = '';
 
-    function el(tag, props = {}, ...children) {
-        const e = Object.assign(document.createElement(tag), props);
-        e.append(...children);
-        return e;
+    // Scrolling messages go in a marquee, so they move smoothly between refreshes.
+    function renderDisplay(d) {
+        const key = JSON.stringify(d);
+        if (key === lastDisplay) return; // a new marquee would restart the scroll
+        lastDisplay = key;
+        $('display').replaceChildren(d.scrolling ? el('marquee', { textContent: d.text, scrollAmount: 8 }) : d.text);
     }
 
     function renderModes(state) {
@@ -142,39 +59,47 @@
         }));
     }
 
+    // Every game's score (one per game). Highest first, or newest first.
+    let sortBy = 'best';
+    let lastScores = '';
+
+    function setSort(by) {
+        sortBy = by;
+        $('sortBest').className = by === 'best' ? 'on' : '';
+        $('sortRecent').className = by === 'recent' ? 'on' : '';
+        lastScores = '';
+        refresh();
+    }
+    $('sortBest').onclick = () => setSort('best');
+    $('sortRecent').onclick = () => setSort('recent');
+
+    function when(date) {
+        if (!date) return '';
+        const d = new Date(date);
+        return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    }
+
     function renderScores(state) {
-        $('scores').replaceChildren(...state.modes.filter((m) => m.highScores).map((m) => {
-            const rows = m.highScores.map((s, i) => el('tr', {},
-                el('td', { className: 'rank', textContent: i + 1 }),
-                el('td', { className: 'score', textContent: s.score.toLocaleString() }),
-                el('td', { className: 'date', textContent: s.date ? new Date(s.date).toLocaleDateString() : '' })));
+        const key = JSON.stringify([sortBy, state.modes.map((m) => m.scores)]);
+        if (key === lastScores) return; // keeps the list's scroll position
+        lastScores = key;
+        $('scores').replaceChildren(...state.modes.filter((m) => m.scores).map((m) => {
+            const best = Math.max(0, ...m.scores.map((s) => s.score));
+            const list = sortBy === 'best'
+                ? [...m.scores].sort((a, b) => b.score - a.score)
+                : [...m.scores].reverse();
+            const rows = list.map((s, i) => el('tr', {},
+                el('td', { className: 'rank', textContent: sortBy === 'best' ? i + 1 : '' }),
+                el('td', { className: 'score' + (s.score === best ? ' top' : ''), textContent: s.score.toLocaleString() }),
+                el('td', { className: 'best', textContent: sortBy === 'recent' && s.score === best ? 'BEST' : '' }),
+                el('td', { className: 'date', textContent: when(s.date) })));
             return el('div', { className: 'scores' },
-                el('h3', { textContent: m.name }),
-                rows.length ? el('table', {}, ...rows) : el('div', { className: 'empty', textContent: 'No scores yet.' }));
+                el('h3', { textContent: `${m.name}  ·  ${m.scores.length} game${m.scores.length === 1 ? '' : 's'}` }),
+                rows.length
+                    ? el('div', { className: 'list' }, el('table', {}, ...rows))
+                    : el('div', { className: 'empty', textContent: 'No scores yet.' }));
         }));
     }
-
-    const SOURCE = {
-        file: 'from file',
-        'built-in': 'built-in',
-        missing: 'no file',
-    };
-
-    function renderSounds(state) {
-        const modeName = Object.fromEntries(state.modes.map((m) => [m.id, m.name]));
-        const modes = [...new Set(state.sounds.map((s) => s.mode))];
-        $('sounds').replaceChildren(...modes.map((mode) => el('div', { className: 'scores sounds' },
-            el('h3', { textContent: `${modeName[mode] ?? mode}  ·  sounds/${mode}/` }),
-            el('table', {}, ...state.sounds.filter((s) => s.mode === mode).map((s) => el('tr', { title: s.error ?? '' },
-                el('td', { textContent: s.name + '.mid' }),
-                el('td', { className: 'src ' + s.source, textContent: (s.error ? 'unreadable, ' : '') + SOURCE[s.source] }),
-                el('td', { className: 'num', textContent: s.notes ? s.seconds.toFixed(1) + ' s' : '' })))))));
-    }
-
-    $('restart').onclick = async () => {
-        if (!confirm('Restart the program? Any game in progress ends. Takes a few seconds.')) return;
-        await fetch('/api/restart', { method: 'POST' });
-    };
 
     async function selectMode(mode, current) {
         const question = current
@@ -189,23 +114,11 @@
         refresh();
     }
 
-    async function refresh() {
-        try {
-            const state = await (await fetch('/api/state')).json();
-            $('display').textContent = state.display;
-            $('dot').className = 'dot' + (state.megaConnected ? ' on' : '');
-            $('status').textContent = state.megaConnected ? 'machine connected' : 'machine not connected';
-            renderModes(state);
-            renderScores(state);
-            renderSounds(state);
-        } catch {
-            $('dot').className = 'dot';
-            $('status').textContent = 'Pi not responding';
-        }
-    }
-
-    refresh();
-    setInterval(refresh, 1000);
+    const refresh = poll((state) => {
+        renderDisplay(state.display);
+        renderModes(state);
+        renderScores(state);
+    });
 </script>
 </body>
 </html>

@@ -1,33 +1,35 @@
-// Top scores for each game mode, kept in data/settings.json.
+// Every game's score for each game mode, with its date, kept in
+// data/settings.json. One entry per game: in a multiplayer game, the best
+// player's score.
 
 import { load, save } from './storage.js';
 
-export interface HighScore {
+export interface GameScore {
     score: number;
     date: string; // ISO time, or '' if not known
 }
 
-const KEEP = 10;
+const key = (modeId: string) => `${modeId}.scores`;
 
-export function highScores(modeId: string): HighScore[] {
-    const list = load<HighScore[] | null>(`${modeId}.highScores`, null);
+// Oldest first.
+export function scores(modeId: string): GameScore[] {
+    const list = load<GameScore[] | null>(key(modeId), null);
     if (list) return list;
-    // Before there was a list, only the best score was saved.
+    // Earlier versions kept only a top 10, and before that only the best.
+    const top = load<GameScore[] | null>(`${modeId}.highScores`, null);
+    if (top) return [...top].sort((a, b) => a.date.localeCompare(b.date));
     const best = load(`${modeId}.highScore`, 0);
     return best > 0 ? [{ score: best, date: '' }] : [];
 }
 
 export function bestScore(modeId: string): number {
-    return highScores(modeId)[0]?.score ?? 0;
+    return Math.max(0, ...scores(modeId).map((s) => s.score));
 }
 
-// Adds a finished game's scores. Returns true if one of them is a new best.
-export function recordScores(modeId: string, scores: number[]): boolean {
+// Saves a finished game. Returns true if it's a new best.
+export function recordGame(modeId: string, score: number): boolean {
+    if (score <= 0) return false;
     const before = bestScore(modeId);
-    const date = new Date().toISOString();
-    const list = [...highScores(modeId), ...scores.filter((s) => s > 0).map((score) => ({ score, date }))]
-        .sort((a, b) => b.score - a.score)
-        .slice(0, KEEP);
-    save(`${modeId}.highScores`, list);
-    return (list[0]?.score ?? 0) > before;
+    save(key(modeId), [...scores(modeId), { score, date: new Date().toISOString() }]);
+    return score > before;
 }

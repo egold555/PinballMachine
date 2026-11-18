@@ -6,7 +6,7 @@ import { Autofire, type Machine, now, type SwitchEvent } from '../Machine.js';
 import { Coil, Lamp, type LampId, Switch, type SwitchId } from '../protocol/index.js';
 import { SoundBank } from '../sounds/library.js';
 import * as builtIn from '../sounds/scores.js';
-import { bestScore, recordScores } from '../highScores.js';
+import { bestScore, recordGame } from '../highScores.js';
 import type { GameMode } from './GameMode.js';
 
 const BALL_RETURN_PULSE = 100;
@@ -283,7 +283,7 @@ export class OriginalGame implements GameMode {
 
         this.amountOfPlayers++;
         if (this.amountOfPlayers > MAX_PLAYERS) this.amountOfPlayers = 1;
-        m.playSound(this.sounds.get('point'), 'low');
+        m.playSound(this.sounds.get('point'), { priority: 'low' });
         this.lightPlayerLights(m, this.amountOfPlayers);
     }
 
@@ -308,7 +308,7 @@ export class OriginalGame implements GameMode {
     // cuts off the extra ball and ABCD sounds that are triggered by the same hit.
     private writeScore(m: Machine, score: number, withSound = true): void {
         m.showNumber(score);
-        if (withSound) m.playSound(this.sounds.get('point'), 'low');
+        if (withSound) m.playSound(this.sounds.get('point'), { priority: 'low' });
     }
 
     // Light player lamp 1-4, or none for any other number.
@@ -396,7 +396,7 @@ export class OriginalGame implements GameMode {
         const best = Math.max(0, ...this.players.slice(0, this.amountOfPlayers).map((p) => p.score));
         // A rank with no song of its own plays the Wizard one.
         const rankSong = `ending-${rankingTitle(best).toLowerCase()}` as SoundName;
-        m.playSound(this.sounds.get(rankSong) ?? this.sounds.get('ending-wizard'), 'normal', true);
+        m.playSound(this.sounds.get(rankSong) ?? this.sounds.get('ending-wizard'), { loop: true });
         this.saveHighScore();
 
         for (const l of BALL_LAMPS) m.setLamp(l, false);
@@ -420,11 +420,10 @@ export class OriginalGame implements GameMode {
         this.startPressedAtEnd = true;
     }
 
-    // Change from the original: every player's score goes on the high score
-    // list, not just the best one.
+    // Saves the game's best score (one entry per game, whatever the players).
     private saveHighScore(): void {
-        const scores = this.players.slice(0, this.amountOfPlayers).map((p) => p.score);
-        if (recordScores(this.id, scores)) console.log(`[game] new high score ${Math.max(...scores)}`);
+        const best = Math.max(0, ...this.players.slice(0, this.amountOfPlayers).map((p) => p.score));
+        if (recordGame(this.id, best)) console.log(`[game] new high score ${best}`);
     }
 }
 

@@ -22,7 +22,7 @@ export class SwitchTest implements GameMode {
             const ev = await m.nextEvent(60_000);
             if (!ev?.pressed) continue;
             m.scrollText(`${ev.id} ${switchName(ev.id).replaceAll('_', ' ')}     `, 180);
-            m.playSound(this.sounds.get('hit'), 'low');
+            m.playSound(this.sounds.get('hit'), { priority: 'low' });
             if (ev.id === Switch.BALL_RETURN) m.pulseCoil(Coil.BALL_RETURN, 100);
         }
     }

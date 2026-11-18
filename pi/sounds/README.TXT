@@ -36,9 +36,13 @@ original/
 
 frenzy/
   countdown.mid         each of 5 4 3 2 1 (keep it short)
-  music.mid             starts on GO, repeats with no gap until time is up.
-                        The countdown follows its tempo.
+  music.mid             starts on GO, plays until time is up (repeats if
+                        shorter). The countdown follows its tempo.
+  point.mid             bumpers, slingshots, spinners  } on top of the music,
+  big-point.mid         lanes, targets, letters        } keep them well
+  jackpot.mid           A B C D or all three targets   } under a second
   time-up.mid           time is up
+  ending.mid            the final score screen, repeating until start
 
 switch-test/
   hit.mid               a switch was hit

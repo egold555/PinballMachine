@@ -71,8 +71,19 @@ original/ending-fireball:
   startAt: 23.5
 
 frenzy/music:
+  # Original, written for the machine by pi/tools/compose.ts
+  # (edit the sections there, then make compose). 150 bpm, 56 bars, about one play
+  # through a frenzy. Already three voices: lead, arpeggio, bass.
+  source: frenzy/Frenzy theme.mid
+  style: lines
+  melody: [{ channel: 1 }]
+  middle: [{ channel: 2 }]
+  bass: [{ channel: 3 }]
+
+frenzy/ending:
   # "Quick 8-bit song", onlinesequencer.net/1905502
   # (make import-sequence ID=1905502 OUT="Midis/frenzy/Quick 8-bit song.mid")
+  # Was the Frenzy music, now the song on the final score screen.
   # 135 bpm, 20 bars. Bars 1-4 are drums only, which the machine can't play,
   # so this is bars 5-20: it starts on the drop and loops back to it. A bar is
   # 16 sixteenths at 135 bpm = 1.7778 s, so bar 5 starts at 7.1111 s and bar

@@ -54,3 +54,15 @@ Right now the web page (`pi/src/web.ts`, `pi/public/`) is internal only and has 
   Either way, the `/api/admin/*` routes must refuse anything without a login, not just hide the buttons.
 - **HTTPS:** the proxy already provides it. The password must never travel over plain HTTP.
 - **Rate limiting:** add it on the login, so the password can't be guessed by brute force.
+
+## Real audio from the Pi
+
+All sound now comes from the Mega's three square-wave voices: 8-bit beeps, which suit the machine, but three notes at a time and no drums or instruments.
+
+The Pi could play proper audio as well:
+
+- **Hardware:** a small amplifier board and a speaker on the Pi's headphone jack, or a USB sound card. It all sits on the Pi side, so the box's wiring stays untouched.
+- **What it could play:** `.wav`/`.mp3` files (real recordings, voice callouts, sound effects), or the same MIDI files rendered with real instruments and drums through a synth (FluidSynth with a General MIDI soundfont).
+- **How it would fit:** each sound in a mode's folder could be a `.mid` (played on the beeper, as now) or a `.wav` (played on the Pi's speaker). The beeper keeps the chiptune feel, and the speaker adds anything the beeper can't do.
+- **Things to work out:** keeping the Pi's audio in time with the game (it starts a few milliseconds later than the beeper), volume control, and whether both play at once.
+

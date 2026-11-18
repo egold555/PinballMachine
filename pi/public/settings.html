@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Machine settings</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='7' fill='%23c9ccd6'/%3E%3Ccircle cx='5.5' cy='5.5' r='2' fill='white'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+<script src="common.js"></script>
+</head>
+<body>
+<main>
+    <header>
+        <div class="title"><h1>SETTINGS</h1><a href="./">← Back</a></div>
+        <div class="status"><div class="dot" id="dot"></div><span id="status">connecting…</span></div>
+    </header>
+
+    <h2>Bumper &amp; slingshot power</h2>
+    <div class="power">
+        <div class="intro">How long they fire. Longer hits harder but wears coils and rubbers faster.
+            The original is 50 ms. Each game mode uses the default unless you give it its own.</div>
+        <div id="power"></div>
+    </div>
+
+    <h2>Sounds</h2>
+    <div id="sounds"></div>
+    <p class="note">Each mode's sounds are the .mid files in <b>Gameplay/data/sounds/&lt;mode&gt;</b> on the
+        share, read when the program starts. After changing one, restart.</p>
+    <button class="restart" id="restart">Restart program</button>
+</main>
+
+<script>
+    // Power: the default, then each mode (its own setting, or following the default).
+    let lastPower = '';
+    async function setPower(body) {
+        await fetch('/api/power', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+        });
+        lastPower = '';
+        refresh();
+    }
+
+    function stepper(ms, p, onChange, follows) {
+        const down = el('button', { textContent: '−', disabled: ms <= p.min, onclick: () => onChange(ms - 5) });
+        const up = el('button', { textContent: '+', disabled: ms >= p.max, onclick: () => onChange(ms + 5) });
+        down.setAttribute('aria-label', 'Less power');
+        up.setAttribute('aria-label', 'More power');
+        return el('div', { className: 'stepper' + (follows ? ' follows' : '') }, down, el('output', { textContent: ms + ' ms' }), up);
+    }
+
+    function renderPower(state) {
+        const p = state.power;
+        const key = JSON.stringify([p, state.currentMode]);
+        if (key === lastPower) return;
+        lastPower = key;
+        const rows = [el('div', { className: 'row default' },
+            el('div', { className: 'name' }, el('b', { textContent: 'Default' })),
+            stepper(p.default, p, (ms) => setPower({ ms })))];
+        for (const m of state.modes) {
+            const { own, uses } = p.modes[m.id];
+            const note = own === null
+                ? el('span', { textContent: 'uses the default' })
+                : el('span', {}, 'its own setting · ', el('a', { textContent: 'use default', onclick: () => setPower({ mode: m.id, ms: null }) }));
+            rows.push(el('div', { className: 'row' },
+                el('div', { className: 'name' }, el('b', { textContent: m.name + (m.id === state.currentMode ? ' ●' : '') }), note),
+                stepper(uses, p, (ms) => setPower({ mode: m.id, ms }), own === null)));
+        }
+        $('power').replaceChildren(...rows);
+    }
+
+    const SOURCE = {
+        file: 'from file',
+        'built-in': 'built-in',
+        missing: 'no file',
+    };
+
+    function renderSounds(state) {
+        const modeName = Object.fromEntries(state.modes.map((m) => [m.id, m.name]));
+        const modes = [...new Set(state.sounds.map((s) => s.mode))];
+        $('sounds').replaceChildren(...modes.map((mode) => el('div', { className: 'scores sounds' },
+            el('h3', { textContent: `${modeName[mode] ?? mode}  ·  sounds/${mode}/` }),
+            el('table', {}, ...state.sounds.filter((s) => s.mode === mode).map((s) => el('tr', { title: s.error ?? '' },
+                el('td', { textContent: s.name + '.mid' }),
+                el('td', { className: 'src ' + s.source, textContent: (s.error ? 'unreadable, ' : '') + SOURCE[s.source] }),
+                el('td', { className: 'num', textContent: s.notes ? s.seconds.toFixed(1) + ' s' : '' })))))));
+    }
+
+    $('restart').onclick = async () => {
+        if (!confirm('Restart the program? Any game in progress ends. Takes a few seconds.')) return;
+        await fetch('/api/restart', { method: 'POST' });
+    };
+
+    const refresh = poll((state) => {
+        renderPower(state);
+        renderSounds(state);
+    });
+</script>
+</body>
+</html>

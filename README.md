@@ -11,6 +11,7 @@ The code for my pinball machine.
 | [`Arduino/`](Arduino/) | The original all-in-one Mega firmware. Still works. Flash it to go back to how things were. |
 | [`Midis/`](Midis/) | Source MIDI files for the music. |
 | [`FUTURE.md`](FUTURE.md) | Ideas that are possible but not built yet. |
+| [`GAME_IDEAS.md`](GAME_IDEAS.md) | Ideas for new game modes. |
 
 ## Wiring the ESP to the Mega
 

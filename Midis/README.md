@@ -136,10 +136,16 @@ Ending songs repeat until someone presses start, so any length works. Without a 
 | Name | When it plays |
 |---|---|
 | `countdown` | each of 5 4 3 2 1 before the ball comes out (keep it short) |
-| `music` | starts on GO and repeats with no gap until the 90 seconds are up. Make it intense |
+| `music` | starts on GO and plays until the 90 seconds are up. If it's shorter it repeats with no gap, a key higher and a bit faster each time |
+| `point` | bumpers, slingshots, spinners. Plays on top of the music |
+| `big-point` | lanes, targets, letters. On top of the music |
+| `jackpot` | all of A B C D, or all three targets. On top of the music |
 | `time-up` | time is up |
+| `ending` | the final score screen, repeating until start |
 
-The countdown runs on the beat of `music.mid` (its tempo), so GO, where the ball comes out and the music starts, lands on the downbeat. For a seamless loop, set `startAt` and `endAt` in the recipe to bar lines. See `frenzy/music` in `arrangements.yaml`, which also shows how the bar times are worked out.
+Sounds "on top of the music" borrow the music's middle voice (the arpeggio in a `lines` arrangement) while they play, so keep them short: well under a second.
+
+The music is an original theme from `pi/tools/compose.ts` (see [Original songs](#original-songs)). The ending is "Quick 8-bit song" from Online Sequencer.
 
 **`switch-test/`**, Switch Test:
 
@@ -152,6 +158,16 @@ In any mode other than Original, a sound without a file is silent.
 **A new game mode** declares its own list with a `SoundBank` (see `OriginalGame.ts`) and gets its own folder: `pi/sounds/<its id>/`.
 
 A short sound that's already simple (one or two notes at a time) doesn't need a recipe. Name it correctly and put it straight in `pi/sounds/<mode>/`, then `make deploy`.
+
+## Original songs
+
+Some songs are written for the machine instead of downloaded, like the Frenzy theme. They're in `pi/tools/compose.ts` as 8-bar sections (chords, a lead line in a simple note format, and a style for the arpeggio and bass). Edit them there, then:
+
+```sh
+make compose    # rewrites the .mid files in Midis/
+make songs      # then as usual
+make preview
+```
 
 ## Trying something quickly
 

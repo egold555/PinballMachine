@@ -22,7 +22,8 @@ import {
     SWITCH_COUNT,
     type SwitchId,
 } from './protocol/index.js';
-import { SoundPlayer, type SoundPriority } from './SoundPlayer.js';
+import { POWER_MS } from './power.js';
+import { type PlayOptions, SoundPlayer } from './SoundPlayer.js';
 
 export interface SwitchEvent {
     id: SwitchId;
@@ -40,13 +41,15 @@ export const Autofire = {
     ALL: 0x0f,
 } as const;
 
-// Index i here is Autofire bit i. 50 ms is the original SOLENOID_DELAY.
-const AUTOFIRE_RULES: { sw: SwitchId; coil: CoilId; ms: number }[] = [
-    { sw: Switch.LEFT_SLINGSHOT, coil: Coil.SLINGSHOT_LEFT, ms: 50 },
-    { sw: Switch.RIGHT_SLINGSHOT, coil: Coil.SLINGSHOT_RIGHT, ms: 50 },
-    { sw: Switch.LEFT_THUMPER_BUMPER, coil: Coil.THUMPER_LEFT, ms: 50 },
-    { sw: Switch.RIGHT_THUMPER_BUMPER, coil: Coil.THUMPER_RIGHT, ms: 50 },
+// Index i here is Autofire bit i. How long they fire is set by GameRunner
+// from the power setting (power.ts).
+const AUTOFIRE_RULES: { sw: SwitchId; coil: CoilId }[] = [
+    { sw: Switch.LEFT_SLINGSHOT, coil: Coil.SLINGSHOT_LEFT },
+    { sw: Switch.RIGHT_SLINGSHOT, coil: Coil.SLINGSHOT_RIGHT },
+    { sw: Switch.LEFT_THUMPER_BUMPER, coil: Coil.THUMPER_LEFT },
+    { sw: Switch.RIGHT_THUMPER_BUMPER, coil: Coil.THUMPER_RIGHT },
 ];
+
 
 // Thrown out of nextEvent()/sleep() when stopGame() is called, so the running
 // game unwinds. GameRunner catches it; game code normally doesn't need to.
@@ -93,6 +96,7 @@ export class Machine implements LinkListener {
     private scrollPos = 0;
 
     private autofire = 0;
+    private autofireMs: number = POWER_MS.original;
     private lockedOut = false;
 
     constructor(private readonly link: MegaLink) {
@@ -233,9 +237,14 @@ export class Machine implements LinkListener {
         this.scrolling = true;
     }
 
-    // What the display shows right now.
+    // What the display shows right now (8 characters).
     get displayText(): string {
         return this.text;
+    }
+
+    // What the display is saying: the whole message when it scrolls.
+    get displayMessage(): { text: string; scrolling: boolean } {
+        return this.scrolling ? { text: this.scroll.trim(), scrolling: true } : { text: this.text, scrolling: false };
     }
 
     private setText(text: string): void {
@@ -245,11 +254,15 @@ export class Machine implements LinkListener {
 
     // ---------------------------------------------------------------- Sound
 
-    // A looping sound repeats, after loopGapMs of silence, until stopSound()
-    // (or another sound replaces it). null (a sound the mode has no file
-    // for) plays nothing.
-    playSound(score: Uint8Array | null, priority: SoundPriority = 'normal', loop = false, loopGapMs = 1000): void {
-        if (score && !this.lockedOut) this.sound.play(score, priority, loop, loopGapMs);
+    // Plays a sound (see PlayOptions for looping and priority). null (a
+    // sound the mode has no file for) plays nothing.
+    playSound(score: Uint8Array | null, options: PlayOptions = {}): void {
+        if (score && !this.lockedOut) this.sound.play(score, options);
+    }
+
+    // A short sound on top of whatever is playing (it borrows one voice).
+    playEffect(score: Uint8Array | null): void {
+        if (score && !this.lockedOut) this.sound.playEffect(score);
     }
 
     stopSound(): void {
@@ -258,6 +271,11 @@ export class Machine implements LinkListener {
 
     get soundPlaying(): boolean {
         return this.sound.playing;
+    }
+
+    // How many times a looping sound has started over.
+    get soundLoops(): number {
+        return this.sound.loops;
     }
 
     // sleep() until the current sound ends.
@@ -270,6 +288,14 @@ export class Machine implements LinkListener {
     pulseCoil(id: CoilId, ms: number): void {
         if (this.lockedOut) return;
         this.link.send(Msg.COIL_PULSE, [id, ms]);
+    }
+
+    // How long the bumpers and slingshots fire. Sent to the Mega at once.
+    setAutofireMs(ms: number): void {
+        if (ms === this.autofireMs) return;
+        this.autofireMs = ms;
+        this.sendAutofireRules();
+        console.log(`[machine] bumpers and slingshots fire for ${ms} ms`);
     }
 
     // Autofire bits, 0 = all off.
@@ -338,9 +364,13 @@ export class Machine implements LinkListener {
         this.lastLampSend = now();
     }
 
+    private sendAutofireRules(): void {
+        AUTOFIRE_RULES.forEach((r, i) => this.link.send(Msg.AUTOFIRE_RULE, [i, r.sw, r.coil, this.autofireMs]));
+    }
+
     // The Mega just (re)connected and forgot everything: tell it again.
     private resync(): void {
-        AUTOFIRE_RULES.forEach((r, i) => this.link.send(Msg.AUTOFIRE_RULE, [i, r.sw, r.coil, r.ms]));
+        this.sendAutofireRules();
         this.link.send(Msg.AUTOFIRE_ENABLE, [this.autofire]);
         this.lampsDirty = true;
         this.textDirty = true;

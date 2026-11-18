@@ -4,6 +4,7 @@
 import { setTimeout as delay } from 'node:timers/promises';
 import type { GameMode } from './games/GameMode.js';
 import { GameStopped, type Machine } from './Machine.js';
+import { powerFor } from './power.js';
 import { load, save } from './storage.js';
 
 const MODE_KEY = 'mode';
@@ -34,10 +35,17 @@ export class GameRunner {
         return true;
     }
 
+    // Sends the running mode's bumper and slingshot power to the Mega. Called
+    // when a mode starts and when the power settings change.
+    applyPower(): void {
+        this.m.setAutofireMs(powerFor(this.current.id));
+    }
+
     async run(): Promise<never> {
         for (;;) {
             const mode = this.current;
             console.log(`[game] ${mode.name}`);
+            this.applyPower();
             try {
                 await mode.run(this.m);
             } catch (err) {

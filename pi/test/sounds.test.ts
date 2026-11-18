@@ -112,7 +112,7 @@ test('a looping sound repeats until stopped', async () => {
     const link = { send: (type: number) => void (type === 0x17 && noteOns++) };
     const player = new SoundPlayer(link as never);
 
-    player.play(Uint8Array.from([0x90, 60, 0, 50, 0x80, 0xf0]), 'normal', true); // 50 ms, then 1 s pause
+    player.play(Uint8Array.from([0x90, 60, 0, 50, 0x80, 0xf0]), { loop: true }); // 50 ms, then 1 s pause
     await delay(1200);
     assert.equal(noteOns, 2, 'played twice');
     assert.ok(player.playing);
@@ -122,7 +122,7 @@ test('a looping sound repeats until stopped', async () => {
     assert.equal(noteOns, 2, 'nothing after stop');
     assert.ok(!player.playing);
 
-    player.play(Uint8Array.from([0xf0]), 'normal', true); // empty: must not hang
+    player.play(Uint8Array.from([0xf0]), { loop: true }); // empty: must not hang
     await delay(20);
     player.stop();
 });
@@ -133,12 +133,12 @@ test('a gapless loop comes straight back, and an empty one can\'t hang', async (
     let noteOns = 0;
     const player = new SoundPlayer({ send: (type: number) => void (type === 0x17 && noteOns++) } as never);
 
-    player.play(Uint8Array.from([0x90, 60, 0, 100, 0xf0]), 'normal', true, 0); // 100 ms
+    player.play(Uint8Array.from([0x90, 60, 0, 100, 0xf0]), { loop: true, loopGapMs: 0 }); // 100 ms
     await delay(350);
     player.stop();
     assert.ok(noteOns >= 3, `no pause between repeats (${noteOns} in 350 ms)`);
 
-    player.play(Uint8Array.from([0xf0]), 'normal', true, 0); // would spin forever
+    player.play(Uint8Array.from([0xf0]), { loop: true, loopGapMs: 0 }); // would spin forever
     await delay(20);
     assert.ok(!player.playing, 'stops instead');
 });

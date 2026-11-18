@@ -14,7 +14,7 @@ await import('../src/games/index.js'); // creates every mode's sound bank
 const { SoundTest } = await import('../src/games/SoundTest.js');
 const { LightTest } = await import('../src/games/LightTest.js');
 const { Frenzy } = await import('../src/games/Frenzy.js');
-const { highScores } = await import('../src/highScores.js');
+const { scores } = await import('../src/highScores.js');
 const { bitGet, Coil, Lamp, Msg, Switch } = await import('../src/protocol/index.js');
 type MegaLink = import('../src/MegaLink.js').MegaLink;
 
@@ -43,12 +43,12 @@ test('sound test: every mode\'s sounds, start plays and stops', async () => {
     assert.match(m.displayText, /2 ORIGIN/);
     await press(Switch.FLIPPER_LEFT);
     await press(Switch.FLIPPER_LEFT); // wraps around to the last one
-    assert.match(m.displayText, /15 SWITC/, 'switch-test hit');
+    assert.match(m.displayText, /19 SWITC/, 'switch-test hit');
 
     await press(Switch.START);
     assert.ok(!m.soundPlaying, 'no file: nothing plays');
 
-    for (let i = 0; i < 3; i++) await press(Switch.FLIPPER_LEFT); // frenzy's three: no files here
+    for (let i = 0; i < 7; i++) await press(Switch.FLIPPER_LEFT); // frenzy's seven: no files here
     await press(Switch.FLIPPER_LEFT); // original ending-fireball: no file, no built-in
     await press(Switch.FLIPPER_LEFT); // original ending-wizard: built-in
     sent.length = 0;
@@ -79,12 +79,12 @@ test('light test: flippers pick, start toggles the lamp', async () => {
     m.stopGame();
 });
 
-test('frenzy: countdown, kick, score, drains come back, time up', async () => {
+test('frenzy: countdown, kick, rolling score, jackpot, drains come back, time up', async () => {
     const { m, sent, press } = setup();
     const kicks = () => sent.filter((f) => f.type === Msg.COIL_PULSE && f.payload[0] === Coil.BALL_RETURN).length;
     // No music file here, so the countdown runs at 135 bpm: a beat is 444 ms.
     // FRENZY for 4 beats (1.78 s), each number 2 beats, GO after 14 (6.22 s).
-    void new Frenzy(3000).run(m).catch(() => {});
+    void new Frenzy(6000).run(m).catch(() => {});
     await delay(50);
     assert.match(m.displayText, /FRENZY/);
 
@@ -98,18 +98,30 @@ test('frenzy: countdown, kick, score, drains come back, time up', async () => {
     await delay(1100);
     assert.equal(m.displayText.trim(), '0', 'then the score, never the time');
 
-    await press(Switch.A);
-    assert.equal(m.displayText.trim(), '1000');
+    await press(Switch.TILT);
+    assert.equal(m.displayText.trim(), '0', 'tilt does nothing');
+
+    m.onSwitch(Switch.A, true);
+    await delay(40);
+    const rolling = Number(m.displayText.trim());
+    assert.ok(rolling > 0 && rolling < 10_000, `counts up (${rolling})`);
+    await delay(1000); // it gets there in about 0.4 s (more on a busy computer)
+    assert.equal(m.displayText.trim(), '10000');
+    m.onSwitch(Switch.A, false);
+
     for (const s of [Switch.B, Switch.C, Switch.D]) await press(s);
-    assert.equal(m.displayText.trim(), String(4000 + 10_000), 'A B C D collected');
+    assert.equal(m.displayText.trim(), 'JACKPOT', 'A B C D collected');
+    await delay(1700); // JACKPOT for 0.9 s, then it rolls up
+    assert.equal(m.displayText.trim(), String(40_000 + 100_000));
 
     m.onSwitch(Switch.BALL_RETURN, true); // drained
     await delay(60);
     assert.equal(kicks(), 2, 'straight back out');
     m.onSwitch(Switch.BALL_RETURN, false);
 
-    await delay(1700);
+    await delay(2300); // about 4.1 s of play so far; time is up at 6, TIME UP stays 2.5
     assert.equal(m.displayText.trim(), 'TIME UP');
-    assert.equal(highScores('frenzy')[0]?.score, 14000);
+    assert.equal(scores('frenzy').at(-1)?.score, 140_000);
     m.stopGame();
 });
+
