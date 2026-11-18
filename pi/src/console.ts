@@ -48,6 +48,7 @@ link.start({
     onSwitch: (id, closed) =>
         console.log(`\n  switch ${String(id).padStart(2)} ${switchName(id).padEnd(22)} ${closed ? 'CLOSED' : 'open'}`),
     onSwitchState: () => {},
+    onDisconnect: () => console.log('\n  Mega disconnected, waiting for it to come back'),
 });
 setInterval(() => link.send(Msg.LAMPS, lamps), HEARTBEAT_MS);
 

@@ -22,6 +22,7 @@ export interface LinkListener {
     onHello(version: number): void;
     onSwitch(id: number, closed: boolean): void;
     onSwitchState(bits: Uint8Array): void;
+    onDisconnect(): void; // the USB cable was pulled (or the Mega lost power)
 }
 
 // The Mega's bootloader runs for about a second after a reset.
@@ -36,6 +37,7 @@ export class MegaLink {
     private bootTimer: NodeJS.Timeout | null = null;
     private lastRx = -Infinity;
     private closing = false;
+    private openFailed = false; // logged once, not every retry
 
     // With no path, it looks for the Mega every time it (re)opens the port.
     constructor(private readonly fixedPath: string | null = null) {}
@@ -79,18 +81,21 @@ export class MegaLink {
         port.on('close', () => {
             if (this.bootTimer) clearTimeout(this.bootTimer);
             if (this.closing) return;
-            console.log('[link] port closed, retrying');
+            console.log('[link] Mega disconnected, waiting for it to come back');
+            this.listener?.onDisconnect();
             setTimeout(() => void this.open(), REOPEN_MS);
         });
         port.on('error', (err) => console.log(`[link] ${err.message}`));
 
         port.open((err) => {
             if (err) {
-                console.log(`[link] can't open ${path}: ${err.message}`);
+                if (!this.openFailed) console.log(`[link] can't open ${path}: ${err.message} (will keep trying)`);
+                this.openFailed = true;
                 setTimeout(() => void this.open(), REOPEN_MS);
                 return;
             }
             console.log(`[link] opened ${path}, waiting for the Mega to boot`);
+            this.openFailed = false;
             this.port = port;
             // The Mega says hello on its own once it boots. If the port didn't
             // reset it (it was already running), ask instead.

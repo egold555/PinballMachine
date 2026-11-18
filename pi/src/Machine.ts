@@ -168,6 +168,16 @@ export class Machine implements LinkListener {
         this.switches.set(bits);
     }
 
+    // Set by GameRunner: what to do when the Mega goes away.
+    whenDisconnected: (() => void) | null = null;
+
+    onDisconnect(): void {
+        // Nothing the game sends gets through until it's back, and the
+        // switches it last reported are stale.
+        this.switches.fill(0);
+        this.whenDisconnected?.();
+    }
+
     onHello(): void {
         console.log('[link] Mega connected');
         this.resync();

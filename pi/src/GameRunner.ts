@@ -17,6 +17,16 @@ export class GameRunner {
         readonly modes: GameMode[],
     ) {
         this.current = modes.find((mode) => mode.id === load(MODE_KEY, '')) ?? modes[0];
+        this.watchLink();
+    }
+
+    // Unplugging the Mega abandons the game in progress: the mode starts
+    // over, at its "press start" screen, ready for when it's plugged back in.
+    private watchLink(): void {
+        this.m.whenDisconnected = () => {
+            console.log(`[game] Mega gone, ${this.current.name} starts over`);
+            this.m.stopGame();
+        };
     }
 
     get currentMode(): GameMode {
