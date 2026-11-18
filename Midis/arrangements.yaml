@@ -95,3 +95,26 @@ frenzy/ending:
   melody: [{ channel: 3 }] # 8-bit sawtooth: the lead
   middle: [{ channel: 2 }] # 8-bit square: the arpeggio
   bass: [{ channel: 1 }] # 8-bit triangle
+
+sudden-death/music:
+  # Original, from pi/tools/compose.ts. One tense 8-bar loop: 140 bpm, so a
+  # bar is 1.7143 s and 8 bars 13.7143 s. Each time round is a level, so it
+  # must loop seamlessly: start and end exactly on the bar lines.
+  source: sudden-death/Sudden Death theme.mid
+  style: lines
+  startAt: 0
+  endAt: 13.7143
+  melody: [{ channel: 1 }]
+  middle: [{ channel: 2 }]
+  bass: [{ channel: 3 }]
+
+sudden-death/ending:
+  # Original, from pi/tools/compose.ts. Slow, 100 bpm, 8 bars = 19.2 s, looped
+  # on the score screen.
+  source: sudden-death/Sudden Death ending.mid
+  style: lines
+  startAt: 0
+  endAt: 19.2
+  melody: [{ channel: 1 }]
+  middle: [{ channel: 2 }]
+  bass: [{ channel: 3 }]

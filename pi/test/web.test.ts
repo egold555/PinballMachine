@@ -40,7 +40,7 @@ const selectMode = (id: string) =>
 test('state lists the modes and carries over the old high score', async () => {
     const s = await state();
     assert.equal(s.currentMode, 'original');
-    assert.deepEqual(s.modes.map((m: { id: string }) => m.id), ['original', 'frenzy', 'switch-test', 'sound-test', 'light-test']);
+    assert.deepEqual(s.modes.map((m: { id: string }) => m.id), ['original', 'frenzy', 'sudden-death', 'switch-test', 'sound-test', 'light-test']);
     assert.deepEqual(s.modes[0].scores, [{ score: 18950, date: '' }]);
     assert.equal(s.modes.find((m: { id: string }) => m.id === 'switch-test').scores, null, 'switch test keeps no scores');
 });

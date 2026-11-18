@@ -147,6 +147,20 @@ Sounds "on top of the music" borrow the music's middle voice (the arpeggio in a 
 
 The music is an original theme from `pi/tools/compose.ts` (see [Original songs](#original-songs)). The ending is "Quick 8-bit song" from Online Sequencer.
 
+The countdown runs on the beat of `music.mid` (its tempo), so GO, where the ball comes out and the music starts, lands on the downbeat. For a seamless loop, set `startAt` and `endAt` in the recipe to bar lines. See `frenzy/music` in `arrangements.yaml`, which also shows how the bar times are worked out.
+
+**`sudden-death/`**, Sudden Death:
+
+| Name | When it plays |
+|---|---|
+| `music` | the whole game. A short loop: each time round is the next level, a key higher and faster |
+| `point`, `big-point`, `jackpot` | as in Frenzy, on top of the music |
+| `level-up` | a new level, on top of the music |
+| `game-over` | the ball drained |
+| `ending` | the final score screen, repeating until start |
+
+The music and ending are original, from `pi/tools/compose.ts`. Keep the music a short seamless loop (`startAt` and `endAt` on bar lines), since its length sets how long a level lasts.
+
 **`switch-test/`**, Switch Test:
 
 | Name | When it plays |
@@ -161,7 +175,7 @@ A short sound that's already simple (one or two notes at a time) doesn't need a 
 
 ## Original songs
 
-Some songs are written for the machine instead of downloaded, like the Frenzy theme. They're in `pi/tools/compose.ts` as 8-bar sections (chords, a lead line in a simple note format, and a style for the arpeggio and bass). Edit them there, then:
+Some songs are written for the machine instead of downloaded: the Frenzy theme and both Sudden Death songs. They're in `pi/tools/compose.ts` as 8-bar sections (chords, a lead line in a simple note format, and a style for the arpeggio and bass). Edit them there, then:
 
 ```sh
 make compose    # rewrites the .mid files in Midis/

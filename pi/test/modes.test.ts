@@ -14,6 +14,7 @@ await import('../src/games/index.js'); // creates every mode's sound bank
 const { SoundTest } = await import('../src/games/SoundTest.js');
 const { LightTest } = await import('../src/games/LightTest.js');
 const { Frenzy } = await import('../src/games/Frenzy.js');
+const { SuddenDeath } = await import('../src/games/SuddenDeath.js');
 const { scores } = await import('../src/highScores.js');
 const { bitGet, Coil, Lamp, Msg, Switch } = await import('../src/protocol/index.js');
 type MegaLink = import('../src/MegaLink.js').MegaLink;
@@ -43,12 +44,12 @@ test('sound test: every mode\'s sounds, start plays and stops', async () => {
     assert.match(m.displayText, /2 ORIGIN/);
     await press(Switch.FLIPPER_LEFT);
     await press(Switch.FLIPPER_LEFT); // wraps around to the last one
-    assert.match(m.displayText, /19 SWITC/, 'switch-test hit');
+    assert.match(m.displayText, /26 SWITC/, 'switch-test hit');
 
     await press(Switch.START);
     assert.ok(!m.soundPlaying, 'no file: nothing plays');
 
-    for (let i = 0; i < 7; i++) await press(Switch.FLIPPER_LEFT); // frenzy's seven: no files here
+    for (let i = 0; i < 14; i++) await press(Switch.FLIPPER_LEFT); // sudden death's and frenzy's seven each: no files here
     await press(Switch.FLIPPER_LEFT); // original ending-fireball: no file, no built-in
     await press(Switch.FLIPPER_LEFT); // original ending-wizard: built-in
     sent.length = 0;
@@ -125,3 +126,37 @@ test('frenzy: countdown, kick, rolling score, jackpot, drains come back, time up
     m.stopGame();
 });
 
+test('sudden death: early drain kicked back, levels multiply, drain ends it', async () => {
+    const { m, sent, press } = setup();
+    const kicks = () => sent.filter((f) => f.type === Msg.COIL_PULSE && f.payload[0] === Coil.BALL_RETURN).length;
+    // No music file here, so a level lasts levelMs (3 s) instead of a loop of the music.
+    void new SuddenDeath(3000).run(m).catch(() => {});
+    await delay(50);
+    assert.match(m.displayText, /SUDDEN/);
+
+    await press(Switch.START);
+    await delay(1700); // SUDDEN, DEATH
+    assert.equal(kicks(), 1, 'ball kicked out');
+
+    m.onSwitch(Switch.BALL_RETURN, true); // drained before scoring: doesn't count
+    await delay(350); // a kick waits 250 ms after the last one
+    assert.equal(kicks(), 2, 'kicked out again');
+    m.onSwitch(Switch.BALL_RETURN, false);
+
+    await delay(500); // GO
+    await press(Switch.A);
+    await delay(600);
+    assert.equal(m.displayText.trim(), '10000', 'level 1: normal points');
+
+    await delay(1700); // about 3.2 s in: level 2
+    assert.equal(m.displayText.trim(), 'LEVEL 2');
+    await press(Switch.B);
+    await delay(1600);
+    assert.equal(m.displayText.trim(), String(10_000 + 2 * 10_000), 'level 2: double points');
+
+    m.onSwitch(Switch.BALL_RETURN, true); // drained after scoring: game over
+    await delay(80);
+    assert.equal(m.displayText.trim(), 'GAMEOVER');
+    assert.equal(scores('sudden-death').at(-1)?.score, 30_000);
+    m.stopGame();
+});

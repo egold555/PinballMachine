@@ -5,6 +5,7 @@ Every game mode has its own sounds, in a folder named after the mode:
 
   original/       the Original game
   frenzy/         Frenzy
+  sudden-death/   Sudden Death
   switch-test/    Switch Test
 
 To change a sound, replace its file, then press "Restart program" on the
@@ -42,6 +43,16 @@ frenzy/
   big-point.mid         lanes, targets, letters        } keep them well
   jackpot.mid           A B C D or all three targets   } under a second
   time-up.mid           time is up
+  ending.mid            the final score screen, repeating until start
+
+sudden-death/
+  music.mid             a short loop; each time round is a level (a key
+                        higher and faster). Must loop seamlessly
+  point.mid             } as in Frenzy, on top of the music
+  big-point.mid         }
+  jackpot.mid           }
+  level-up.mid          a new level, on top of the music
+  game-over.mid         the ball drained
   ending.mid            the final score screen, repeating until start
 
 switch-test/

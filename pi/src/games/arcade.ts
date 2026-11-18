@@ -1,4 +1,4 @@
-// Shared by the arcade-style modes (Frenzy so far): what each switch
+// Shared by the arcade-style modes (Frenzy, Sudden Death): what each switch
 // scores, jackpots for collecting A B C D or all three targets, a blip and a
 // flash of lights on every score, a light chase, a score that rolls up to its
 // new value, and the final score screens.

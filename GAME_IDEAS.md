@@ -1,6 +1,6 @@
 # Game mode ideas
 
-Ideas for new game modes. **Frenzy** came from this list and is built (`pi/src/games/Frenzy.ts`). The rest are not built yet.
+Ideas for new game modes. **Frenzy** and **Sudden Death** came from this list and are built (`pi/src/games/`). The rest are not built yet.
 
 What every mode has to work with:
 
@@ -32,7 +32,7 @@ Like Frenzy, but each score has to come within a few seconds of the last to keep
 - Rewards keeping the ball busy, not just surviving.
 - Most of Frenzy's code carries over: scoring, effects, lights, the rolling score, music that can speed up.
 
-## Sudden Death
+## Sudden Death (built)
 
 One ball, no kick-back. Points are worth more the longer you survive, and the music keeps getting faster and higher until you drain.
 
@@ -52,7 +52,7 @@ The 9 lit shots form a card shown on your phone. Each hit marks a square, and yo
 
 ## Adding a mode
 
-1. Copy an existing mode in `pi/src/games/` and give it an `id`, `name` and `description`. Frenzy is a short example: the scoring, sounds, lights, rolling score and end screens arcade-style modes share are in `arcade.ts`.
+1. Copy an existing mode in `pi/src/games/` and give it an `id`, `name` and `description`. Frenzy and Sudden Death are short examples: the scoring, sounds, lights, rolling score and end screens they share are in `arcade.ts`.
 2. List it in `pi/src/games/index.ts`. It gets a button on the web page automatically.
 3. Give it a `SoundBank` with its own sound names, and put the files in `pi/sounds/<id>/` (see `Midis/README.md`).
 4. Set `keepsHighScores = true` if it should save scores.

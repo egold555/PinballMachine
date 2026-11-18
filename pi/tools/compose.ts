@@ -78,11 +78,44 @@ const BREAKDOWN: Section = {
     bass: 'long',
 };
 
+// ------------------------------------------------- Sudden Death songs
+// The music is one tense 8-bar loop (140 bpm, 13.7 s): each time round is a
+// level, and the game plays it a key higher and faster every time. The
+// ending is slow and sad, for the score screen.
+
+const SUDDEN_DEATH: Section = {
+    chords: ['Am', 'Am', 'F', 'E', 'Am', 'Am', 'Dm', 'E'],
+    lead: `A5:2 E5:2 A5:2 B5:2 C6:2 B5:2 A5:2 E5:2 | A5:2 E5:2 A5:2 B5:2 C6:4 E6:4 |
+           F5:2 C5:2 F5:2 G5:2 A5:2 G5:2 F5:2 C5:2 | E5:2 G#5:2 B5:2 E6:2 D6:4 B5:4 |
+           A5:2 E5:2 A5:2 B5:2 C6:2 B5:2 A5:2 E5:2 | A5:2 C6:2 E6:4 D6:2 C6:2 B5:4 |
+           D6:2 A5:2 F5:2 A5:2 D6:4 F6:4 | E6:4 D6:2 C6:2 B5:4 G#5:4`,
+    arp: 'sixteenths',
+    bass: 'drive',
+};
+
+const SUDDEN_DEATH_ENDING: Section = {
+    chords: ['Am', 'Am', 'F', 'F', 'C', 'C', 'E', 'E'],
+    lead: `E5:8 D5:4 C5:4 | A4:16 | F5:8 E5:4 D5:4 | C5:16 |
+           E5:8 G5:4 E5:4 | C5:8 B4:8 | G#4:8 B4:4 D5:4 | E5:16`,
+    arp: 'eighths',
+    bass: 'long',
+};
+
 const SONGS: Record<string, Song> = {
     frenzy: {
         file: 'frenzy/Frenzy theme.mid',
         bpm: 150,
         sections: [[A, 0], [A2, 0], [B, 0], [BREAKDOWN, 0], [A, 2], [B, 2], [A2, 2]],
+    },
+    'sudden-death': {
+        file: 'sudden-death/Sudden Death theme.mid',
+        bpm: 140,
+        sections: [[SUDDEN_DEATH, 0]],
+    },
+    'sudden-death-ending': {
+        file: 'sudden-death/Sudden Death ending.mid',
+        bpm: 100,
+        sections: [[SUDDEN_DEATH_ENDING, 0]],
     },
 };
 
