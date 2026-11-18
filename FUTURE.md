@@ -66,3 +66,12 @@ The Pi could play proper audio as well:
 - **How it would fit:** each sound in a mode's folder could be a `.mid` (played on the beeper, as now) or a `.wav` (played on the Pi's speaker). The beeper keeps the chiptune feel, and the speaker adds anything the beeper can't do.
 - **Things to work out:** keeping the Pi's audio in time with the game (it starts a few milliseconds later than the beeper), volume control, and whether both play at once.
 
+## Machine off / on, and shutting down the Pi
+
+When the machine is switched off, the Mega stays powered over the Pi's USB cable, so the display keeps going and flickers. For now the cable gets unplugged by hand (safe: the game starts over when it's plugged back in). Two buttons for the Machine settings page would make that unnecessary:
+
+- **Machine off / on:** the Pi 4 can switch power to its USB ports in software, with `uhubctl` (`uhubctl -l 1-1 -a off` / `on`; on a Pi 4 all four ports switch together, which is fine with only the Mega plugged in). Off: the Mega and display go dark, and the game sees it as an unplug. On: the Mega boots and the game reconnects. Needs `uhubctl` installed and allowed in `pi/system/sudoers`, then `make setup-pi`.
+- **Shut down Pi:** a clean `shutdown`, for the rare times the Pi itself must be unplugged (pull the plug once its green light stops). Also needs a sudoers entry.
+
+The Pi is meant to stay on otherwise (3-4 W). Pulling its power while running risks corrupting the SD card. A read-only SD card setup would make that always safe, but scores and settings would have to be stored elsewhere.
+
